@@ -206,8 +206,14 @@ def _auc(r_traj, b_traj=None, i_traj=None, future_boundary=None, skip_boundaries
         future_boundary = bd.FutureBoundary(r_traj, b_traj, i_traj=i_traj)
 
     ok = future_boundary.index > -1
-    if skip_boundaries: ok = ok & b_traj==0 
-    return sklearn.metrics.roc_auc_score(future_boundary.r[ok], r_traj[ok])
+    if skip_boundaries: ok = ok & b_traj==0
+    y_true = future_boundary.r[ok]
+    if len(np.unique(y_true)) < 2:
+        # Only one boundary (typically A) was ever reached in this data/subset,
+        # e.g. because crossings into the other boundary are rare TIS events.
+        # ROC AUC is undefined in that case, so skip it instead of crashing.
+        return float('nan')
+    return sklearn.metrics.roc_auc_score(y_true, r_traj[ok])
 
 def _delta_x(r1_traj, r2_traj):
     return tf.math.reduce_mean((r1_traj-r2_traj) ** 2) ** 0.5
