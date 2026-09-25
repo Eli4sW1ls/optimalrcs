@@ -63,7 +63,7 @@ def load_order_file(order_file, acc_only=True):
         block = data[lo:hi]
         time.append(block[:, 0])
         order.append(block[:, 1])
-        cvs.append(block[:, 2:])
+        cvs.append(block[:, 1:])
     return cvs, order, time
 
 
@@ -74,7 +74,7 @@ def load_tis_data(tis_dir, ensemble_glob="0[0-9][0-9]", acc_only=True):
     following the standard (RE)PPTIS output layout.
     """
     cvs, order, time = [], [], []
-    folders = sorted(glob.glob(os.path.join(tis_dir, ensemble_glob)))
+    folders = sorted(glob.glob(os.path.join(tis_dir, ensemble_glob)))[1:]
     print(f"Found {len(folders)} ensemble folders in {tis_dir}")
     for i, folder in enumerate(folders):
         order_file = os.path.join(folder, "order.txt")
@@ -93,7 +93,7 @@ def load_tis_data(tis_dir, ensemble_glob="0[0-9][0-9]", acc_only=True):
 
 
 cvs, order, time = load_tis_data(tis_dir)
-cvs, order, time = cvs[len(cvs)//3:int(1.2*len(cvs)//3)], order[len(order)//3:int(1.2*len(order)//3)], time[len(time)//3:int(1.2*len(time)//3)]
+cvs, order, time = cvs[int(1.*len(cvs)//3):int(1.7*len(cvs)//3)], order[int(1.*len(order)//3):int(1.7*len(order)//3)], time[int(1.*len(time)//3):int(1.7*len(time)//3)]
 
 X = np.concatenate(cvs, axis=0)
 lam = np.concatenate(order, axis=0)
@@ -124,18 +124,20 @@ q = optimalrcs.CommittorNE(
 def comp_y():
     return X[:, np.random.randint(X.shape[1])]
 
-max_iter = 10_000
+max_iter = 600
 print(f"Starting CommittorNE training for {max_iter} iterations...")
 q.fit_transform(
     comp_y,
-    history_delta_t=[0, 1, 2, 4, 8, 16],
-    gamma=0.05,
+    # history_delta_t=[0, 1, 2, 4, 8, 16],
+    # gamma=0.02,
     max_iter=max_iter,
-    print_step=10,
+    print_step=1000,
     min_delta_x=1e-5,
 )
 print("CommittorNE training complete.")
 
+q.plots_feps()
+q.plots_obs_pred()
 # Plot the potential with data points colored by their fitted committor value.
 # Assumes a 2D potential where the order parameter (x-axis) and the first CV
 # (y-axis) are the same coordinates the potential is defined on.
@@ -146,9 +148,9 @@ potential = potential_module.RectangularGridWithBarrierPotential()
 
 fig, ax = plt.subplots()
 potential.plot_potential(ax)
-sc = ax.scatter(lam, X[:, 0], c=q.r_traj, cmap="coolwarm", s=2, edgecolors="none")
+sc = ax.scatter(lam, X[:, 1], c=q.r_traj, cmap="coolwarm", s=2, edgecolors="none")
 fig.colorbar(sc, ax=ax, label="committor")
 ax.set_xlabel("order parameter")
-ax.set_ylabel("CV[0]")
+ax.set_ylabel("CV[1]")
 plt.show()
 

@@ -5,6 +5,18 @@
 import numpy as np
 
 
+def _segment_bounds(n, i_traj):
+    """Start/end indices of each contiguous run of equal `i_traj` values."""
+    if i_traj is None:
+        return np.array([0]), np.array([n])
+    seg_start = np.empty(n, dtype=bool)
+    seg_start[0] = True
+    seg_start[1:] = i_traj[1:] != i_traj[:-1]
+    starts = np.flatnonzero(seg_start)
+    ends = np.append(starts[1:], n)
+    return starts, ends
+
+
 class FutureBoundary:
     """
     class to contain information about boundaries in the future, to correctly describe martingale at the boundaries
@@ -22,33 +34,25 @@ class FutureBoundary:
     """
     def __init__(self, r_traj: np.ndarray, b_traj: np.ndarray, t_traj: np.ndarray = None, i_traj: np.ndarray = None) -> None:
         n = len(r_traj)
-        self.index = np.zeros(n, 'int32')  # index of the boundary in the future
-        index_current = -1
-        if b_traj[-1] > 0:
-            index_current = n - 1
-        self.index[-1] = index_current
-        for i in range(n - 2, -1, -1):
-            if (i_traj is not None) and (i_traj[i] != i_traj[i + 1]):  # new trajectory's end
-                index_current = -1
-            if b_traj[i] > 0:
-                index_current = i
-            self.index[i] = index_current
+        starts, ends = _segment_bounds(n, i_traj)
 
-        #if i_traj is None or len(np.unique(i_traj))==1:
-        #    self.delta_i_to_end = np.array(range(n-1,-1,-1))
-        #else:
-        #    self.set_distance_to_end(i_traj)
+        # self.index[i]: nearest j >= i within the same trajectory with
+        # b_traj[j] > 0, else -1. Computed per-trajectory (not per-frame) via
+        # a reversed running-min, since looping over O(n) individual frames
+        # in Python is prohibitively slow for multi-million-frame data.
+        marker = np.where(b_traj > 0, np.arange(n), n)  # n = "not found" sentinel
+        index = np.empty(n, dtype=np.int64)
+        for s, e in zip(starts, ends):
+            index[s:e] = np.minimum.accumulate(marker[s:e][::-1])[::-1]
+        self.index = np.where(index == n, -1, index).astype('int32')
 
-        self.delta_i_to_end = np.zeros(n, 'int32')  # index of the boundary in the future
-        delta_i_to_end_current = 0
-        for i in range(n - 2, -1, -1):
-            delta_i_to_end_current += 1
-            if (i_traj is not None) and (i_traj[i] != i_traj[i + 1]):  # new trajectory's end
-                delta_i_to_end_current = 0
-            self.delta_i_to_end[i] = delta_i_to_end_current
-        
+        # self.delta_i_to_end[i]: distance from i to the last frame of its trajectory.
+        self.delta_i_to_end = np.empty(n, dtype='int32')
+        for s, e in zip(starts, ends):
+            self.delta_i_to_end[s:e] = np.arange(e - s - 1, -1, -1)
+
         self.r = np.where(self.index > -1, r_traj[self.index], 0)
-        index_frame = range(n)
+        index_frame = np.arange(n, dtype='int32')
         self.delta_i = np.where(self.index > -1, self.index - index_frame, 0)
         self.index2=np.roll(self.index, -1)
         self.index2[-1]=-1
@@ -61,8 +65,8 @@ class FutureBoundary:
             self.delta_t = self.delta_i
             self.delta_t2 = self.delta_i2
         else:
-            self.delta_t = np.where(self.index > -1, t_traj[self.index] - t_traj[index_frame], 0)
-            self.delta_t2 = np.where(self.index2 > -1, t_traj[self.index2] - t_traj[index_frame], 0)
+            self.delta_t = np.where(self.index > -1, t_traj[self.index] - t_traj, 0)
+            self.delta_t2 = np.where(self.index2 > -1, t_traj[self.index2] - t_traj, 0)
 
     def set_distance_to_end(self, i_traj):
         traj_ends=np.where(np.roll(i_traj,-1)!=i_traj)[0]
@@ -105,28 +109,24 @@ class FutureBoundary:
 class PastBoundary:
     def __init__(self, r_traj: np.ndarray, b_traj: np.ndarray, t_traj: np.ndarray = None, i_traj: np.ndarray = None) -> None:
         n = len(r_traj)
-        self.index = np.zeros(n, 'int32')  # index of the boundary in the future
-        index_current = -1
-        if b_traj[0] > 0:
-            index_current = 0
-        self.index[0] = index_current
-        for i in range(1,n):
-            if (i_traj is not None) and (i_traj[i] != i_traj[i - 1]):
-                index_current = -1
-            if b_traj[i] > 0:
-                index_current = i
-            self.index[i] = index_current
+        starts, ends = _segment_bounds(n, i_traj)
 
-        self.delta_i_from_start = np.zeros(n, 'int32')  # index of the boundary in the future
-        delta_i_from_start_current = 0
-        for i in range(1,n):
-            delta_i_from_start_current += 1
-            if (i_traj is not None) and (i_traj[i] != i_traj[i - 1]):  # new trajectory's end
-                delta_i_from_start_current=0
-            self.delta_i_from_start[i] = delta_i_from_start_current
+        # self.index[i]: nearest j <= i within the same trajectory with
+        # b_traj[j] > 0, else -1. Mirrors FutureBoundary but with a forward
+        # running-max, computed per-trajectory for the same reason.
+        marker = np.where(b_traj > 0, np.arange(n), -1)
+        index = np.empty(n, dtype=np.int64)
+        for s, e in zip(starts, ends):
+            index[s:e] = np.maximum.accumulate(marker[s:e])
+        self.index = index.astype('int32')
+
+        # self.delta_i_from_start[i]: distance from i to the first frame of its trajectory.
+        self.delta_i_from_start = np.empty(n, dtype='int32')
+        for s, e in zip(starts, ends):
+            self.delta_i_from_start[s:e] = np.arange(e - s)
 
         self.r = np.where(self.index > -1, r_traj[self.index], 0)
-        index_frame = range(n)
+        index_frame = np.arange(n, dtype='int32')
         self.delta_i = np.where(self.index > -1, self.index - index_frame, 0)
         self.index2=np.roll(self.index, 1)
         self.index2[0]=-1
@@ -138,5 +138,5 @@ class PastBoundary:
             self.delta_t=self.delta_i
             self.delta_t2=self.delta_i2
         else:
-            self.delta_t = np.where(self.index > -1, t_traj[self.index] - t_traj[index_frame], 0)
-            self.delta_t2 = np.where(self.index2 > -1, t_traj[self.index2] - t_traj[index_frame], 0)
+            self.delta_t = np.where(self.index > -1, t_traj[self.index] - t_traj, 0)
+            self.delta_t2 = np.where(self.index2 > -1, t_traj[self.index2] - t_traj, 0)

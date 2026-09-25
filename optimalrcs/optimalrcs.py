@@ -379,6 +379,8 @@ class CommittorNE:
                 _train_mask = tf.cast(tf.random.uniform(shape=[self.r_traj.shape[0] - 1]) < train_mask,dtype=self.r_traj.dtype)
                 r_traj = nonparametrics.npneq(self.r_traj, fk, self.i_traj, _gamma, train_mask=_train_mask)
 
+            fk = None  # release before the next iteration rebuilds it
+
             delta_r2_new = metrics._delta_r2_ne_dt1(r_traj, self.i_traj)
             if delta_r2_new-delta_r2<delta2_r2_max_change_allowed:
                 self.r_traj=r_traj
