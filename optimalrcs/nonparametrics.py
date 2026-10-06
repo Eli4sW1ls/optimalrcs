@@ -105,8 +105,26 @@ def npt(r_traj, fk, i_traj=None, w_traj=None):
     rn_traj = r_traj + tf.tensordot(al_j, fk, 1)
     return rn_traj
 
-@tf.function
-def npneq(r_traj, fk, i_traj=None, gamma=0, stable=False, train_mask=None):
+npneq_chunk = 1_000_000
+
+
+@tf.function(reduce_retracing=True)
+def _npneq_moments(fa, fb, itw, delta_r, gamma, stable):
+    """akj/b contributions of one block of consecutive transitions.
+
+    fa/fb are the basis functions at the start/end frames of each transition.
+    Kept separate from `npneq` so that the (n_basis, block) temporaries stay
+    bounded instead of scaling with the full trajectory length.
+    """
+    if stable:
+        akj = -tf.matmul(fa, fa * itw, transpose_b=True)
+    else:
+        akj = tf.matmul(fa, fb * itw - fa * (itw + gamma), transpose_b=True)
+    return akj, tf.linalg.matvec(fa, -delta_r * itw)
+
+
+def npneq(r_traj, fk, i_traj=None, gamma=0, stable=False, train_mask=None,
+          chunk=None):
     """ implements NPNEq (non-parametric non-equilibrium committor
     optimization) iteration.
 
@@ -116,7 +134,16 @@ def npneq(r_traj, fk, i_traj=None, gamma=0, stable=False, train_mask=None):
         Ib(i)=1 when X(i) belongs to the boundary states and 0 otherwise
     It is the trajectory indicator function:
         It(i)=1 if X(i) and X(i+1) belong to the same short trajectory
+
+    akj and b are sums over transitions, so they are accumulated block by
+    block: the full-length intermediates this would otherwise allocate
+    dominate peak memory for multi-million-frame trajectories.
+
+    fk is either the (n_basis, N) basis tensor or a callable fk(s, e) returning
+    its columns s..e-1; the callable form never materializes the full basis.
     """
+    basis = fk if callable(fk) else (lambda s, e: fk[:, s:e])
+
     if i_traj is None:
         itw = tf.ones_like(r_traj[:-1])
     else:
@@ -125,21 +152,28 @@ def npneq(r_traj, fk, i_traj=None, gamma=0, stable=False, train_mask=None):
     if train_mask is not None:
         itw = itw * train_mask
 
-    if stable:
-        akj = -tf.tensordot(fk[:, :-1], fk[:, :-1] * itw, axes=[1, 1])
-    else:
-        delta_fj = fk[:, 1:] * itw - fk[:, :-1] * (itw + gamma)
-        akj = tf.tensordot(fk[:, :-1], delta_fj, axes=[1, 1])
-
     delta_r = r_traj[1:] - r_traj[:-1]
-    b = tf.tensordot(fk[:, :-1], -delta_r * itw, 1)
-    b = tf.reshape(b, [b.shape[0], 1])
+
+    n_frames = int(r_traj.shape[0])
+    gamma = tf.cast(gamma, r_traj.dtype)
+    akj, b = 0, 0
+    step = chunk or npneq_chunk
+    for s in range(0, n_frames - 1, step):
+        e = min(s + step, n_frames - 1)
+        f = basis(s, e + 1)
+        akj_i, b_i = _npneq_moments(f[:, :-1], f[:, 1:], itw[s:e],
+                                    delta_r[s:e], gamma, stable)
+        akj += akj_i
+        b += b_i
+
+    b = tf.reshape(b, [-1, 1])
 
     al_j = tf.linalg.lstsq(akj, b, fast=False)
     al_j = tf.reshape(al_j, [al_j.shape[0]])
 
-    rn_traj = r_traj + tf.tensordot(al_j, fk, 1)
-    rn_traj = tf.clip_by_value(rn_traj, 0, 1)
+    delta = tf.concat([tf.tensordot(al_j, basis(s, min(s + step, n_frames)), 1)
+                       for s in range(0, n_frames, step)], axis=0)
+    rn_traj = tf.clip_by_value(r_traj + delta, 0, 1)
     return rn_traj
 
 @tf.function

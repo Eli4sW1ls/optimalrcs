@@ -82,12 +82,14 @@ def basis_poly_ry(r, y, n, fenv=None):
     """
     r = r / tf.math.reduce_max(tf.math.abs(r))
     y = y / tf.math.reduce_max(tf.math.abs(y))
-
     if fenv is None:
-        f = tf.ones_like(r)
-    else:
-        f = tf.identity(fenv)
+        fenv = tf.ones_like(r)
+    return _poly_ry(r, y, n, fenv)
 
+
+@tf.function(reduce_retracing=True)
+def _poly_ry(r, y, n, f):
+    """Monomials r^i * y^j * f with i + j <= n, for already-normalized r and y."""
     fk = []
     for iy in range(n + 1):
         fr = tf.identity(f)
@@ -96,6 +98,21 @@ def basis_poly_ry(r, y, n, fenv=None):
             fr = fr * r
         f = f * y
     return tf.stack(fk)
+
+
+def lazy_basis_poly_ry(r, y, n, fenv=None):
+    """`basis_poly_ry` as a function of a frame range [s, e).
+
+    The normalization uses the full-length r and y, so every block matches the
+    corresponding columns of `basis_poly_ry(r, y, n, fenv)`, but the full
+    (M, N) basis is never held in memory at once.
+    """
+    r = r / tf.math.reduce_max(tf.math.abs(r))
+    y = y / tf.math.reduce_max(tf.math.abs(y))
+    if fenv is None:
+        fenv = tf.ones_like(r)
+    fenv = tf.cast(fenv, r.dtype)
+    return lambda s, e: _poly_ry(r[s:e], y[s:e], n, fenv[s:e])
 
 
 class CommittorNE:
@@ -366,7 +383,10 @@ class CommittorNE:
                 var1, var2 = (np.random.choice(history_type) if isinstance(history_type, list) else history_type).split(',')
                 y1, y2 = self._history_select_y1y2(y, self.r_traj, delta_t, var1, var2)
 
-            fk = basis_functions(y1, y2, ny, _envelope)
+            if basis_functions is basis_poly_ry:
+                fk = lazy_basis_poly_ry(tf.convert_to_tensor(y1, self.prec), y2, ny, _envelope)
+            else:
+                fk = basis_functions(y1, y2, ny, _envelope)
 
             # compute the gamma parameter
             if callable(gamma):
