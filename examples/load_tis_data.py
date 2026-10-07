@@ -1,3 +1,15 @@
+"""Fit a non-equilibrium committor (CommittorNE) to TIS path data.
+
+Example:
+    python load_tis_data.py /path/to/sim -a 0.05 -b 0.85 --max-iter 20000 \
+        --history 0 1 2 4 8 --potential potentials/sjoelbak.py
+
+Each ensemble folder `<tis_dir>/0NN/order.txt` holds the time in column 0,
+the order parameter in column 1 and optional extra CVs after that. The order
+parameter itself is always used as CV 0, so 1D simulations (time + order
+only) work too.
+"""
+import argparse
 import glob
 import importlib.util
 import os
@@ -11,45 +23,9 @@ import pandas as pd
 import tensorflow as tf
 import optimalrcs
 
-# The GPU is shared. Without this TensorFlow reserves the entire card up front,
-# which would starve anyone else already running on it.
-for _gpu in tf.config.list_physical_devices("GPU"):
-    tf.config.experimental.set_memory_growth(_gpu, True)
-
-# For each TIS path p:
-#   cvs[p]:       (n_frames, n_features), all candidate CVs at each frame
-#   order[p]:     (n_frames,), order parameter used to define A/B
-#   time[p]:      (n_frames,), physical time, starting at 0 for each path
-
-tis_dir = "/home/elias/mnt/tw06_biommeda_pastime1/11.2024_StapleTIS_Elias/simulations/Z_pot2D/sim_istarz_2603/"
-lambda_A = 0.05
-lambda_B = 0.85
-
-# Path to the potential module, relative to tis_dir.
-potential_file = os.path.join(tis_dir, "potentials/sjoelbak.py")
-
-figure_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "figures")
-os.makedirs(figure_dir, exist_ok=True)
-figure_label = "figure"
-
-
-def save_open_figures(*args, **kwargs):
-    """Save every open figure into `figure_dir` under `figure_label`, then close it.
-
-    Installed in place of plt.show(): plots_feps()/plots_obs_pred() build their
-    figures and call plt.show() themselves without ever returning them, so
-    replacing show() is what makes those figures reachable.
-    """
-    numbers = plt.get_fignums()
-    for i, number in enumerate(numbers):
-        suffix = "" if len(numbers) == 1 else f"_{i + 1}"
-        path = os.path.join(figure_dir, f"{figure_label}{suffix}.png")
-        plt.figure(number).savefig(path, dpi=150, bbox_inches="tight")
-        print(f"  saved {path}")
-    plt.close("all")
-
-
-plt.show = save_open_figures
+# plots_feps()/plots_obs_pred() call plt.show() themselves and never return
+# their figures; with show() a no-op the figures stay open to be saved.
+plt.show = lambda *args, **kwargs: None
 
 _CYCLE_RE = re.compile(r"# Cycle:\s*\d+,\s*status:\s*(\S+?),")
 
@@ -61,6 +37,7 @@ def load_order_file(order_file, acc_only=True):
     `# Cycle: <n>, status: <FLAG>, ...` header line. Within a path, every
     frame line holds the time in column 0, the order parameter in column 1,
     and any additional collective variables (CVs) in the remaining columns.
+    The returned CVs include the order parameter as their first column.
     """
     # First pass: locate path boundaries and acceptance flags by scanning
     # lines as plain text (cheap - no per-line list/float allocation).
@@ -98,14 +75,18 @@ def load_order_file(order_file, acc_only=True):
     return cvs, order, time
 
 
-def load_tis_data(tis_dir, ensemble_glob="0[0-9][0-9]", acc_only=True):
+def load_tis_data(tis_dir, ensemble_glob="0[0-9][0-9]", acc_only=True,
+                  include_zero_minus=False):
     """Load per-path time/order/CV arrays from all TIS ensemble folders in `tis_dir`.
 
     Ensemble folders are expected at `tis_dir/<ensemble_glob>/order.txt`,
-    following the standard (RE)PPTIS output layout.
+    following the standard (RE)PPTIS output layout. The first folder is the
+    [0-] ensemble and is skipped unless `include_zero_minus` is set.
     """
     cvs, order, time = [], [], []
-    folders = sorted(glob.glob(os.path.join(tis_dir, ensemble_glob)))[1:]
+    folders = sorted(glob.glob(os.path.join(tis_dir, ensemble_glob)))
+    if not include_zero_minus:
+        folders = folders[1:]
     print(f"Found {len(folders)} ensemble folders in {tis_dir}")
     for i, folder in enumerate(folders):
         order_file = os.path.join(folder, "order.txt")
@@ -123,72 +104,140 @@ def load_tis_data(tis_dir, ensemble_glob="0[0-9][0-9]", acc_only=True):
     return cvs, order, time
 
 
-cvs, order, time = load_tis_data(tis_dir)
-#cvs, order, time = cvs[int(1.*len(cvs)//3):int(2*len(cvs)//3)], order[int(1.*len(order)//3):int(2*len(order)//3)], time[int(1.*len(time)//3):int(2*len(time)//3)]
+def save_open_figures(figure_dir, label):
+    """Save every open figure as `<figure_dir>/<label>[_n].png`, then close them."""
+    numbers = plt.get_fignums()
+    for i, number in enumerate(numbers):
+        suffix = "" if len(numbers) == 1 else f"_{i + 1}"
+        path = os.path.join(figure_dir, f"{label}{suffix}.png")
+        plt.figure(number).savefig(path, dpi=150, bbox_inches="tight")
+        print(f"  saved {path}")
+    plt.close("all")
 
-X = np.concatenate(cvs, axis=0)
-lam = np.concatenate(order, axis=0)
-t_traj = np.concatenate(time, axis=0)
-i_traj = np.concatenate([
-    np.full(len(path), path_id, dtype=int)
-    for path_id, path in enumerate(cvs)
-])
 
-# Define basin membership from the same operational-state definitions used in TIS.
-boundary0 = lam <= lambda_A  # state A: q = 0
-boundary1 = lam >= lambda_B  # state B: q = 1
+def parse_args():
+    parser = argparse.ArgumentParser(
+        description="Fit a non-equilibrium committor to TIS path data.")
+    parser.add_argument("tis_dir", help="simulation directory with the 0NN ensemble folders")
+    parser.add_argument("-a", "--lambda-a", type=float, required=True,
+                        help="state A: order parameter <= lambda_A")
+    parser.add_argument("-b", "--lambda-b", type=float, required=True,
+                        help="state B: order parameter >= lambda_B")
+    parser.add_argument("--max-iter", type=int, default=10000)
+    parser.add_argument("--history", type=int, nargs="+", metavar="DT",
+                        help="history delays in frames, e.g. --history 0 1 2 4 8 "
+                             "(default: no history)")
+    parser.add_argument("--gamma", type=float, default=0.1,
+                        help="regularization strength")
+    parser.add_argument("--ny", type=int, default=6,
+                        help="maximum polynomial degree of the basis")
+    parser.add_argument("--print-step", type=int, default=500)
+    parser.add_argument("--min-delta-x", type=float, default=1e-6,
+                        help="stop when the RC changes less than this between print steps")
+    parser.add_argument("--include-zero-minus", action="store_true",
+                        help="also use the [0-] ensemble (folder 000)")
+    parser.add_argument("--potential",
+                        help="2D potential module (absolute, or relative to tis_dir) "
+                             "to plot the committor on")
+    parser.add_argument("--potential-class", default="RectangularGridWithBarrierPotential")
+    parser.add_argument("--figure-dir",
+                        default=os.path.join(os.path.dirname(os.path.abspath(__file__)), "figures"))
+    return parser.parse_args()
 
-# Validate the prepared data before fitting.
-assert X.shape[0] == lam.size == t_traj.size == i_traj.size
-assert not np.any(boundary0 & boundary1)
-assert np.all(np.diff(i_traj) >= 0)
-assert all(np.all(np.diff(t_traj[i_traj == path_id]) > 0)
-           for path_id in np.unique(i_traj))
 
-q = optimalrcs.CommittorNE(
-    boundary0=boundary0,
-    boundary1=boundary1,
-    i_traj=i_traj,
-    t_traj=t_traj,
-)
+def main():
+    args = parse_args()
 
-def comp_y():
-    return X[:, np.random.randint(X.shape[1])]
+    # The GPU is shared. Without this TensorFlow reserves the entire card up front,
+    # which would starve anyone else already running on it.
+    for gpu in tf.config.list_physical_devices("GPU"):
+        tf.config.experimental.set_memory_growth(gpu, True)
 
-max_iter = 10000
-print(f"Starting CommittorNE training for {max_iter} iterations...")
-q.fit_transform(
-    comp_y,
-    history_delta_t=[0, 1],
-    gamma=0.1,
-    max_iter=max_iter,
-    print_step=500,
-    min_delta_x=1e-6,
-)
-print("CommittorNE training complete.")
+    os.makedirs(args.figure_dir, exist_ok=True)
 
-figure_label = "feps"
-q.plots_feps()
+    cvs, order, time = load_tis_data(args.tis_dir, include_zero_minus=args.include_zero_minus)
 
-figure_label = "obs_pred"
-q.plots_obs_pred()
+    X = np.concatenate(cvs, axis=0)
+    lam = np.concatenate(order, axis=0)
+    t_traj = np.concatenate(time, axis=0)
+    i_traj = np.concatenate([
+        np.full(len(path), path_id, dtype=int)
+        for path_id, path in enumerate(cvs)
+    ])
+    del cvs, order, time
+    print(f"Using {X.shape[1]} CV(s)")
 
-# Plot the potential with data points colored by their fitted committor value.
-# Assumes a 2D potential where the order parameter (x-axis) and the first CV
-# (y-axis) are the same coordinates the potential is defined on.
-spec = importlib.util.spec_from_file_location("potential_module", potential_file)
-potential_module = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(potential_module)
-potential = potential_module.RectangularGridWithBarrierPotential()
+    # Define basin membership from the same operational-state definitions used in TIS.
+    boundary0 = lam <= args.lambda_a  # state A: q = 0
+    boundary1 = lam >= args.lambda_b  # state B: q = 1
+    print(f"Frames in A: {boundary0.sum()}, in B: {boundary1.sum()}")
 
-fig, ax = plt.subplots()
-potential.plot_potential(ax)
-sc = ax.scatter(lam, X[:, 1], c=q.r_traj, cmap="coolwarm", s=2, edgecolors="none")
-fig.colorbar(sc, ax=ax, label="committor")
-ax.set_xlabel("order parameter")
-ax.set_ylabel("CV[1]")
-figure_label = "committor_on_potential"
-plt.show()
+    # Validate the prepared data before fitting.
+    same_path = i_traj[1:] == i_traj[:-1]
+    assert X.shape[0] == lam.size == t_traj.size == i_traj.size
+    assert not np.any(boundary0 & boundary1)
+    assert np.all(np.diff(i_traj) >= 0)
+    assert np.all(np.diff(t_traj)[same_path] > 0)
 
-print(f"Figures written to {figure_dir}")
+    q = optimalrcs.CommittorNE(
+        boundary0=boundary0,
+        boundary1=boundary1,
+        i_traj=i_traj,
+        t_traj=t_traj,
+    )
 
+    def comp_y():
+        return X[:, np.random.randint(X.shape[1])]
+
+    print(f"Starting CommittorNE training for {args.max_iter} iterations...")
+    q.fit_transform(
+        comp_y,
+        history_delta_t=args.history,
+        gamma=args.gamma,
+        ny=args.ny,
+        max_iter=args.max_iter,
+        print_step=args.print_step,
+        min_delta_x=args.min_delta_x,
+    )
+    print("CommittorNE training complete.")
+
+    q.plots_feps()
+    save_open_figures(args.figure_dir, "feps")
+
+    q.plots_obs_pred()
+    save_open_figures(args.figure_dir, "obs_pred")
+
+    r_traj = np.asarray(q.r_traj)
+    fig, ax = plt.subplots()
+    ax.scatter(lam, r_traj, s=1, alpha=0.2, edgecolors="none")
+    for lam_boundary in (args.lambda_a, args.lambda_b):
+        ax.axvline(lam_boundary, color="k", linestyle="--", lw=0.5)
+    ax.set_xlabel("order parameter")
+    ax.set_ylabel("committor")
+    save_open_figures(args.figure_dir, "committor_vs_order")
+
+    if args.potential:
+        if X.shape[1] < 2:
+            print("Skipping the potential plot: it needs a second CV (2D simulation).")
+        else:
+            # Assumes the order parameter (x-axis) and CV 1 (y-axis) are the
+            # coordinates the 2D potential is defined on.
+            potential_file = os.path.join(args.tis_dir, args.potential)
+            spec = importlib.util.spec_from_file_location("potential_module", potential_file)
+            potential_module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(potential_module)
+            potential = getattr(potential_module, args.potential_class)()
+
+            fig, ax = plt.subplots()
+            potential.plot_potential(ax)
+            sc = ax.scatter(lam, X[:, 1], c=r_traj, cmap="coolwarm", s=2, edgecolors="none")
+            fig.colorbar(sc, ax=ax, label="committor")
+            ax.set_xlabel("order parameter")
+            ax.set_ylabel("CV[1]")
+            save_open_figures(args.figure_dir, "committor_on_potential")
+
+    print(f"Figures written to {args.figure_dir}")
+
+
+if __name__ == "__main__":
+    main()
