@@ -2,18 +2,22 @@
 
 Example:
     python load_tis_data.py /path/to/sim -a 0.05 -b 0.85 --max-iter 20000 \
-        --history 0 1 2 4 8 --potential potentials/sjoelbak.py
+        --history 0 1 2 4 8
 
 Each ensemble folder `<tis_dir>/0NN/order.txt` holds the time in column 0,
 the order parameter in column 1 and optional extra CVs after that. The order
 parameter itself is always used as CV 0, so 1D simulations (time + order
-only) work too.
+only) work too. If `<tis_dir>/engine.py` exists, the committor is also
+plotted on the potential that engine was run with.
 """
 import argparse
+import ast
 import glob
-import importlib.util
+import importlib
 import os
 import re
+import sys
+import types
 
 import matplotlib
 matplotlib.use("Agg")  # no display on the remote host, so render straight to files
@@ -117,6 +121,47 @@ def load_tis_data(tis_dir, ensemble_glob="0[0-9][0-9]", acc_only=True,
     return cvs, order, time
 
 
+def load_engine_potential(sim_dir, engine_class):
+    """Build the potential that `engine_class` in `<sim_dir>/engine.py` runs with.
+
+    engine.py imports every available potential module, some of which need
+    packages that may not be installed, so it is not imported. Instead its
+    source is parsed for the active (last uncommented) `self.potential = ...`
+    in `engine_class`, and only that potential's module is loaded.
+    """
+    with open(os.path.join(sim_dir, "engine.py")) as f:
+        tree = ast.parse(f.read())
+    modules = {alias.asname or alias.name: node.module
+               for node in ast.walk(tree) if isinstance(node, ast.ImportFrom)
+               for alias in node.names}
+    engine = next(n for n in tree.body if isinstance(n, ast.ClassDef) and n.name == engine_class)
+    calls = [n.value for n in ast.walk(engine)
+             if isinstance(n, ast.Assign) and isinstance(n.value, ast.Call)
+             and any(isinstance(t, ast.Attribute) and t.attr == "potential" for t in n.targets)]
+    call = max(calls, key=lambda c: c.lineno)
+    name = call.func.id
+
+    try:
+        importlib.import_module("pyretis.forcefield.potential")
+    except ImportError:
+        # The toy potentials only import PyRETIS for the PotentialFunction base
+        # class and never call into it, so an empty stand-in is enough.
+        stub = types.ModuleType("pyretis.forcefield.potential")
+        stub.PotentialFunction = type("PotentialFunction", (), {})
+        sys.modules.update({"pyretis": types.ModuleType("pyretis"),
+                            "pyretis.forcefield": types.ModuleType("pyretis.forcefield"),
+                            "pyretis.forcefield.potential": stub})
+
+    sys.path.insert(0, sim_dir)
+    try:
+        module = importlib.import_module(modules[name])
+    finally:
+        sys.path.remove(sim_dir)
+    print(f"Potential from {engine_class} in engine.py: {ast.unparse(call)}")
+    return eval(compile(ast.Expression(call), "engine.py", "eval"),
+                {"np": np, name: getattr(module, name)})
+
+
 def save_open_figures(figure_dir, label):
     """Save every open figure as `<figure_dir>/<label>[_n].png`, then close them."""
     numbers = plt.get_fignums()
@@ -154,10 +199,11 @@ def parse_args():
                              "(default: all)")
     parser.add_argument("--seed", type=int,
                         help="random seed for --paths-per-ensemble")
-    parser.add_argument("--potential",
-                        help="2D potential module (absolute, or relative to tis_dir) "
-                             "to plot the committor on")
-    parser.add_argument("--potential-class", default="RectangularGridWithBarrierPotential")
+    parser.add_argument("--engine-class",
+                        help="engine in <tis_dir>/engine.py whose potential to plot "
+                             "(default: LangevinEngine for 1 CV, ndLangevinEngine otherwise)")
+    parser.add_argument("--no-potential", action="store_true",
+                        help="skip the committor-on-potential plot")
     parser.add_argument("--figure-dir",
                         default=os.path.join(os.path.dirname(os.path.abspath(__file__)), "figures"))
     return parser.parse_args()
@@ -236,25 +282,34 @@ def main():
     ax.set_ylabel("committor")
     save_open_figures(args.figure_dir, "committor_vs_order")
 
-    if args.potential:
-        if X.shape[1] < 2:
-            print("Skipping the potential plot: it needs a second CV (2D simulation).")
+    if args.no_potential:
+        pass
+    elif not os.path.isfile(os.path.join(args.tis_dir, "engine.py")):
+        print("No engine.py in tis_dir, skipping the potential plot.")
+    else:
+        engine_class = args.engine_class or ("LangevinEngine" if X.shape[1] == 1
+                                             else "ndLangevinEngine")
+        potential = load_engine_potential(args.tis_dir, engine_class)
+
+        fig, ax = plt.subplots()
+        if X.shape[1] == 1:
+            # 1D: the order parameter is the position the potential is defined on.
+            grid = np.linspace(lam.min(), lam.max(), 500)
+            ax.plot(grid, [potential.potential_and_force((x, 0.))[0] for x in grid],
+                    color="gray")
+            ax.set_ylabel("potential")
+            ax_q = ax.twinx()
+            ax_q.scatter(lam, r_traj, c=r_traj, cmap="coolwarm", s=1, edgecolors="none")
+            ax_q.set_ylabel("committor")
         else:
             # Assumes the order parameter (x-axis) and CV 1 (y-axis) are the
             # coordinates the 2D potential is defined on.
-            potential_file = os.path.join(args.tis_dir, args.potential)
-            spec = importlib.util.spec_from_file_location("potential_module", potential_file)
-            potential_module = importlib.util.module_from_spec(spec)
-            spec.loader.exec_module(potential_module)
-            potential = getattr(potential_module, args.potential_class)()
-
-            fig, ax = plt.subplots()
             potential.plot_potential(ax)
             sc = ax.scatter(lam, X[:, 1], c=r_traj, cmap="coolwarm", s=2, edgecolors="none")
             fig.colorbar(sc, ax=ax, label="committor")
-            ax.set_xlabel("order parameter")
             ax.set_ylabel("CV[1]")
-            save_open_figures(args.figure_dir, "committor_on_potential")
+        ax.set_xlabel("order parameter")
+        save_open_figures(args.figure_dir, "committor_on_potential")
 
     print(f"Figures written to {args.figure_dir}")
 
