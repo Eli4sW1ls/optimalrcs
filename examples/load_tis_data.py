@@ -199,6 +199,9 @@ def parse_args():
                              "(default: all)")
     parser.add_argument("--seed", type=int,
                         help="random seed for --paths-per-ensemble")
+    parser.add_argument("--n-cvs", type=int, metavar="N",
+                        help="train on only the first N CVs; CV 0 is the order parameter "
+                             "(default: all CVs in order.txt)")
     parser.add_argument("--engine-class",
                         help="engine in <tis_dir>/engine.py whose potential to plot "
                              "(default: LangevinEngine for 1 CV, ndLangevinEngine otherwise)")
@@ -231,7 +234,15 @@ def main():
         for path_id, path in enumerate(cvs)
     ])
     del cvs, order, time
-    print(f"Using {X.shape[1]} CV(s)")
+
+    # Training may use fewer CVs, but plots always see the data's full dimension.
+    X_all = X
+    if args.n_cvs is not None:
+        if not 1 <= args.n_cvs <= X_all.shape[1]:
+            raise SystemExit(f"--n-cvs must be between 1 and {X_all.shape[1]} "
+                             f"(the number of CVs in order.txt)")
+        X = X_all[:, :args.n_cvs]
+    print(f"Using {X.shape[1]} of {X_all.shape[1]} CV(s)")
 
     # Define basin membership from the same operational-state definitions used in TIS.
     boundary0 = lam <= args.lambda_a  # state A: q = 0
@@ -287,12 +298,12 @@ def main():
     elif not os.path.isfile(os.path.join(args.tis_dir, "engine.py")):
         print("No engine.py in tis_dir, skipping the potential plot.")
     else:
-        engine_class = args.engine_class or ("LangevinEngine" if X.shape[1] == 1
+        engine_class = args.engine_class or ("LangevinEngine" if X_all.shape[1] == 1
                                              else "ndLangevinEngine")
         potential = load_engine_potential(args.tis_dir, engine_class)
 
         fig, ax = plt.subplots()
-        if X.shape[1] == 1:
+        if X_all.shape[1] == 1:
             # 1D: the order parameter is the position the potential is defined on.
             grid = np.linspace(lam.min(), lam.max(), 500)
             ax.plot(grid, [potential.potential_and_force((x, 0.))[0] for x in grid],
@@ -305,7 +316,7 @@ def main():
             # Assumes the order parameter (x-axis) and CV 1 (y-axis) are the
             # coordinates the 2D potential is defined on.
             potential.plot_potential(ax)
-            sc = ax.scatter(lam, X[:, 1], c=r_traj, cmap="coolwarm", s=2, edgecolors="none")
+            sc = ax.scatter(lam, X_all[:, 1], c=r_traj, cmap="coolwarm", s=2, edgecolors="none")
             fig.colorbar(sc, ax=ax, label="committor")
             ax.set_ylabel("CV[1]")
         ax.set_xlabel("order parameter")
