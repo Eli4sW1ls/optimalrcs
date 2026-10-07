@@ -3,22 +3,53 @@ import importlib.util
 import os
 import re
 
+import matplotlib
+matplotlib.use("Agg")  # no display on the remote host, so render straight to files
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import tensorflow as tf
 import optimalrcs
+
+# The GPU is shared. Without this TensorFlow reserves the entire card up front,
+# which would starve anyone else already running on it.
+for _gpu in tf.config.list_physical_devices("GPU"):
+    tf.config.experimental.set_memory_growth(_gpu, True)
 
 # For each TIS path p:
 #   cvs[p]:       (n_frames, n_features), all candidate CVs at each frame
 #   order[p]:     (n_frames,), order parameter used to define A/B
 #   time[p]:      (n_frames,), physical time, starting at 0 for each path
 
-tis_dir = "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/PyRETIS3/toytis/simulations/sim_istarz_2603/"
+tis_dir = "/home/elias/mnt/tw06_biommeda_pastime1/11.2024_StapleTIS_Elias/simulations/Z_pot2D/sim_istarz_2603/"
 lambda_A = 0.05
 lambda_B = 0.85
 
 # Path to the potential module, relative to tis_dir.
-potential_file = os.path.join(tis_dir, "../../potentials/sjoelbak.py")
+potential_file = os.path.join(tis_dir, "potentials/sjoelbak.py")
+
+figure_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "figures")
+os.makedirs(figure_dir, exist_ok=True)
+figure_label = "figure"
+
+
+def save_open_figures(*args, **kwargs):
+    """Save every open figure into `figure_dir` under `figure_label`, then close it.
+
+    Installed in place of plt.show(): plots_feps()/plots_obs_pred() build their
+    figures and call plt.show() themselves without ever returning them, so
+    replacing show() is what makes those figures reachable.
+    """
+    numbers = plt.get_fignums()
+    for i, number in enumerate(numbers):
+        suffix = "" if len(numbers) == 1 else f"_{i + 1}"
+        path = os.path.join(figure_dir, f"{figure_label}{suffix}.png")
+        plt.figure(number).savefig(path, dpi=150, bbox_inches="tight")
+        print(f"  saved {path}")
+    plt.close("all")
+
+
+plt.show = save_open_figures
 
 _CYCLE_RE = re.compile(r"# Cycle:\s*\d+,\s*status:\s*(\S+?),")
 
@@ -93,7 +124,7 @@ def load_tis_data(tis_dir, ensemble_glob="0[0-9][0-9]", acc_only=True):
 
 
 cvs, order, time = load_tis_data(tis_dir)
-cvs, order, time = cvs[int(1.*len(cvs)//3):int(1.7*len(cvs)//3)], order[int(1.*len(order)//3):int(1.7*len(order)//3)], time[int(1.*len(time)//3):int(1.7*len(time)//3)]
+#cvs, order, time = cvs[int(1.*len(cvs)//3):int(2*len(cvs)//3)], order[int(1.*len(order)//3):int(2*len(order)//3)], time[int(1.*len(time)//3):int(2*len(time)//3)]
 
 X = np.concatenate(cvs, axis=0)
 lam = np.concatenate(order, axis=0)
@@ -124,20 +155,24 @@ q = optimalrcs.CommittorNE(
 def comp_y():
     return X[:, np.random.randint(X.shape[1])]
 
-max_iter = 600
+max_iter = 10000
 print(f"Starting CommittorNE training for {max_iter} iterations...")
 q.fit_transform(
     comp_y,
-    # history_delta_t=[0, 1, 2, 4, 8, 16],
-    # gamma=0.02,
+    history_delta_t=[0, 1],
+    gamma=0.1,
     max_iter=max_iter,
-    print_step=1000,
-    min_delta_x=1e-5,
+    print_step=500,
+    min_delta_x=1e-6,
 )
 print("CommittorNE training complete.")
 
+figure_label = "feps"
 q.plots_feps()
+
+figure_label = "obs_pred"
 q.plots_obs_pred()
+
 # Plot the potential with data points colored by their fitted committor value.
 # Assumes a 2D potential where the order parameter (x-axis) and the first CV
 # (y-axis) are the same coordinates the potential is defined on.
@@ -152,5 +187,8 @@ sc = ax.scatter(lam, X[:, 1], c=q.r_traj, cmap="coolwarm", s=2, edgecolors="none
 fig.colorbar(sc, ax=ax, label="committor")
 ax.set_xlabel("order parameter")
 ax.set_ylabel("CV[1]")
+figure_label = "committor_on_potential"
 plt.show()
+
+print(f"Figures written to {figure_dir}")
 
