@@ -30,7 +30,7 @@ plt.show = lambda *args, **kwargs: None
 _CYCLE_RE = re.compile(r"# Cycle:\s*\d+,\s*status:\s*(\S+?),")
 
 
-def load_order_file(order_file, acc_only=True):
+def load_order_file(order_file, acc_only=True, max_paths=None, rng=None):
     """Load per-path time/order/CV arrays from a single TIS `order.txt` file.
 
     An `order.txt` file holds one or more paths, each introduced by a
@@ -38,6 +38,9 @@ def load_order_file(order_file, acc_only=True):
     frame line holds the time in column 0, the order parameter in column 1,
     and any additional collective variables (CVs) in the remaining columns.
     The returned CVs include the order parameter as their first column.
+
+    If `max_paths` is given, at most that many paths are kept, drawn at random
+    (in their original order) from the eligible ones.
     """
     # First pass: locate path boundaries and acceptance flags by scanning
     # lines as plain text (cheap - no per-line list/float allocation).
@@ -63,12 +66,18 @@ def load_order_file(order_file, acc_only=True):
         order_file, comment="#", header=None, sep=r"\s+",
     ).to_numpy(dtype=float)
 
+    keep = [i for i in range(len(starts) - 1)
+            if starts[i + 1] > starts[i] and (accepted_flags[i] or not acc_only)]
+    subsample = max_paths is not None and len(keep) > max_paths
+    if subsample:
+        rng = rng if rng is not None else np.random.default_rng()
+        keep = np.sort(rng.choice(keep, max_paths, replace=False))
+
     cvs, order, time = [], [], []
-    for i in range(len(starts) - 1):
-        lo, hi = starts[i], starts[i + 1]
-        if hi <= lo or not (accepted_flags[i] or not acc_only):
-            continue
-        block = data[lo:hi]
+    for i in keep:
+        block = data[starts[i]:starts[i + 1]]
+        if subsample:
+            block = block.copy()  # views would keep the whole file's array alive
         time.append(block[:, 0])
         order.append(block[:, 1])
         cvs.append(block[:, 1:])
@@ -76,13 +85,16 @@ def load_order_file(order_file, acc_only=True):
 
 
 def load_tis_data(tis_dir, ensemble_glob="0[0-9][0-9]", acc_only=True,
-                  include_zero_minus=False):
+                  include_zero_minus=False, paths_per_ensemble=None, seed=None):
     """Load per-path time/order/CV arrays from all TIS ensemble folders in `tis_dir`.
 
     Ensemble folders are expected at `tis_dir/<ensemble_glob>/order.txt`,
     following the standard (RE)PPTIS output layout. The first folder is the
-    [0-] ensemble and is skipped unless `include_zero_minus` is set.
+    [0-] ensemble and is skipped unless `include_zero_minus` is set. With
+    `paths_per_ensemble`, a random subset of that many paths is taken from
+    each ensemble.
     """
+    rng = np.random.default_rng(seed)
     cvs, order, time = [], [], []
     folders = sorted(glob.glob(os.path.join(tis_dir, ensemble_glob)))
     if not include_zero_minus:
@@ -93,7 +105,8 @@ def load_tis_data(tis_dir, ensemble_glob="0[0-9][0-9]", acc_only=True,
         if not os.path.isfile(order_file):
             print(f"  [{i + 1}/{len(folders)}] {folder}: no order.txt, skipping")
             continue
-        c, o, t = load_order_file(order_file, acc_only=acc_only)
+        c, o, t = load_order_file(order_file, acc_only=acc_only,
+                                  max_paths=paths_per_ensemble, rng=rng)
         cvs += c
         order += o
         time += t
@@ -136,6 +149,11 @@ def parse_args():
                         help="stop when the RC changes less than this between print steps")
     parser.add_argument("--include-zero-minus", action="store_true",
                         help="also use the [0-] ensemble (folder 000)")
+    parser.add_argument("--paths-per-ensemble", type=int, metavar="N",
+                        help="randomly take at most N accepted paths from each ensemble "
+                             "(default: all)")
+    parser.add_argument("--seed", type=int,
+                        help="random seed for --paths-per-ensemble")
     parser.add_argument("--potential",
                         help="2D potential module (absolute, or relative to tis_dir) "
                              "to plot the committor on")
@@ -155,7 +173,9 @@ def main():
 
     os.makedirs(args.figure_dir, exist_ok=True)
 
-    cvs, order, time = load_tis_data(args.tis_dir, include_zero_minus=args.include_zero_minus)
+    cvs, order, time = load_tis_data(args.tis_dir, include_zero_minus=args.include_zero_minus,
+                                     paths_per_ensemble=args.paths_per_ensemble,
+                                     seed=args.seed)
 
     X = np.concatenate(cvs, axis=0)
     lam = np.concatenate(order, axis=0)
