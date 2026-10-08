@@ -3,6 +3,13 @@ import cupy as cp
 import boundaries as bd
 
 
+def _bincount(x, weights, minlength):
+    """cp.bincount, which fails on empty input (e.g. dt longer than the data); numpy/TF return zeros."""
+    if x.size == 0:
+        return cp.zeros(minlength, dtype=cp.result_type(weights, cp.float64))
+    return cp.bincount(x, weights=weights, minlength=minlength)
+
+
 def comp_zc1_logic(r_traj: np.ndarray, b_traj: np.ndarray, future_boundary: bd.FutureBoundary = None,
                    past_boundary: bd.PastBoundary = None, dt=1, nbins=1000):
     """
@@ -33,7 +40,7 @@ def comp_zc1_logic(r_traj: np.ndarray, b_traj: np.ndarray, future_boundary: bd.F
     r_min = cp.min(r_traj)
     r_max = cp.max(r_traj)
     bin_edges = cp.linspace(r_min, r_max, nbins + 1)
-    zero = cp.astype(0, dtype=r_traj.dtype)
+    zero = r_traj.dtype.type(0)
 
     if future_boundary is None:
         future_boundary = bd.FutureBoundary(r_traj, b_traj)
@@ -46,25 +53,25 @@ def comp_zc1_logic(r_traj: np.ndarray, b_traj: np.ndarray, future_boundary: bd.F
                        zero, r_traj[dt:] - r_traj[:-dt])
     bin_indices_r = cp.searchsorted(bin_edges, r_traj, side='right') - 1
     bin_indices_r = np.clip(bin_indices_r, 0, len(bin_edges) - 2)
-    hist = cp.bincount(bin_indices_r[:-dt], minlength=nbins + 1, weights=delta_r)
-    hist += cp.bincount(bin_indices_r[dt:], minlength=nbins + 1, weights=-delta_r)
+    hist = _bincount(bin_indices_r[:-dt], minlength=nbins + 1, weights=delta_r)
+    hist += _bincount(bin_indices_r[dt:], minlength=nbins + 1, weights=-delta_r)
 
     delta_r = cp.where(cp.logical_not(future_boundary_crossed), zero, future_boundary.r2 - r_traj)
-    hist += cp.bincount(bin_indices_r, minlength=nbins + 1, weights=delta_r)
+    hist += _bincount(bin_indices_r, minlength=nbins + 1, weights=delta_r)
 
     delta_r01 = delta_r * b_traj * (dt - future_boundary.delta_t2 - 1)
-    hist += cp.bincount(bin_indices_r, minlength=nbins + 1, weights=delta_r01)
+    hist += _bincount(bin_indices_r, minlength=nbins + 1, weights=delta_r01)
 
     bin_indices = cp.searchsorted(bin_edges, future_boundary.r2, side='right') - 1
     bin_indices = np.clip(bin_indices, 0, len(bin_edges) - 2)
-    hist += cp.bincount(bin_indices, minlength=nbins + 1, weights=-delta_r)
-    hist += cp.bincount(bin_indices, minlength=nbins + 1, weights=-delta_r01)
+    hist += _bincount(bin_indices, minlength=nbins + 1, weights=-delta_r)
+    hist += _bincount(bin_indices, minlength=nbins + 1, weights=-delta_r01)
 
     delta_r = cp.where(cp.logical_not(past_boundary_crossed), zero, r_traj - past_boundary.r2)
     bin_indices = cp.searchsorted(bin_edges, past_boundary.r2, side='right') - 1
     bin_indices = np.clip(bin_indices, 0, len(bin_edges) - 2)
-    hist += cp.bincount(bin_indices, minlength=nbins + 1, weights=delta_r)
-    hist += cp.bincount(bin_indices_r, minlength=nbins + 1, weights=-delta_r)
+    hist += _bincount(bin_indices, minlength=nbins + 1, weights=delta_r)
+    hist += _bincount(bin_indices_r, minlength=nbins + 1, weights=-delta_r)
 
     zc1 = cp.cumsum(hist) / dt / 2
     return bin_edges, zc1
@@ -124,27 +131,27 @@ def comp_zc1(r_traj: np.ndarray, b_traj: np.ndarray, future_boundary: bd.FutureB
         delta_r = delta_r * w_traj[:-dt]
     bin_indices_r = cp.searchsorted(bin_edges, r_traj, side='right') - 1
     bin_indices_r = np.clip(bin_indices_r, 0, len(bin_edges) - 2)
-    hist = cp.bincount(bin_indices_r[:-dt], minlength=nbins, weights=delta_r)
-    hist += cp.bincount(bin_indices_r[dt:], minlength=nbins, weights=-delta_r)
+    hist = _bincount(bin_indices_r[:-dt], minlength=nbins, weights=delta_r)
+    hist += _bincount(bin_indices_r[dt:], minlength=nbins, weights=-delta_r)
 
     # crossing of the future boundary
     delta_r = i_future_boundary_crossed * (1 - b_traj) * (future_boundary.r2 - r_traj)
     delta_r = delta_r * (future_boundary.delta_i_to_end >= dt).astype(r_traj.dtype)
     if w_traj is not None:
         delta_r = delta_r * w_traj
-    hist += cp.bincount(bin_indices_r, minlength=nbins + 1, weights=delta_r)
+    hist += _bincount(bin_indices_r, minlength=nbins, weights=delta_r)
 
     # transitions between the boundaries
     delta_r01 = (i_future_boundary_crossed * b_traj * (dt - future_boundary.delta_i2 + 1) *
                  (future_boundary.r2 - r_traj))
     if w_traj is not None:
         delta_r01 = delta_r01*w_traj
-    hist += cp.bincount(bin_indices_r, minlength=nbins, weights=delta_r01)
+    hist += _bincount(bin_indices_r, minlength=nbins, weights=delta_r01)
 
     bin_indices = cp.searchsorted(bin_edges, future_boundary.r2, side='right') - 1
     bin_indices = np.clip(bin_indices, 0, len(bin_edges) - 2)
-    hist += cp.bincount(bin_indices, minlength=nbins, weights=-delta_r)
-    hist += cp.bincount(bin_indices, minlength=nbins, weights=-delta_r01)
+    hist += _bincount(bin_indices, minlength=nbins, weights=-delta_r)
+    hist += _bincount(bin_indices, minlength=nbins, weights=-delta_r01)
 
     # crossing of the past boundary
     delta_r = i_past_boundary_crossed * (1 - b_traj) * (r_traj - past_boundary.r2)
@@ -153,8 +160,8 @@ def comp_zc1(r_traj: np.ndarray, b_traj: np.ndarray, future_boundary: bd.FutureB
         delta_r = delta_r * w_traj[cp.where(past_boundary.index2>-1, past_boundary.index2, 0)]
     bin_indices = cp.searchsorted(bin_edges, past_boundary.r2, side='right') - 1
     bin_indices = np.clip(bin_indices, 0, len(bin_edges) - 2)
-    hist += cp.bincount(bin_indices, minlength=nbins, weights=delta_r)
-    hist += cp.bincount(bin_indices_r, minlength=nbins, weights=-delta_r)
+    hist += _bincount(bin_indices, minlength=nbins, weights=delta_r)
+    hist += _bincount(bin_indices_r, minlength=nbins, weights=-delta_r)
 
     zc1 = cp.cumsum(hist) / dt / 2
     return bin_edges, zc1
@@ -221,8 +228,8 @@ def comp_zc1_irreg(r_traj: np.ndarray, b_traj: np.ndarray, future_boundary: bd.F
     delta_r *= N[:-dt]
     bin_indices_r = cp.searchsorted(bin_edges, r_traj, side='right') - 1
     bin_indices_r = np.clip(bin_indices_r, 0, len(bin_edges) - 2)
-    hist = cp.bincount(bin_indices_r[:-dt], minlength=nbins, weights=delta_r)
-    hist += cp.bincount(bin_indices_r[dt:], minlength=nbins, weights=-delta_r)
+    hist = _bincount(bin_indices_r[:-dt], minlength=nbins, weights=delta_r)
+    hist += _bincount(bin_indices_r[dt:], minlength=nbins, weights=-delta_r)
 
     # crossing of the future boundary
     delta_r = i_future_boundary_crossed * (1 - b_traj) * (future_boundary.r2 - r_traj)
@@ -230,7 +237,7 @@ def comp_zc1_irreg(r_traj: np.ndarray, b_traj: np.ndarray, future_boundary: bd.F
     if w_traj is not None:
         delta_r = delta_r * w_traj
     delta_r *= N
-    hist += cp.bincount(bin_indices_r, minlength=nbins, weights=delta_r)
+    hist += _bincount(bin_indices_r, minlength=nbins, weights=delta_r)
 
     # transitions between the boundaries
     delta_r01 = (i_future_boundary_crossed * b_traj * (dt - future_boundary.delta_i2 + 1) *
@@ -238,12 +245,12 @@ def comp_zc1_irreg(r_traj: np.ndarray, b_traj: np.ndarray, future_boundary: bd.F
     if w_traj is not None:
         delta_r01 = delta_r01*w_traj
     delta_r01 *= N
-    hist += cp.bincount(bin_indices_r, minlength=nbins, weights=delta_r01)
+    hist += _bincount(bin_indices_r, minlength=nbins, weights=delta_r01)
 
     bin_indices = cp.searchsorted(bin_edges, future_boundary.r2, side='right') - 1
     bin_indices = np.clip(bin_indices, 0, len(bin_edges) - 2)
-    hist += cp.bincount(bin_indices, minlength=nbins, weights=-delta_r)
-    hist += cp.bincount(bin_indices, minlength=nbins, weights=-delta_r01)
+    hist += _bincount(bin_indices, minlength=nbins, weights=-delta_r)
+    hist += _bincount(bin_indices, minlength=nbins, weights=-delta_r01)
 
     # crossing of the past boundary
     delta_r = i_past_boundary_crossed * (1 - b_traj) * (r_traj - past_boundary.r2)
@@ -252,8 +259,8 @@ def comp_zc1_irreg(r_traj: np.ndarray, b_traj: np.ndarray, future_boundary: bd.F
         delta_r = delta_r * w_traj[cp.where(past_boundary.index2>-1, past_boundary.index2, 0)]
     bin_indices = cp.searchsorted(bin_edges, past_boundary.r2, side='right') - 1
     bin_indices = np.clip(bin_indices, 0, len(bin_edges) - 2)
-    hist += cp.bincount(bin_indices, minlength=nbins, weights=delta_r)
-    hist += cp.bincount(bin_indices_r, minlength=nbins, weights=-delta_r)
+    hist += _bincount(bin_indices, minlength=nbins, weights=delta_r)
+    hist += _bincount(bin_indices_r, minlength=nbins, weights=-delta_r)
 
     zc1 = cp.cumsum(hist) / dt / 2
     return bin_edges, zc1
@@ -300,7 +307,7 @@ def comp_zq(r_traj: np.ndarray, b_traj: np.ndarray, i_traj: np.ndarray = None,
     bin_edges = cp.linspace(r_min, r_max, nbins + 1)
     if log_scale:
         if log_scale_pmin is None:
-            r_min = cp.max(cp.where(r_traj >0, r_traj, r_max))
+            r_min = cp.min(cp.where(r_traj >0, r_traj, r_max))
         else:
             r_min = max(r_min, log_scale_pmin)
         bin_edges = cp.exp(cp.linspace(np.log(r_min), np.log(r_max),
@@ -325,21 +332,21 @@ def comp_zq(r_traj: np.ndarray, b_traj: np.ndarray, i_traj: np.ndarray = None,
         delta_r *= w_traj[:-dt]
     bin_indices = cp.searchsorted(bin_edges, r_traj, side='right') - 1
     bin_indices = np.clip(bin_indices, 0, len(bin_edges) - 2)
-    hist = cp.bincount(bin_indices[:-dt], minlength=nbins, weights=delta_r)
+    hist = _bincount(bin_indices[:-dt], minlength=nbins, weights=delta_r)
 
     # crossing of the future boundary
     delta_r = i_future_boundary_crossed * (1 - b_traj) * (future_boundary.r2 - r_traj)
     delta_r = delta_r * (future_boundary.delta_i_to_end >= dt).astype(r_traj.dtype)
     if w_traj is not None:
         delta_r *= w_traj
-    hist += cp.bincount(bin_indices, minlength=nbins, weights=delta_r)
+    hist += _bincount(bin_indices, minlength=nbins, weights=delta_r)
 
     # transitions between the boundaries
     delta_r01 = (i_future_boundary_crossed * b_traj * (dt - future_boundary.delta_i2 + 1) *
                  (future_boundary.r2 - r_traj))
     if w_traj is not None:
         delta_r01 *= w_traj
-    hist += cp.bincount(bin_indices, minlength=nbins, weights=delta_r01)
+    hist += _bincount(bin_indices, minlength=nbins, weights=delta_r01)
 
     # crossing of the past boundary
     delta_r = i_past_boundary_crossed * (1 - b_traj) * (r_traj - past_boundary.r2)
@@ -348,7 +355,7 @@ def comp_zq(r_traj: np.ndarray, b_traj: np.ndarray, i_traj: np.ndarray = None,
         delta_r *= w_traj[cp.where(past_boundary.index2>-1, past_boundary.index2, 0)]
     bin_indices = cp.searchsorted(bin_edges, past_boundary.r2, side='right') - 1
     bin_indices = np.clip(bin_indices, 0, len(bin_edges) - 2)
-    hist += cp.bincount(bin_indices, minlength=nbins, weights=delta_r)
+    hist += _bincount(bin_indices, minlength=nbins, weights=delta_r)
 
     zc1 = cp.cumsum(hist) / dt
     return bin_edges, zc1
@@ -394,7 +401,7 @@ def comp_zt(r_traj: np.ndarray, b_traj: np.ndarray, t_traj: np.ndarray, i_traj: 
     bin_edges = cp.linspace(r_min, r_max, nbins + 1)
     if log_scale:
         if log_scale_tmin is None:
-            r_min = cp.max(cp.where(r_traj >0, r_traj, r_max))
+            r_min = cp.min(cp.where(r_traj >0, r_traj, r_max))
         else:
             r_min = max(r_min, log_scale_tmin)
         bin_edges = cp.exp(cp.linspace(np.log(r_min), np.log(r_max),
@@ -418,24 +425,24 @@ def comp_zt(r_traj: np.ndarray, b_traj: np.ndarray, t_traj: np.ndarray, i_traj: 
                 (i_traj[dt:] == i_traj[:-dt]).astype(r_traj.dtype))
     bin_indices = cp.searchsorted(bin_edges, r_traj, side='right') - 1
     bin_indices = np.clip(bin_indices, 0, len(bin_edges) - 2)
-    hist = cp.bincount(bin_indices[:-dt], minlength=nbins + 1, weights=delta_r)
+    hist = _bincount(bin_indices[:-dt], minlength=nbins + 1, weights=delta_r)
 
     # crossing of the future boundary
     delta_r = i_future_boundary_crossed * (1 - b_traj) * (future_boundary.r2 - r_traj + future_boundary.delta_t2)
     delta_r = delta_r * (future_boundary.delta_i_to_end >= dt).astype(r_traj.dtype)
-    hist += cp.bincount(bin_indices, minlength=nbins + 1, weights=delta_r)
+    hist += _bincount(bin_indices, minlength=nbins + 1, weights=delta_r)
 
     # transitions between the boundaries
     delta_r01 = (i_future_boundary_crossed * b_traj * (dt - future_boundary.delta_i2 + 1) *
                  (future_boundary.r2 - r_traj + future_boundary.delta_t2))
-    hist += cp.bincount(bin_indices, minlength=nbins + 1, weights=delta_r01)
+    hist += _bincount(bin_indices, minlength=nbins + 1, weights=delta_r01)
 
     # crossing of the past boundary
     delta_r = i_past_boundary_crossed * (1 - b_traj) * (r_traj - past_boundary.r2-past_boundary.delta_t2)
     delta_r = delta_r * (past_boundary.delta_i_from_start >= dt).astype(r_traj.dtype)
     bin_indices = cp.searchsorted(bin_edges, past_boundary.r2, side='right') - 1
     bin_indices = np.clip(bin_indices, 0, len(bin_edges) - 2)
-    hist += cp.bincount(bin_indices, minlength=nbins + 1, weights=delta_r)
+    hist += _bincount(bin_indices, minlength=nbins + 1, weights=delta_r)
 
     zc1 = cp.cumsum(hist) / dt
     return bin_edges, zc1
@@ -495,7 +502,7 @@ def comp_zca(r_traj, a, i_traj=None, w_traj=None, t_traj=None, nbins=1000, eps=1
         delta_ra=delta_ra*(t_traj[dt:]-t_traj[:-dt])
 
     # Compute the histogram counts
-    hist = cp.bincount(bin_indices[:-dt], minlength=nbins + 1, weights=delta_ra)
-    hist += cp.bincount(bin_indices[dt:], minlength=nbins + 1, weights=-delta_ra)
+    hist = _bincount(bin_indices[:-dt], minlength=nbins + 1, weights=delta_ra)
+    hist += _bincount(bin_indices[dt:], minlength=nbins + 1, weights=-delta_ra)
     zca = cp.cumsum(hist)/2/dt
     return bin_edges, zca

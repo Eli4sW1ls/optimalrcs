@@ -5,6 +5,7 @@ import metrics
 import nonparametrics
 import time
 import plots
+import polybasis
 import matplotlib.pyplot as plt
 
 
@@ -33,20 +34,38 @@ def basis_poly_ry(r, y, n, fenv=None):
     """
     r = r / cp.max(cp.abs(r))
     y = y / cp.max(cp.abs(y))
-
     if fenv is None:
-        f = cp.ones_like(r)
-    else:
-        f = cp.array(fenv, copy=True)
+        fenv = cp.ones_like(r)
+    return _poly_ry(r, y, n, fenv)
 
-    fk = []
+
+def _poly_ry(r, y, n, f):
+    """Monomials r^i * y^j * f with i + j <= n, for already-normalized r and y.
+
+    The rows are written straight into the preallocated output, so the basis
+    is held in memory once (no list of rows plus a stacked copy).
+    """
+    fk = cp.empty(((n + 1) * (n + 2) // 2, r.shape[0]), dtype=r.dtype)
+    k = 0
     for iy in range(n + 1):
-        fr = cp.array(f, copy=True)
-        for ir in range(n + 1 - iy):
-            fk.append(fr)
-            fr = fr * r
-        f = f * y
-    return cp.stack(fk)
+        fk[k] = f
+        for _ in range(n - iy):
+            cp.multiply(fk[k], r, out=fk[k + 1])
+            k += 1
+        k += 1
+        if iy < n:
+            f = f * y
+    return fk
+
+
+def lazy_basis_poly_ry(r, y, n, fenv=None):
+    """`basis_poly_ry` that is never materialized (see polybasis.PolyBasisRY).
+
+    The normalization uses the full-length r and y, so fk(s, e) matches the
+    corresponding columns of `basis_poly_ry(r, y, n, fenv)`, but npneq/npnet
+    use its fused kernels and never hold the (M, N) basis in memory.
+    """
+    return polybasis.PolyBasisRY(r, y, n, fenv)
 
 
 
@@ -73,6 +92,8 @@ class CommittorNE:
         self.iter = 0
         self.p2i0 = None
         self.w_traj = None
+        self.min_delta_zq = 10000
+        self.r_traj_min_sd_zq = self.r_traj
         
     def set_fixed_traj_length_trap(self, trap_boundary, traj_length):
         self.future_boundary.set_distance_to_end_fixed_traj_length_trap(self.i_traj, trap_boundary, traj_length)
@@ -114,21 +135,22 @@ class CommittorNE:
         for iter in range(max_iter + 1):
             self.iter+=1
 
-            # compute next CV y, and cast it to the required accuracy
-            y = cp.asarray(comp_y(), dtype=self.prec)
-
-            
-
             # compute envelope, modulating the basis functions
             if iter % 10 == 0 and callable(envelope):
                 _envelope = envelope(self.r_traj, iter, max_iter) * (1 - self.b_traj)
+
+            # compute next CV y, and cast it to the required accuracy
+            y = cp.asarray(comp_y(), dtype=self.prec)
 
             # compute the basis functions
             if history_delta_t is None:
                 y1, y2 = self.r_traj, y
             else:
                 y1, y2 = self.history_select_y1y2(y, history_delta_t, history_type, history_shift_type)
-            fk = basis_functions(y1, y2, ny, _envelope)
+            if basis_functions is basis_poly_ry:
+                fk = lazy_basis_poly_ry(y1, y2, ny, _envelope)
+            else:
+                fk = basis_functions(y1, y2, ny, _envelope)
 
 
             # compute the gamma parameter
@@ -141,6 +163,8 @@ class CommittorNE:
                 r_traj = nonparametrics.npneq(self.r_traj, fk, self.i_traj, _gamma, stable, train_mask=_train_mask)
             else:
                 r_traj = nonparametrics.npneq(self.r_traj, fk, self.i_traj, _gamma, stable, train_mask=train_mask)
+
+            fk = None  # release before the next iteration rebuilds it
 
             if self.i_traj is None:
                 delta_r2_new = metrics._delta_r2_eq_dt1(r_traj)
@@ -173,14 +197,14 @@ class CommittorNE:
                 history_type = 'y(t-d),r(t-d)'
             if history_type == 'y(t-d),r(t-d)' and history_shift_type is None:
                 if self.i_traj is not None: ### prepend d zeros to self.i_traj[d:] == self.i_traj[:-d]]
-                    it = cp.concatenate([cp.zeros([d]), (self.i_traj[d:] == self.i_traj[:-d]).astype(r_traj.dtype)], 0)
+                    it = cp.concatenate([cp.zeros([d]), (self.i_traj[d:] == self.i_traj[:-d]).astype(self.r_traj.dtype)], 0)
                 else:                       ### prepend d zeros to n-d ones 
                     it = cp.concatenate([cp.zeros([d]), cp.ones([self.len - d])], 0)
                 y1 = cp.where(it, cp.roll(y, d, 0), 0)
                 y2 = cp.where(it, cp.roll(self.r_traj, d, 0), 0)
             elif history_type == 'y(t-d),y(t)' and history_shift_type is None:
                 if self.i_traj is not None:
-                    it = cp.concatenate([cp.zeros([d]), (self.i_traj[d:] == self.i_traj[:-d]).astype(r_traj.dtype)], 0)
+                    it = cp.concatenate([cp.zeros([d]), (self.i_traj[d:] == self.i_traj[:-d]).astype(self.r_traj.dtype)], 0)
                 else:                       ### prepend d zeros to n-d ones 
                     it = cp.concatenate([cp.zeros([d]), cp.ones([self.len - d])], 0)
                 y1 = cp.where(it, cp.roll(y, d, 0), 0)
@@ -196,6 +220,8 @@ class CommittorNE:
             history_shift_type = 'r(t0)'
         if history_type is None:
             history_type = 'y(t-d),r(t-d)'
+        if history_shift_type == 'r(t0)' and self.p2i0 is None and self.i_traj is None:
+            self.p2i0 = cp.zeros(self.len, dtype=cp.int64)
         if history_shift_type == 'r(t0)' and self.p2i0 is None:
             # pointer to the first frame of trajectory defined by i_traj
             changes = cp.diff(self.i_traj, prepend=self.i_traj[0]-1) != 0
@@ -203,20 +229,28 @@ class CommittorNE:
             self.p2i0 = cp.asarray(np.repeat(first_indices.get(), cp.diff(cp.append(first_indices, len(self.i_traj))).get()))
             #self.p2i0 = np.repeat(first_indices.get(), cp.diff(cp.append(first_indices, len(self.i_traj))).get())
 
+        # same_traj[i]: frame i-d exists and belongs to the same trajectory as i
+        same_traj = cp.zeros(self.len, dtype=bool)
+        if self.i_traj is None:
+            same_traj[d:] = True
+        else:
+            same_traj[d:] = self.i_traj[d:] == self.i_traj[:-d]
+
         def shift_y(d, i_traj, y, shift_type, p2i0): # which point to select when previous point at (t-d) belongs to other trajectory
             if shift_type == 'r(t-d)':  # do nothing, take previous values y(t-d) disregarding trajectory info i_traj
                 return cp.roll(y, d, 0)
             elif shift_type == 'r(t)':  # take y(t) instead of y(t-d)
-                return cp.where(cp.roll(i_traj, d, 0) == i_traj, cp.roll(y, d, 0), y)
+                return cp.where(same_traj, cp.roll(y, d, 0), y)
             elif shift_type == 'r(t0)':  # take first frame of trajectory, y(t0) instead of y(t-d)
-                return cp.where(cp.roll(i_traj, d, 0) == i_traj, cp.roll(y, d, 0), y[p2i0])
+                return cp.where(same_traj, cp.roll(y, d, 0), y[p2i0])
             else:  # take 0 instead of y(t-d)
-                return cp.where(cp.roll(i_traj, d, 0) == i_traj, cp.roll(y, d, 0), 0)
+                return cp.where(same_traj, cp.roll(y, d, 0), 0)
 
-        if len(history_type) > 1:
-            d1, d2 = history_type[np.random.randint(len(history_type))].split(',')
+        if isinstance(history_type, str):
+            d1, d2 = history_type.split(',')
         else:
-            d1, d2 = history_type[0].split(',')
+            d1, d2 = history_type[np.random.randint(len(history_type))].split(',')
+        y1 = y2 = None
         if d1 == 'r(t)':
             y1 = self.r_traj
         if d1 == 'y(t)':
@@ -245,16 +279,14 @@ class CommittorNE:
         if d2 == 'dt':
             y2 = shift_y(d, self.i_traj, self.t_traj, history_shift_type, self.p2i0)
             y2 = cp.where(y2 > 0,  self.t_traj-y2, 0)
+        if y1 is None or y2 is None:
+            raise ValueError(f"Unknown history descriptor in {d1},{d2}")
         return y1, y2
 
     def plots_metrics(self, metrics=None):
         fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(21, 4))
         if metrics is None:
-            metrics=[]
-            for m in self.metrics_history:
-                if m != 'iter':
-                    metrics.append(m)
-                if len(m) == 3: break
+            metrics=[m for m in self.metrics_history if m != 'iter'][:3] # first 3
         
         for m, ax in zip(metrics, (ax1,ax2,ax3)):
             n=len(self.metrics_history['iter'])//2
@@ -302,7 +334,6 @@ class CommittorNE:
         else:
             it=cp.asarray(self.i_traj[1:] == self.i_traj[:-1], dtype=self.r_traj.dtype)
         for i in range(max_iter):
-            self.w_traj = nonparametrics.npnew(self.w_traj, basis_poly_ry(self.w_traj, self.r_traj, ny), it)
             if cupy_type==1:
                 self.w_traj = nonparametrics.npnew(self.w_traj, basis_poly_ry(self.w_traj, self.r_traj, ny), it)
             if cupy_type==2:
@@ -326,7 +357,7 @@ class CommittorNE:
 
 class MFPTNE(CommittorNE):
     def __init__(self, boundary0, i_traj=None, t_traj=None, seed_r=None, prec=np.float64):
-        self.boundary0 = boundary0
+        self.boundary0 = cp.asarray(boundary0)
         self.b_traj = cp.asarray(boundary0, dtype=prec)
         self.i_traj=None
         if i_traj is not None: self.i_traj = cp.asarray(i_traj)
@@ -348,6 +379,7 @@ class MFPTNE(CommittorNE):
         self.iter = 0
         self.p2i0 = None
         self.w_traj = None
+        self.r_traj_min_sd_zt = self.r_traj
 
     def fit_transform(self, comp_y,
                       envelope=envelope_sigmoid, gamma=0, basis_functions=basis_poly_ry, ny=6,
@@ -365,19 +397,22 @@ class MFPTNE(CommittorNE):
             _gamma = gamma
         for self.iter in range(max_iter + 1):
 
-            # compute next CV y, and cast it to the required accuracy
-            y = cp.asarray(comp_y(), dtype=self.prec)
-
             # compute envelope, modulating the basis functions
             if self.iter % 10 == 0 and callable(envelope):
                 _envelope = envelope(self.r_traj, self.iter, max_iter) * (1 - self.b_traj)
+
+            # compute next CV y, and cast it to the required accuracy
+            y = cp.asarray(comp_y(), dtype=self.prec)
 
             # compute the basis functions
             if history_delta_t is None:
                 y1, y2 = self.r_traj, y
             else:
                 y1, y2 = self.history_select_y1y2(y, history_delta_t, history_type, history_shift_type)
-            fk = basis_functions(y1, y2, ny, _envelope)
+            if basis_functions is basis_poly_ry and cupy_type == 1:
+                fk = lazy_basis_poly_ry(y1, y2, ny, _envelope)
+            else:
+                fk = basis_functions(y1, y2, ny, _envelope)
 
             # compute the gamma parameter
             if callable(gamma):
@@ -401,7 +436,7 @@ class MFPTNE(CommittorNE):
                 if self.iter > 0:
                     if save_min_delta_zt:
                         if self.metrics_history['max_sd_zt'][-1] < min_delta_zt:
-                            min_delta_t = self.metrics_history['max_sd_zt'][-1]
+                            min_delta_zt = self.metrics_history['max_sd_zt'][-1]
                             self.r_traj_min_sd_zt = self.r_traj
                     if min_delta_x is not None and self.metrics_history['delta_x'][-1] < min_delta_x:
                         break

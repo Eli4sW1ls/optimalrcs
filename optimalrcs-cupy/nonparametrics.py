@@ -91,7 +91,7 @@ def npt(r_traj, fk, i_traj=None, w_traj=None):
     akj = cp.tensordot(dfk * itw, dfk, axes=[1, 1])
 
     delta_r = -(r_traj[1:] - r_traj[:-1])
-    b = cp.tensordot(dfk, delta_r * itw, 1) + 2 * cp.math.reduce_sum(fk, 1)
+    b = cp.tensordot(dfk, delta_r * itw, 1) + 2 * cp.sum(fk, 1)
     b = cp.reshape(b, [b.shape[0], 1])
 
     al_j = cp.linalg.lstsq(akj, b, rcond=None)[0]
@@ -101,189 +101,122 @@ def npt(r_traj, fk, i_traj=None, w_traj=None):
     return rn_traj
 
 
-def npneq(r_traj, fk, i_traj=None, gamma=0, stable=False):
-    """ implements NPNEq (non-parametric non-equilibrium committor
-    optimization) iteration.
+npneq_chunk = 1_000_000
 
-    r is the putative RC time-series
-    fk are the basis functions of the variation delta r
-    Ib is the boundary indicator function:
-        Ib(i)=1 when X(i) belongs to the boundary states and 0 otherwise
-    It is the trajectory indicator function:
-        It(i)=1 if X(i) and X(i+1) belong to the same short trajectory
+
+def _npneq_moments(fa, fb, itw, delta_r, gamma, stable):
+    """akj/b contributions of one block of consecutive transitions.
+
+    fa/fb are the basis functions at the start/end frames of each transition.
+    Kept separate from `npneq` so that the (n_basis, block) temporaries stay
+    bounded instead of scaling with the full trajectory length.
     """
-    if i_traj is None:
-        itw = cp.ones_like(r_traj[:-1])
-    else:
-        itw = (i_traj[1:] == i_traj[:-1]).astype(r_traj.dtype)
-
     if stable:
-        akj = -cp.tensordot(fk[:, :-1], fk[:, :-1] * itw, axes=[1, 1])
+        akj = -cp.matmul(fa, (fa * itw).T)
     else:
-        delta_fj = fk[:, 1:] - fk[:, :-1] * (1 + gamma)
-        akj = cp.tensordot(fk[:, :-1], delta_fj * itw, axes=[1, 1])
+        akj = cp.matmul(fa, (fb * itw - fa * (itw + gamma)).T)
+    return akj, cp.matmul(fa, -delta_r * itw)
 
+
+def _npneq_accumulate(r_traj, basis, itw, gamma, stable, step, akj=0, b=0):
+    """Sums the akj/b moments over all transitions, block by block."""
+    n_frames = r_traj.shape[0]
     delta_r = r_traj[1:] - r_traj[:-1]
-    b = cp.tensordot(fk[:, :-1], -delta_r * itw, 1)
-    b = cp.reshape(b, [b.shape[0], 1])
+    for s in range(0, n_frames - 1, step):
+        e = min(s + step, n_frames - 1)
+        f = basis(s, e + 1)
+        akj_i, b_i = _npneq_moments(f[:, :-1], f[:, 1:], itw[s:e],
+                                    delta_r[s:e], gamma, stable)
+        akj = akj + akj_i
+        b = b + b_i
+    return akj, b
+
+
+def _npneq_update(r_traj, basis, al_j, step):
+    """r + sum_j al_j f_j, clipped to [0, 1], built block by block."""
+    n_frames = r_traj.shape[0]
+    rn_traj = r_traj.copy()
+    for s in range(0, n_frames, step):
+        e = min(s + step, n_frames)
+        rn_traj[s:e] += cp.matmul(al_j, basis(s, e))
+    return cp.clip(rn_traj, 0, 1, out=rn_traj)
+
+
+def _npneq_itw(r_traj, i_traj, train_mask):
+    if i_traj is None:
+        itw = cp.ones_like(r_traj[:-1])
+    else:
+        itw = cp.asarray(i_traj[1:] == i_traj[:-1], dtype=r_traj.dtype)
+    if train_mask is not None:
+        itw = itw * train_mask
+    return itw
+
+
+def _as_basis(fk):
+    return fk if callable(fk) else (lambda s, e: fk[:, s:e])
+
+
+def npneq(r_traj, fk, i_traj=None, gamma=0, stable=False, train_mask=None,
+          chunk=None):
+    """ implements NPNEq (non-parametric non-equilibrium committor
+    optimization) iteration.
+
+    r is the putative RC time-series
+    fk are the basis functions of the variation delta r
+    Ib is the boundary indicator function:
+        Ib(i)=1 when X(i) belongs to the boundary states and 0 otherwise
+    It is the trajectory indicator function:
+        It(i)=1 if X(i) and X(i+1) belong to the same short trajectory
+
+    akj and b are sums over transitions, so they are accumulated block by
+    block: the full-length intermediates this would otherwise allocate
+    dominate peak memory for multi-million-frame trajectories.
+
+    fk is either the (n_basis, N) basis array or a callable fk(s, e) returning
+    its columns s..e-1; the callable form never materializes the full basis.
+    A basis with `transition_moments`/`apply` (polybasis.PolyBasisRY) is never
+    materialized at all: akj, b and the update are computed frame by frame.
+    """
+    itw = _npneq_itw(r_traj, i_traj, train_mask)
+    if hasattr(fk, "transition_moments"):
+        akj, b = fk.transition_moments(itw, -(r_traj[1:] - r_traj[:-1]) * itw, gamma, stable)
+        al_j = cp.linalg.lstsq(akj, b, rcond=None)[0]
+        return fk.apply(r_traj, al_j, 0, 1)
+
+    basis = _as_basis(fk)
+    step = chunk or npneq_chunk
+    akj, b = _npneq_accumulate(r_traj, basis, itw, gamma, stable, step)
 
     al_j = cp.linalg.lstsq(akj, b, rcond=None)[0]
-    al_j = cp.reshape(al_j, [al_j.shape[0]])
+    return _npneq_update(r_traj, basis, al_j, step)
 
-    rn_traj = r_traj + cp.tensordot(al_j, fk, 1)
-    rn_traj = cp.clip(rn_traj, 0, 1)
-    return rn_traj
+def npneq_(r_traj, fk, i_traj=None, gamma=0, stable=False, train_mask=None, chunk_size=None):
+    """ as `npneq`, but also returns the expansion coefficients al_j (on the host). """
+    basis = _as_basis(fk)
+    step = chunk_size or npneq_chunk
+    itw = _npneq_itw(r_traj, i_traj, train_mask)
+    akj, b = _npneq_accumulate(r_traj, basis, itw, gamma, stable, step)
 
-def npneq(r_traj, fk, i_traj=None, gamma=0, stable=False, train_mask=None, chunk_size=1024*64+1):
-    """ implements NPNEq (non-parametric non-equilibrium committor
-    optimization) iteration.
+    al_j = cp.linalg.lstsq(akj, b, rcond=None)[0]
+    return _npneq_update(r_traj, basis, al_j, step), al_j.get()
 
-    r is the putative RC time-series
-    fk are the basis functions of the variation delta r
-    Ib is the boundary indicator function:
-        Ib(i)=1 when X(i) belongs to the boundary states and 0 otherwise
-    It is the trajectory indicator function:
-        It(i)=1 if X(i) and X(i+1) belong to the same short trajectory
+def npneq_2(r_traj, fk, i_traj=None, gamma=0, stable=False, train_mask=None, chunk_size=None, _=None, weight=1):
+    """ as `npneq`, but the transitions are weighted by `weight` and the akj/b
+    moments are added to previously accumulated ones `_` = (akj, b, ...).
+
+    returns the new RC and (akj, b, al_j) on the host.
     """
-    if i_traj is None:
-        itw = cp.ones_like(r_traj[:-1])
-    else:
-        itw = cp.asarray(i_traj[1:] == i_traj[:-1],dtype=r_traj.dtype)
-
-    if train_mask is not None:
-        itw = itw * train_mask
-
-    n_points = fk.shape[1] - 1
-    n_basis = fk.shape[0]
-    akj_accum = cp.zeros((n_basis, n_basis), dtype=r_traj.dtype)
-    b_accum = cp.zeros(n_basis, dtype=r_traj.dtype)
-    if chunk_size==0:chunk_size=n_points
-    if chunk_size%2==0: chunk_size-=1 # to keep even the chunks
-    start=0
-    while start < n_points:
-        end = min(start + chunk_size, n_points)
-        if end == n_points and end-start>2 and (end-start)%2==0 : end=end-1
-        fk_chunk = fk[:, start:end]
-        itw_chunk = itw[start:end]
-        if stable:
-            akj_accum += cp.tensordot(fk_chunk, fk_chunk * itw_chunk, axes=[1, 1])
-        else:
-            delta_chunk = fk[:, start+1:end+1] - fk_chunk * (1 + gamma)
-            akj_accum += cp.tensordot(fk_chunk, delta_chunk * itw_chunk, axes=[1, 1])
-        delta_r_chunk = r_traj[start+1:end+1] - r_traj[start:end]
-        b_accum += cp.tensordot(fk_chunk, -delta_r_chunk * itw_chunk, 1)
-        start = end
-
-    b_accum = cp.reshape(b_accum, [b_accum.shape[0], 1])
-
-    al_j = cp.linalg.lstsq(akj_accum, b_accum, rcond=None)[0]
-    al_j = cp.reshape(al_j, [al_j.shape[0]])
-
-    rn_traj = r_traj + cp.tensordot(al_j, fk, 1)
-    rn_traj = cp.clip(rn_traj, 0, 1)
-    return rn_traj
-
-def npneq_(r_traj, fk, i_traj=None, gamma=0, stable=False, train_mask=None, chunk_size=1024*64+1):
-    """ implements NPNEq (non-parametric non-equilibrium committor
-    optimization) iteration.
-
-    r is the putative RC time-series
-    fk are the basis functions of the variation delta r
-    Ib is the boundary indicator function:
-        Ib(i)=1 when X(i) belongs to the boundary states and 0 otherwise
-    It is the trajectory indicator function:
-        It(i)=1 if X(i) and X(i+1) belong to the same short trajectory
-    """
-    if i_traj is None:
-        itw = cp.ones_like(r_traj[:-1])
-    else:
-        itw = cp.asarray(i_traj[1:] == i_traj[:-1],dtype=r_traj.dtype)
-
-    if train_mask is not None:
-        itw = itw * train_mask
-
-    n_points = fk.shape[1] - 1
-    n_basis = fk.shape[0]
-    akj_accum = cp.zeros((n_basis, n_basis), dtype=r_traj.dtype)
-    b_accum = cp.zeros(n_basis, dtype=r_traj.dtype)
-    if chunk_size==0:chunk_size=n_points
-    if chunk_size%2==0: chunk_size-=1 # to keep even the chunks
-    start=0
-    while start < n_points:
-        end = min(start + chunk_size, n_points)
-        if end == n_points and end-start>2 and (end-start)%2==0 : end=end-1
-        fk_chunk = fk[:, start:end]
-        itw_chunk = itw[start:end]
-        if stable:
-            akj_accum += cp.tensordot(fk_chunk, fk_chunk * itw_chunk, axes=[1, 1])
-        else:
-            delta_chunk = fk[:, start+1:end+1] - fk_chunk * (1 + gamma)
-            akj_accum += cp.tensordot(fk_chunk, delta_chunk * itw_chunk, axes=[1, 1])
-        delta_r_chunk = r_traj[start+1:end+1] - r_traj[start:end]
-        b_accum += cp.tensordot(fk_chunk, -delta_r_chunk * itw_chunk, 1)
-        start = end
-
-    b_accum = cp.reshape(b_accum, [b_accum.shape[0], 1])
-
-    al_j = cp.linalg.lstsq(akj_accum, b_accum, rcond=None)[0]
-    al_j = cp.reshape(al_j, [al_j.shape[0]])
-
-    rn_traj = r_traj + cp.tensordot(al_j, fk, 1)
-    rn_traj = cp.clip(rn_traj, 0, 1)
-    return rn_traj, al_j.get()
-
-def npneq_2(r_traj, fk, i_traj=None, gamma=0, stable=False, train_mask=None, chunk_size=1024*64+1, _=None, weight=1):
-    """ implements NPNEq (non-parametric non-equilibrium committor
-    optimization) iteration.
-
-    r is the putative RC time-series
-    fk are the basis functions of the variation delta r
-    Ib is the boundary indicator function:
-        Ib(i)=1 when X(i) belongs to the boundary states and 0 otherwise
-    It is the trajectory indicator function:
-        It(i)=1 if X(i) and X(i+1) belong to the same short trajectory
-    """
-    if i_traj is None:
-        itw = cp.ones_like(r_traj[:-1])*weight
-    else:
-        itw = cp.asarray(i_traj[1:] == i_traj[:-1],dtype=r_traj.dtype)*weight
-
-    if train_mask is not None:
-        itw = itw * train_mask
-
-    n_points = fk.shape[1] - 1
-    n_basis = fk.shape[0]
+    basis = _as_basis(fk)
+    step = chunk_size or npneq_chunk
+    itw = _npneq_itw(r_traj, i_traj, train_mask) * weight
     if _ is None:
-        akj_accum = cp.zeros((n_basis, n_basis), dtype=r_traj.dtype)
-        b_accum = cp.zeros(n_basis, dtype=r_traj.dtype)
+        akj, b = 0, 0
     else:
-        akj_accum, b_accum = cp.asarray(_[0]), cp.asarray(_[1]) 
-        
-    if chunk_size==0:chunk_size=n_points
-    if chunk_size%2==0: chunk_size-=1 # to keep even the chunks
-    start=0
-    while start < n_points:
-        end = min(start + chunk_size, n_points)
-        if end == n_points and end-start>2 and (end-start)%2==0 : end=end-1
-        fk_chunk = fk[:, start:end]
-        itw_chunk = itw[start:end]
-        if stable:
-            akj_accum += cp.tensordot(fk_chunk, fk_chunk * itw_chunk, axes=[1, 1])
-        else:
-            delta_chunk = fk[:, start+1:end+1] - fk_chunk * (1 + gamma)
-            akj_accum += cp.tensordot(fk_chunk, delta_chunk * itw_chunk, axes=[1, 1])
-        delta_r_chunk = r_traj[start+1:end+1] - r_traj[start:end]
-        b_accum += cp.tensordot(fk_chunk, -delta_r_chunk * itw_chunk, 1)
-        start = end
+        akj, b = cp.asarray(_[0]), cp.asarray(_[1])
+    akj, b = _npneq_accumulate(r_traj, basis, itw, gamma, stable, step, akj, b)
 
-    b_accum2 = cp.reshape(b_accum, [b_accum.shape[0], 1])
-
-    al_j = cp.linalg.lstsq(akj_accum, b_accum2, rcond=None)[0]
-    al_j = cp.reshape(al_j, [al_j.shape[0]])
-
-    rn_traj = r_traj + cp.tensordot(al_j, fk, 1)
-    rn_traj = cp.clip(rn_traj, 0, 1)
-    return rn_traj, (akj_accum.get(), b_accum.get(), al_j.get())
+    al_j = cp.linalg.lstsq(akj, b, rcond=None)[0]
+    return _npneq_update(r_traj, basis, al_j, step), (akj.get(), b.get(), al_j.get())
 
 
 def npneq_dt(r_traj, fk, i_traj, future_boundary, gamma=0, dt=1):
@@ -297,14 +230,13 @@ def npneq_dt(r_traj, fk, i_traj, future_boundary, gamma=0, dt=1):
         It(i)=1 if X(i) and X(i+1) belong to the same short trajectory
     """
     it = (i_traj[dt:] == i_traj[:-dt]).astype(r_traj.dtype)
-    delta_t_prec = cp.cast(dt, dtype=r_traj.dtype)
     not_crossed = (cp.logical_or(future_boundary.index[:-dt] == -1,
-                                  future_boundary.delta_t[:-dt] > delta_t_prec)).astype(r_traj.dtype)
+                                  future_boundary.delta_t[:-dt] > dt)).astype(r_traj.dtype)
 
-    delta_fj = fk[:, dt:] * not_crossed - fk[:, :-dt] * (1 + gamma)
-    akj = cp.tensordot(fk[:, :-dt], delta_fj * it, axes=[1, 1])
+    delta_fj = fk[:, dt:] * not_crossed * it - fk[:, :-dt] * (it + gamma)
+    akj = cp.tensordot(fk[:, :-dt], delta_fj, axes=[1, 1])
 
-    r_plus = cp.where(cp.logical_and(future_boundary.index[:-dt] > -1, future_boundary.delta_t[:-dt] <= delta_t_prec),
+    r_plus = cp.where(cp.logical_and(future_boundary.index[:-dt] > -1, future_boundary.delta_t[:-dt] <= dt),
                       future_boundary.r[:-dt], r_traj[dt:])
     delta_r = r_plus - r_traj[:-dt]
     b = cp.tensordot(fk[:, :-dt], -delta_r * it, 1)
@@ -368,6 +300,17 @@ def npnet(r_traj, fk, t_traj, i_traj, gamma=0, t_max=1e10, subsample=None, train
     if train_mask is not None:
         itw = itw * train_mask
 
+    if hasattr(fk, "transition_moments"):  # never materialized, see npneq
+        delta_r = r_traj[1:] - r_traj[:-1] + t_traj[1:] - t_traj[:-1]
+        akj, b = fk.transition_moments(itw, -delta_r * itw, gamma)
+        al_j = cp.linalg.lstsq(akj, b, rcond=None)[0]
+        if subsample is None:
+            return fk.apply(r_traj, al_j, 0, t_max)
+        rn = fk.apply(r_traj, al_j, -cp.inf, cp.inf)
+        k = int(len(rn) / subsample)
+        t_max = min(t_max, float(cp.min(cp.max(cp.reshape(rn[:k * subsample], [subsample, k]), 1))))
+        return cp.clip(rn, 0, t_max)
+
     dfj = fk[:, 1:] * itw - fk[:, :-1] * (itw + gamma)
     
 
@@ -384,6 +327,6 @@ def npnet(r_traj, fk, t_traj, i_traj, gamma=0, t_max=1e10, subsample=None, train
     rn = r_traj + cp.tensordot(al_j, fk, 1)
     if subsample is not None:
         k = int(len(rn) / subsample)
-        t_max = cp.math.reduce_min(t_max, cp.math.reduce_min(cp.math.reduce_max(cp.reshape(rn[:k * subsample], [subsample, k]), 1)))
+        t_max = min(t_max, float(cp.min(cp.max(cp.reshape(rn[:k * subsample], [subsample, k]), 1))))
     rn = cp.clip(rn, 0, t_max)
     return rn

@@ -103,7 +103,7 @@ def _delta_r2_slow_exact(r_traj, b_traj, i_traj, dt=1):
     float
         The mean squared displacement.
     """
-    trajs, indices = cp.unique(i_traj)
+    trajs = cp.unique(i_traj).get()
     s=0
     for i in trajs:
         mask=i_traj==i
@@ -497,7 +497,13 @@ def _auc(r_traj, b_traj=None, i_traj=None, future_boundary=None, skip_boundaries
 
     ok = future_boundary.index > -1
     if skip_boundaries: ok = ok & b_traj==0 
-    return sklearn.metrics.roc_auc_score(future_boundary.r[ok].get(), r_traj[ok].get())
+    y_true = future_boundary.r[ok].get()
+    if len(np.unique(y_true)) < 2:
+        # Only one boundary (typically A) was ever reached in this data/subset,
+        # e.g. because crossings into the other boundary are rare TIS events.
+        # ROC AUC is undefined in that case, so skip it instead of crashing.
+        return float('nan')
+    return sklearn.metrics.roc_auc_score(y_true, r_traj[ok].get())
 
 def _delta_x(r1_traj, r2_traj):
     """
@@ -583,7 +589,7 @@ def _min_imfpt_eq(b_traj, i_traj=None, future_boundary=None):
     """
     if future_boundary is None:
         future_boundary = bd.FutureBoundary(b_traj, b_traj, i_traj=i_traj)
-    return cp.reduce_sum(cp.where(future_boundary.index > -1, b_traj * (future_boundary.delta_t + 1) ** 2, 0))
+    return cp.sum(cp.where(future_boundary.index > -1, b_traj * (future_boundary.delta_t + 1) ** 2, 0))
 
 
 def delta_r2(rc):
@@ -861,7 +867,7 @@ def low_bound_i_mfpt_eq(rc):
         The lower bound of mean first passage time.
     """
     dti = rc.future_boundary.delta_t[1:][rc.b_traj[:-1] > 0][:-1] + 1
-    return -sum(dti**2) / len(rc.b_traj)
+    return -float(cp.sum(dti**2)) / len(rc.b_traj)
 
 def max_rc(rc):
     """

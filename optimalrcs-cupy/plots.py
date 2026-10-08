@@ -18,7 +18,7 @@ def plot_zc1(ax, r_traj, b_traj, i_traj=None, future_boundary=None, past_boundar
         past_boundary = bd.PastBoundary(r_traj, b_traj, i_traj=i_traj)
 
     for dt in ldt:
-        lx, ly = cut_profiles.comp_zc1_irreg(r_traj, b_traj, future_boundary, past_boundary, dt=cp.array(dt),
+        lx, ly = cut_profiles.comp_zc1_irreg(r_traj, b_traj, future_boundary, past_boundary, dt=dt,
                                        i_traj=i_traj, w_traj=w_traj, dtmin=dtmin)
         if ln:
             ax.plot(lx.get()[:-2], -np.log(ly.get()[:-1]))
@@ -44,7 +44,7 @@ def plot_zq(ax, r_traj, b_traj, i_traj=None, future_boundary=None, past_boundary
     for dt in ldt:
         lx, ly = cut_profiles.comp_zq(r_traj, b_traj, i_traj, future_boundary, past_boundary, dt=dt)
         if force0: ly -= ly[0]
-        if forcemean0 : ly-=tf.math.reduce_mean(ly[:-1])
+        if forcemean0 : ly-=cp.mean(ly[:-1])
         if ln:
             ax.plot(lx.get()[:-2], -np.log(ly.get()[:-1]))
             ylabel = '$-\\ln Z_q$'
@@ -302,7 +302,7 @@ def plot_roc_curve(ax, r_traj, future_boundary, log_scale=False):
     ax.plot(fpr, tpr, 'b-', label='tpr, AUC: %.2f%%' % (auc * 100))
     ### without boundaries
     ok = (ok) & (future_boundary.delta_i!=0)
-    if sum(ok)<1:return
+    if int(ok.sum())<1:return
     fpr, tpr, thresh = sklearn.metrics.roc_curve(future_boundary.r[ok].get(), r_traj[ok].get())
     ax.plot(fpr[1:], thresh[1:], 'r:', label='threshold no bd')
     auc = sklearn.metrics.roc_auc_score(future_boundary.r[ok].get(), r_traj[ok].get())
@@ -317,7 +317,7 @@ def plot_roc_curve(ax, r_traj, future_boundary, log_scale=False):
 def plot_pr_curve(ax, r_traj, future_boundary, log_scale=False):
     import sklearn.metrics
     ok = future_boundary.index > -1
-    precision, recall, thresh = sklearn.metrics.precision_recall_curve(future_boundary.r[ok], r_traj[ok])
+    precision, recall, thresh = sklearn.metrics.precision_recall_curve(future_boundary.r[ok].get(), r_traj[ok].get())
     ax.plot(recall[1:], thresh, 'r-', label='threshold')
     auc_pr = sklearn.metrics.auc(recall, precision)
     ax.plot(recall, precision, 'b-', label='precision, AUC: %.2f%%' % (auc_pr * 100))
@@ -390,7 +390,7 @@ def plot_bootstrap_sd_zq(ax, r_traj, b_traj=None, i_traj=None, future_boundary=N
             w_traj = np.random.poisson(lam=1, size=len(r_traj))
             w_traj = cp.array(w_traj, dtype=r_traj.dtype)
         for dt in ldt:
-            lx, lz = cut_profiles.comp_zq(r_traj, b_traj, i_traj, future_boundary, past_boundary, w_traj=w_traj, dt=cp.array(dt))
+            lx, lz = cut_profiles.comp_zq(r_traj, b_traj, i_traj, future_boundary, past_boundary, w_traj=w_traj, dt=dt)
             lz = lz[:-1].get()
             m2 = np.mean((lz - np.mean(lz)) ** 2)**0.5
             ldti.append(dt)
@@ -416,7 +416,7 @@ def plot_bootstrap_zq_dt(ax, dt, r_traj, b_traj=None, i_traj=None, future_bounda
         else:
             w_traj = np.random.poisson(lam=1, size=len(r_traj))
             w_traj = cp.array(w_traj,dtype=r_traj.dtype)
-        lx, lz = cut_profiles.comp_zq(r_traj, b_traj, i_traj, future_boundary, past_boundary, w_traj=w_traj, dt=cp.array(dt))
+        lx, lz = cut_profiles.comp_zq(r_traj, b_traj, i_traj, future_boundary, past_boundary, w_traj=w_traj, dt=dt)
         lz = lz[:-1].get()
         lx = lx[:-1].get()
         if force0: lz -= lz[0]

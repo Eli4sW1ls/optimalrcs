@@ -2,11 +2,60 @@ import numpy as np
 import cupy as cp
 
 
-class FutureBoundary:
+def _segment_bounds(n, i_traj):
+    """Start/end indices of each contiguous run of equal `i_traj` values."""
+    if i_traj is None:
+        return np.array([0]), np.array([n])
+    seg_start = np.empty(n, dtype=bool)
+    seg_start[0] = True
+    seg_start[1:] = i_traj[1:] != i_traj[:-1]
+    starts = np.flatnonzero(seg_start)
+    ends = np.append(starts[1:], n)
+    return starts, ends
+
+
+def _delta_i(index):
+    return cp.where(index > -1, index - cp.arange(index.shape[0], dtype=index.dtype), 0)
+
+
+def _delta_t(index, t_traj):
+    return cp.where(index > -1, t_traj[index] - t_traj, 0)
+
+
+class _Boundary:
+    """The delta_i/delta_t arrays are derived from the stored indices when they
+    are accessed, instead of being kept as length-N arrays: only the metrics
+    and plots use them, and holding them would cost 56 bytes per frame."""
+
+    @property
+    def delta_i(self):
+        return _delta_i(self.index)
+
+    @property
+    def delta_i2(self):
+        return _delta_i(self.index2)
+
+    @property
+    def delta_t(self):
+        return self.delta_i if self._t_traj is None else _delta_t(self.index, self._t_traj)
+
+    @property
+    def delta_t2(self):
+        return self.delta_i2 if self._t_traj is None else _delta_t(self.index2, self._t_traj)
+
+
+def _traj_starts_ends(i_traj):
+    """First/last frame of each trajectory, as host arrays."""
+    starts, ends = _segment_bounds(len(i_traj), cp.asnumpy(i_traj))
+    return starts, ends - 1
+
+
+class FutureBoundary(_Boundary):
     """
     class to contain information about boundaries in the future, to correctly describe martingale at the boundaries
     self.index[i] - index of the next boundary in the future for the current point with index i
-            if i is a boundary itself, then index[i[]=i
+            if i is a boundary itself, then index[i]=i
+    self.index3[i] - as index[i], but the last frame of the trajectory if no boundary is reached
     self.r[i] - r value of the next boundary in the future
     self.delta_i - difference in indices between the current point and the future boundary
     self.index2[i] - index for the next boundary in the future for the current point eith index i, however
@@ -19,81 +68,67 @@ class FutureBoundary:
     """
     def __init__(self, r_traj: np.ndarray, b_traj: np.ndarray, t_traj: np.ndarray = None, i_traj: np.ndarray = None) -> None:
         n = len(r_traj)
-        self.index = np.zeros(n, 'int32')  # index of the boundary in the future
-        self.index3 = np.zeros(n, 'int32')  # index of the boundary in the future or last point
-        index_current = -1
-        _b_traj=b_traj.get()
-        if i_traj is not None:
-            _i_traj=i_traj.get()
-        if _b_traj[-1] > 0:
-            index_current = n - 1
-        self.index[-1] = index_current
-        self.index3[-1] = n-1
-        for i in range(n - 2, -1, -1):
-            self.index3[i] = self.index3[i+1]
-            if (i_traj is not None) and (_i_traj[i] != _i_traj[i + 1]):  # new trajectory's end
-                index_current = -1
-                self.index3[i] = i
-            if _b_traj[i] > 0:
-                index_current = i
-                self.index3[i] = i
-            self.index[i] = index_current
+        r_traj = cp.asarray(r_traj)
+        _b_traj = cp.asnumpy(b_traj)
+        _i_traj = None if i_traj is None else cp.asnumpy(i_traj)
+        starts, ends = _segment_bounds(n, _i_traj)
 
-        #if i_traj is None or len(np.unique(i_traj))==1:
-        #    self.delta_i_to_end = cp.arange(n-1,-1,1,dtype=cp.in32))
-        #else:
-        #    self.set_distance_to_end(i_traj)
+        # The indices are built on the host, per trajectory (not per frame), via
+        # a reversed running-min: looping over O(n) individual frames in Python
+        # is prohibitively slow for multi-million-frame data.
+        marker = np.where(_b_traj > 0, np.arange(n), n)  # n = "not found" sentinel
+        index = np.empty(n, dtype=np.int64)
+        index3 = np.empty(n, dtype=np.int64)
+        delta_i_to_end = np.empty(n, dtype='int32')
+        for s, e in zip(starts, ends):
+            index[s:e] = np.minimum.accumulate(marker[s:e][::-1])[::-1]
+            index3[s:e] = np.where(index[s:e] == n, e - 1, index[s:e])
+            delta_i_to_end[s:e] = np.arange(e - s - 1, -1, -1)
+        index = np.where(index == n, -1, index).astype('int32')
 
-        self.delta_i_to_end = np.zeros(n, 'int32')  # index of the boundary in the future
-        delta_i_to_end_current = 0
-        for i in range(n - 2, -1, -1):
-            delta_i_to_end_current += 1
-            if (i_traj is not None) and (_i_traj[i] != _i_traj[i + 1]):  # new trajectory's end
-                delta_i_to_end_current = 0
-            self.delta_i_to_end[i] = delta_i_to_end_current
-        self.delta_i_to_end=cp.asarray(self.delta_i_to_end)
+        index2 = np.roll(index, -1)
+        index2[-1] = -1
+        if _i_traj is not None:
+            index2[_i_traj != np.roll(_i_traj, -1)] = -1
 
-        self.index=cp.asarray(self.index)
+        self.index = cp.asarray(index)
+        self.index2 = cp.asarray(index2)
+        self.index3 = cp.asarray(index3.astype('int32'))
+        self.delta_i_to_end = cp.asarray(delta_i_to_end)
+
         self.r = cp.where(self.index > -1, r_traj[self.index], 0)
-        index_frame = cp.arange(n,dtype=cp.int32)
-        self.delta_i = cp.where(self.index > -1, self.index - index_frame, 0)
-        self.index2=np.roll(self.index, -1)
-        self.index2[-1]=-1
-        if i_traj is not None:
-            self.index2[i_traj!=np.roll(i_traj,-1)]=-1
         self.r2 = cp.where(self.index2 > -1, r_traj[self.index2], 0)
-        self.delta_i2 = cp.where(self.index2 > -1, self.index2 - index_frame, 0)
+        self._t_traj = None if t_traj is None else cp.asarray(t_traj)
 
-        if t_traj is None:
-            self.delta_t = self.delta_i
-            self.delta_t2 = self.delta_i2
-        else:
-            self.delta_t = cp.where(self.index > -1, t_traj[self.index] - t_traj[index_frame], 0)
-            self.delta_t2 = cp.where(self.index2 > -1, t_traj[self.index2] - t_traj[index_frame], 0)
-            self.delta_t3 = t_traj[self.index3] - t_traj[index_frame]
+    @property
+    def delta_t3(self):
+        """time (or frames) to the next boundary, or to the end of the trajectory"""
+        if self._t_traj is None:
+            return self.index3 - cp.arange(self.index3.shape[0], dtype=self.index3.dtype)
+        return self._t_traj[self.index3] - self._t_traj
 
     def set_distance_to_end(self, i_traj):
-        traj_ends=cp.where(np.roll(i_traj,-1)!=i_traj)[0]
-        traj_starts=cp.concatenate(([0],traj_ends[:-1]+1))
-        self.delta_i_to_end=cp.zeros_like(i_traj)
+        traj_starts, traj_ends = _traj_starts_ends(i_traj)
+        delta_i_to_end = np.zeros(len(i_traj), 'int32')
         for i_start, i_end in zip(traj_starts, traj_ends):
-            self.delta_i_to_end[i_start:i_end+1] = range(i_end-i_start,-1,-1)
-            
+            delta_i_to_end[i_start:i_end+1] = range(i_end-i_start,-1,-1)
+        self.delta_i_to_end = cp.asarray(delta_i_to_end)
+
     def set_distance_to_end_fixed_traj_length_trap(self, i_traj, trap_boundary, traj_length):
-        traj_ends=cp.where(cp.roll(i_traj,-1)!=i_traj)[0].get()
-        traj_starts=np.concatenate(([0],traj_ends[:-1]+1))
-        self.delta_i_to_end=cp.zeros_like(i_traj).get()
+        traj_starts, traj_ends = _traj_starts_ends(i_traj)
+        trap_boundary = cp.asnumpy(trap_boundary)
+        delta_i_to_end = np.zeros(len(i_traj), 'int32')
         traj_length=traj_length-1
         for i_start, i_end in zip(traj_starts, traj_ends):
-            self.delta_i_to_end[i_start:i_end+1] = range(i_end-i_start,-1,-1)
+            delta_i_to_end[i_start:i_end+1] = range(i_end-i_start,-1,-1)
             if trap_boundary[i_end] and (traj_length > i_end-i_start):
-                self.delta_i_to_end[i_start:i_end+1] += traj_length - (i_end - i_start)
-        self.delta_i_to_end=cp.asarray(self.delta_i_to_end)
+                delta_i_to_end[i_start:i_end+1] += traj_length - (i_end - i_start)
+        self.delta_i_to_end = cp.asarray(delta_i_to_end)
 
     def set_distance_to_end_poisson_traj_length_trap(self, i_traj, trap_boundary, average_traj_length=None):
-        traj_ends=cp.where(cp.roll(i_traj,-1)!=i_traj)[0].get()
-        traj_starts=np.concatenate(([0],traj_ends[:-1]+1))
-        self.delta_i_to_end=cp.zeros_like(i_traj).get()
+        traj_starts, traj_ends = _traj_starts_ends(i_traj)
+        trap_boundary = cp.asnumpy(trap_boundary)
+        delta_i_to_end = np.zeros(len(i_traj), 'int32')
         tb=0
         nb=0
         if average_traj_length is None:
@@ -106,52 +141,40 @@ class FutureBoundary:
             average_traj_length=int(tnb-tb)
             #print (tb,tnb,average_traj_length)
         for i_start, i_end in zip(traj_starts, traj_ends):
-            self.delta_i_to_end[i_start:i_end+1] = range(i_end-i_start,-1,-1)
+            delta_i_to_end[i_start:i_end+1] = range(i_end-i_start,-1,-1)
             if trap_boundary[i_end]:
                 traj_length=int(-np.log(np.random.random())*average_traj_length -1)
-                self.delta_i_to_end[i_start:i_end+1] += traj_length
-        self.delta_i_to_end=cp.asarray(self.delta_i_to_end)
-            
-class PastBoundary:
+                delta_i_to_end[i_start:i_end+1] += traj_length
+        self.delta_i_to_end = cp.asarray(delta_i_to_end)
+
+class PastBoundary(_Boundary):
     def __init__(self, r_traj: np.ndarray, b_traj: np.ndarray, t_traj: np.ndarray = None, i_traj: np.ndarray = None) -> None:
         n = len(r_traj)
-        self.index = np.zeros(n, 'int32')  # index of the boundary in the future
-        _b_traj=b_traj.get()
-        if i_traj is not None:
-            _i_traj=i_traj.get()
-        index_current = -1
-        if _b_traj[0] > 0:
-            index_current = 0
-        self.index[0] = index_current
-        for i in range(1,n):
-            if (i_traj is not None) and (_i_traj[i] != _i_traj[i - 1]):
-                index_current = -1
-            if _b_traj[i] > 0:
-                index_current = i
-            self.index[i] = index_current
+        r_traj = cp.asarray(r_traj)
+        _b_traj = cp.asnumpy(b_traj)
+        _i_traj = None if i_traj is None else cp.asnumpy(i_traj)
+        starts, ends = _segment_bounds(n, _i_traj)
 
-        self.delta_i_from_start = np.zeros(n, 'int32')  # index of the boundary in the future
-        delta_i_from_start_current = 0
-        for i in range(1,n):
-            delta_i_from_start_current += 1
-            if (i_traj is not None) and (_i_traj[i] != _i_traj[i - 1]):  # new trajectory's end
-                delta_i_from_start_current=0
-            self.delta_i_from_start[i] = delta_i_from_start_current
-        self.delta_i_from_start=cp.asarray(self.delta_i_from_start)
-        
-        self.index=cp.asarray(self.index)
+        # self.index[i]: nearest j <= i within the same trajectory with
+        # b_traj[j] > 0, else -1. Mirrors FutureBoundary but with a forward
+        # running-max, computed per-trajectory for the same reason.
+        marker = np.where(_b_traj > 0, np.arange(n), -1)
+        index = np.empty(n, dtype=np.int64)
+        delta_i_from_start = np.empty(n, dtype='int32')
+        for s, e in zip(starts, ends):
+            index[s:e] = np.maximum.accumulate(marker[s:e])
+            delta_i_from_start[s:e] = np.arange(e - s)
+        index = index.astype('int32')
+
+        index2 = np.roll(index, 1)
+        index2[0] = -1
+        if _i_traj is not None:
+            index2[_i_traj != np.roll(_i_traj, 1)] = -1
+
+        self.index = cp.asarray(index)
+        self.index2 = cp.asarray(index2)
+        self.delta_i_from_start = cp.asarray(delta_i_from_start)
+
         self.r = cp.where(self.index > -1, r_traj[self.index], 0)
-        index_frame = cp.arange(n,dtype=cp.int32)
-        self.delta_i = cp.where(self.index > -1, self.index - index_frame, 0)
-        self.index2=cp.roll(self.index, 1)
-        self.index2[0]=-1
-        if i_traj is not None:
-            self.index2[i_traj!=cp.roll(i_traj,1)]=-1
         self.r2 = cp.where(self.index2 > -1, r_traj[self.index2], 0)
-        self.delta_i2 = cp.where(self.index2 > -1, self.index2 - index_frame, 0)
-        if t_traj is None:
-            self.delta_t=self.delta_i
-            self.delta_t2=self.delta_i2
-        else:
-            self.delta_t = cp.where(self.index > -1, t_traj[self.index] - t_traj[index_frame], 0)
-            self.delta_t2 = cp.where(self.index2 > -1, t_traj[self.index2] - t_traj[index_frame], 0)
+        self._t_traj = None if t_traj is None else cp.asarray(t_traj)
