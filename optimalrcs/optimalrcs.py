@@ -156,7 +156,7 @@ class CommittorNE:
     >>> q.plots_obs_pred()
     """
     def __init__(self, boundary0, boundary1, i_traj=None, t_traj=None, seed_r=None, prec=np.float64,
-                 path_weights=None):
+                 path_weights=None, group_traj=None):
         """
         Initialize the CommittorNE class for non-equilibrium committor estimation.
 
@@ -185,6 +185,11 @@ class CommittorNE:
             belongs to. Each transition gets the weight of its starting frame, in the fit
             and in the `metrics_tis` metrics. Unlike the equilibrium weights `w_traj`,
             these correct which paths were sampled, not where.
+        group_traj : array_like of int, optional
+            Independence group of every frame for the standard errors of the
+            `metrics_tis` metrics (default: the trajectories of `i_traj`). Pieces
+            of one path that share frames, like its forward and time-reversed
+            piece, must share a group.
 
         Notes
         -----
@@ -216,6 +221,7 @@ class CommittorNE:
         self.p2i0 = None
         self.w_traj = None
         self.path_weights = None if path_weights is None else np.asarray(path_weights, prec)
+        self.group_traj = None if group_traj is None else np.asarray(group_traj)
         self.r_traj_old=self.r_traj
         self.min_delta_zq = 10000
         self.r_traj_min_sd_zq = self.r_traj
@@ -658,8 +664,10 @@ class CommittorNE:
             r_traj = self.r_traj
         plots_tis.plot_zq_short_lags(ax1, r_traj, self.b_traj, self.i_traj, self.future_boundary,
                                      self.past_boundary, self.path_weights, ldt=ldt_short)
-        plots_tis.plot_zq_stopped(ax2, r_traj, self.b_traj, self.i_traj, self.path_weights, ldt=ldt)
-        plots_tis.plot_obs_pred_stopped(ax3, r_traj, self.b_traj, self.i_traj, self.path_weights)
+        plots_tis.plot_zq_stopped(ax2, r_traj, self.b_traj, self.i_traj, self.path_weights, ldt=ldt,
+                                  g_traj=self.group_traj)
+        plots_tis.plot_obs_pred_stopped(ax3, r_traj, self.b_traj, self.i_traj, self.path_weights,
+                                        g_traj=self.group_traj)
         fig.tight_layout()
         plt.show()
 

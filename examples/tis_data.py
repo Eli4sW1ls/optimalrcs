@@ -51,7 +51,8 @@ def read_path_info(folder, ensemble_index, n_ensembles, weighting):
     "rejections" is `get_weights`, the re-counting alone. "none" gives every
     accepted path weight 1. Rejected cycles get weight 0.
 
-    Returns {cycle: (weight, length, generation, core_start)}.
+    Returns {cycle: (weight, length, generation, core_start, core_end)}, with the
+    core as recorded in `staridx` ((0, 0) for paths that are all core).
     """
     from tistools.reading import get_weights, read_pathensemble, set_flags_ACC_REJ
     pe = read_pathensemble(os.path.join(folder, "pathensemble.txt"))
@@ -65,8 +66,8 @@ def read_path_info(folder, ensemble_index, n_ensembles, weighting):
             weights, _ = get_weights(pe.flags, acc_flags, rej_flags, verbose=False)
         else:
             weights = (pe.flags == "ACC").astype(int)
-    return {cycle: (weight, length, generation, core_start)
-            for cycle, weight, length, generation, (core_start, _)
+    return {cycle: (weight, length, generation, core_start, core_end)
+            for cycle, weight, length, generation, (core_start, core_end)
             in zip(pe.cyclenumbers, weights, pe.lengths, pe.generation, pe.istar_idx)}
 
 
@@ -89,7 +90,26 @@ def first_frame_past_m(order, core_start, lambda_m):
     return s + past[0] if past.size else None
 
 
-def load_order_file(order_file, path_info, lambda_m=None, burn_in=0, max_paths=None, rng=None):
+def last_frame_before_m(order, core_start, core_end, lambda_m):
+    """Index of the last core frame on the far side of M from where the core ends, or None.
+
+    The time-reversed counterpart of `first_frame_past_m`. The core's last frame
+    is followed by the L or R crossing (or A/B frame) it ends at; staple paths
+    record it in `staridx`, paths that are all core end at their last frame. Read
+    backwards, the path satisfies the ensemble's M condition from this frame on,
+    and its start is where the reversed path stops (a window exit, a completed
+    turn of the backward extension, or A/B). For time-reversible dynamics at
+    equilibrium the frames up to here, read backwards, are therefore a valid
+    sample of the dynamics too.
+    """
+    e = len(order) - 2 if core_start == 0 else min(core_end, len(order) - 2)
+    end_side = order[e + 1] > lambda_m
+    before = np.flatnonzero((order[:e + 1] > lambda_m) != end_side)
+    return before[-1] if before.size else None
+
+
+def load_order_file(order_file, path_info, lambda_m=None, burn_in=0, max_paths=None, rng=None,
+                    reversed_pieces=False):
     """Load accepted paths and their Monte Carlo weights from one ensemble's `order.txt`.
 
     An `order.txt` file holds one or more paths, each introduced by a
@@ -100,12 +120,16 @@ def load_order_file(order_file, path_info, lambda_m=None, burn_in=0, max_paths=N
 
     Paths are kept if accepted, not the initial load ('ld') path, from cycle
     `burn_in` on, and with a nonzero weight in `path_info` (see `read_path_info`).
-    With `lambda_m`, each path is cut to start at `first_frame_past_m`. If
-    `max_paths` is given, at most that many paths are kept, drawn at random (in
-    their original order); they keep their weights, so the subset stays unbiased.
+    With `lambda_m`, each path is cut to start at `first_frame_past_m`; with
+    `reversed_pieces` as well, the frames from its start up to
+    `last_frame_before_m` are added read backwards (time t_end - t), which needs
+    time-reversible dynamics at equilibrium. If `max_paths` is given, at most that
+    many paths are kept, drawn at random (in their original order); they keep
+    their weights, so the subset stays unbiased.
 
-    Returns the per-path cvs, order, time and weight lists and the number of
-    paths dropped because their core never crosses M.
+    Returns per-piece cvs, order, time, weight and path-number lists (both pieces
+    of a path share its number) and the number of paths dropped because their
+    core never crosses M.
     """
     # First pass: locate path boundaries, cycle numbers and acceptance flags by
     # scanning lines as plain text (cheap - no per-line list/float allocation).
@@ -138,7 +162,7 @@ def load_order_file(order_file, path_info, lambda_m=None, burn_in=0, max_paths=N
             continue
         if cycle not in path_info:
             raise ValueError(f"{order_file}: cycle {cycle} is missing from pathensemble.txt")
-        weight, length, generation, _ = path_info[cycle]
+        weight, length, generation, _, _ = path_info[cycle]
         if length != starts[i + 1] - starts[i]:
             raise ValueError(f"{order_file}: cycle {cycle} has {starts[i + 1] - starts[i]} "
                              f"frames, pathensemble.txt says {length}")
@@ -149,31 +173,40 @@ def load_order_file(order_file, path_info, lambda_m=None, burn_in=0, max_paths=N
         rng = rng if rng is not None else np.random.default_rng()
         keep = np.sort(rng.choice(keep, max_paths, replace=False))
 
-    cvs, order, time, weights = [], [], [], []
+    cvs, order, time, weights, paths = [], [], [], [], []
     n_no_crossing = 0
-    for i in keep:
-        weight, _, _, core_start = path_info[cycles[i]]
+    for n_path, i in enumerate(keep):
+        weight, _, _, core_start, core_end = path_info[cycles[i]]
         block = data[starts[i]:starts[i + 1]]
+        pieces = [block]
         if lambda_m is not None:
             t_star = first_frame_past_m(block[:, 1], core_start, lambda_m)
             if t_star is None:
                 n_no_crossing += 1
                 continue
-            block = block[t_star:]
-        if len(block) < 2:
-            continue  # no transition left to learn from
-        if subsample:
-            block = block.copy()  # views would keep the whole file's array alive
-        time.append(block[:, 0])
-        order.append(block[:, 1])
-        cvs.append(block[:, 1:])
-        weights.append(weight)
-    return cvs, order, time, weights, n_no_crossing
+            pieces = [block[t_star:]]
+            if reversed_pieces:
+                t_last = last_frame_before_m(block[:, 1], core_start, core_end, lambda_m)
+                if t_last is not None:
+                    backwards = block[t_last::-1].copy()
+                    backwards[:, 0] = block[t_last, 0] - backwards[:, 0]
+                    pieces.append(backwards)
+        for piece in pieces:
+            if len(piece) < 2:
+                continue  # no transition left to learn from
+            if subsample:
+                piece = piece.copy()  # views would keep the whole file's array alive
+            time.append(piece[:, 0])
+            order.append(piece[:, 1])
+            cvs.append(piece[:, 1:])
+            weights.append(weight)
+            paths.append(n_path)
+    return cvs, order, time, weights, paths, n_no_crossing
 
 
 def load_tis_data(tis_dir, interfaces, ensemble_glob="0[0-9][0-9]", include_zero_minus=False,
                   weighting="rejections", cut_at_m=True, burn_in=0, paths_per_ensemble=None,
-                  seed=None):
+                  seed=None, reversed_pieces=False):
     """Load per-path time/order/CV arrays and MC weights from all ensemble folders in `tis_dir`.
 
     Ensemble folders are expected at `tis_dir/<ensemble_glob>/`, each with an
@@ -182,10 +215,16 @@ def load_tis_data(tis_dir, interfaces, ensemble_glob="0[0-9][0-9]", include_zero
     max(NN - 1, 0): l_0 for [0-] and [0+-] (folders 000, 001), l_1 for 002, and
     so on. The [0-] folder is skipped unless `include_zero_minus` is set. With
     `paths_per_ensemble`, a random subset of that many paths is taken from
-    each ensemble.
+    each ensemble. With `reversed_pieces` (needs `cut_at_m`), every path also
+    gives its piece before the last M crossing, read backwards.
+
+    Returns per-piece cvs, order, time, weight and path-number lists; the path
+    numbers are unique over all ensembles and shared by the two pieces of a path.
     """
+    if reversed_pieces and not cut_at_m:
+        raise ValueError("reversed pieces need the cut at M")
     rng = np.random.default_rng(seed)
-    cvs, order, time, weights = [], [], [], []
+    cvs, order, time, weights, paths = [], [], [], [], []
     folders = sorted(glob.glob(os.path.join(tis_dir, ensemble_glob)))
     n_ensembles = len(folders)
     print(f"Found {n_ensembles} ensemble folders in {tis_dir}")
@@ -199,22 +238,26 @@ def load_tis_data(tis_dir, interfaces, ensemble_glob="0[0-9][0-9]", include_zero
             continue
         lambda_m = interfaces[max(k - 1, 0)] if cut_at_m else None
         path_info = read_path_info(folder, k, n_ensembles, weighting)
-        c, o, t, w, n_no_crossing = load_order_file(
+        c, o, t, w, pth, n_no_crossing = load_order_file(
             order_file, path_info, lambda_m=lambda_m, burn_in=burn_in,
-            max_paths=paths_per_ensemble, rng=rng)
+            max_paths=paths_per_ensemble, rng=rng, reversed_pieces=reversed_pieces)
+        offset = paths[-1] + 1 if paths else 0
         cvs += c
         order += o
         time += t
         weights += w
+        paths += [offset + n for n in pth]
         n_frames = sum(len(p) for p in o)
-        msg = f"  {folder}: loaded {len(c)} paths, {n_frames} frames, total weight {sum(w)}"
+        msg = (f"  {folder}: loaded {len(c)} {'pieces' if reversed_pieces else 'paths'}, "
+               f"{n_frames} frames, total weight {sum(w)}")
         if lambda_m is not None:
             msg += f", cut at M = {lambda_m}"
         if n_no_crossing:
             msg += f" ({n_no_crossing} paths dropped: core never crosses M)"
         print(msg)
-    print(f"Loaded {len(cvs)} paths, {sum(len(p) for p in order)} frames total")
-    return cvs, order, time, weights
+    print(f"Loaded {len(cvs)} {'pieces' if reversed_pieces else 'paths'}, "
+          f"{sum(len(p) for p in order)} frames total")
+    return cvs, order, time, weights, paths
 
 
 def load_engine_potential(sim_dir, engine_class):
@@ -288,6 +331,14 @@ def add_data_arguments(parser):
     parser.add_argument("--no-cut", action="store_true",
                         help="keep whole paths instead of cutting them at their first frame "
                              "past M (for comparison only: the cut frames are biased)")
+    parser.add_argument("--reversed", action="store_true",
+                        help="also use every path read backwards from its last M crossing to its "
+                             "start, which recovers the frames the cut drops; needs time-reversible "
+                             "dynamics at equilibrium (CVs must be even under time reversal, e.g. "
+                             "no velocities). On a flat 1D REPPTIS test it halved the committor "
+                             "error; on a flat 1D staple test the reversed pieces showed a small "
+                             "bias in the stopped Z_q of the exact committor, so check before "
+                             "using it with staple paths")
     parser.add_argument("--burn-in", type=int, default=0, metavar="N",
                         help="skip the first N cycles of every ensemble")
     parser.add_argument("--include-zero-minus", action="store_true",
@@ -317,9 +368,11 @@ def prepare_data(args):
 
     Fills in `args.lambda_a`/`args.lambda_b` from the interfaces when not given.
     Returns a namespace with X (the CVs to train on), X_all (all CVs, for plots),
-    lam (order parameter), t_traj, i_traj (segment index), path_weights (MC weight
-    of each frame's path, averaging 1 so that --gamma keeps its meaning relative
-    to the unweighted transition count), boundary0 (A) and boundary1 (B).
+    lam (order parameter), t_traj, i_traj (segment index), group_traj (path number:
+    the forward and reversed piece of a path are not independent, and the standard
+    errors of metrics_tis treat a path as one unit), path_weights (MC weight of
+    each frame's path, averaging 1 so that --gamma keeps its meaning relative to
+    the unweighted transition count), boundary0 (A) and boundary1 (B).
     """
     interfaces = read_interfaces(args.tis_dir, args.interfaces_file)
     if args.lambda_a is None:
@@ -328,10 +381,13 @@ def prepare_data(args):
         args.lambda_b = interfaces[-1]
     print(f"State A: order <= {args.lambda_a}, state B: order >= {args.lambda_b}")
 
-    cvs, order, time, weights = load_tis_data(
+    if args.reversed and args.no_cut:
+        raise SystemExit("--reversed needs the cut at M (drop --no-cut)")
+    cvs, order, time, weights, paths = load_tis_data(
         args.tis_dir, interfaces, include_zero_minus=args.include_zero_minus,
         weighting=args.weights, cut_at_m=not args.no_cut, burn_in=args.burn_in,
-        paths_per_ensemble=args.paths_per_ensemble, seed=args.seed)
+        paths_per_ensemble=args.paths_per_ensemble, seed=args.seed,
+        reversed_pieces=args.reversed)
 
     path_weights = np.concatenate([np.full(len(path), w, dtype=float)
                                    for path, w in zip(order, weights)])
@@ -341,7 +397,8 @@ def prepare_data(args):
     t_traj = np.concatenate(time, axis=0)
     i_traj = np.concatenate([np.full(len(path), path_id, dtype=int)
                              for path_id, path in enumerate(cvs)])
-    del cvs, order, time, weights
+    group_traj = np.concatenate([np.full(len(piece), n, dtype=int) for piece, n in zip(order, paths)])
+    del cvs, order, time, weights, paths
 
     # Training may use fewer CVs, but plots always see the data's full dimension.
     X = X_all
@@ -359,12 +416,13 @@ def prepare_data(args):
 
     # Validate the prepared data before fitting.
     same_path = i_traj[1:] == i_traj[:-1]
-    assert X.shape[0] == lam.size == t_traj.size == i_traj.size == path_weights.size
+    assert X.shape[0] == lam.size == t_traj.size == i_traj.size == path_weights.size == group_traj.size
     assert not np.any(boundary0 & boundary1)
     assert np.all(np.diff(i_traj) >= 0)
     assert np.all(np.diff(t_traj)[same_path] > 0)
     return types.SimpleNamespace(X=X, X_all=X_all, lam=lam, t_traj=t_traj, i_traj=i_traj,
-                                 path_weights=path_weights, boundary0=boundary0, boundary1=boundary1)
+                                 group_traj=group_traj, path_weights=path_weights,
+                                 boundary0=boundary0, boundary1=boundary1)
 
 
 def save_fit_figures(q, figure_dir, iteration_key):

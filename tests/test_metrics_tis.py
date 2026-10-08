@@ -115,6 +115,29 @@ class TestZqStopped(unittest.TestCase):
                             atol=1e-12)
 
 
+class TestGroups(unittest.TestCase):
+
+    def test_standard_error_with_groups(self):
+        # Segments 2k and 2k+1 form one group, like the forward and reversed piece of a path.
+        r, b, i = lattice_segments(300, seed=9)
+        g = i // 2
+        w = np.random.default_rng(10).integers(1, 4, size=i.max() + 1)[i].astype(float)
+        nbins, dt = 40, 3
+        _, z = metrics_tis.comp_zq_stopped_zscore(r, b, i, w, dt=dt, nbins=nbins, g_traj=g)
+        tau = metrics_tis.stop_index(i, b)
+        _, bins, contrib, starts = metrics_tis._stopped_contributions(r, b, w, dt, nbins, tau)
+        per_group = np.zeros((g.max() + 1, nbins))
+        np.add.at(per_group, (g[starts], bins[starts]), contrib[starts])
+        cum = np.cumsum(per_group, axis=1)
+        sigma = np.sqrt((cum ** 2).sum(0))
+        npt.assert_allclose(z, np.divide(cum.sum(0), sigma, out=np.zeros(nbins), where=sigma > 0),
+                            atol=1e-12)
+        # One group per segment is the default.
+        _, z_seg = metrics_tis.comp_zq_stopped_zscore(r, b, i, w, dt=dt, nbins=nbins)
+        _, z_g = metrics_tis.comp_zq_stopped_zscore(r, b, i, w, dt=dt, nbins=nbins, g_traj=i * 7)
+        npt.assert_allclose(z_seg, z_g)
+
+
 class TestStoppedSegments(unittest.TestCase):
     """Segments that end at window exits, with the exact committor known."""
 

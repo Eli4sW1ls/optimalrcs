@@ -78,10 +78,13 @@ metrics_short_name = {**metrics.metrics_short_name, **metrics_tis.metrics_short_
 
 class CommittorNE:
     def __init__(self, boundary0, boundary1, i_traj=None, t_traj=None, seed_r=None, prec=cp.float64,
-                 path_weights=None):
+                 path_weights=None, group_traj=None):
         # path_weights: optional per-frame weight, e.g. the Monte Carlo weight of the
         # frame's sampled path; each transition gets the weight of its starting frame,
         # in the fit and in the metrics_tis metrics.
+        # group_traj: optional independence group per frame for the metrics_tis standard
+        # errors (default: the trajectories); pieces of one path that share frames, like
+        # its forward and time-reversed piece, must share a group.
         self.boundary0 = cp.asarray(boundary0)
         self.boundary1 = cp.asarray(boundary1)
         self.b_traj = cp.asarray(boundary0 | boundary1, dtype=prec)
@@ -104,6 +107,7 @@ class CommittorNE:
         self.p2i0 = None
         self.w_traj = None
         self.path_weights = None if path_weights is None else cp.asarray(path_weights, dtype=prec)
+        self.group_traj = None if group_traj is None else cp.asarray(group_traj)
         self.min_delta_zq = 10000
         self.r_traj_min_sd_zq = self.r_traj
         
@@ -351,8 +355,10 @@ class CommittorNE:
             r_traj = self.r_traj
         plots_tis.plot_zq_short_lags(ax1, r_traj, self.b_traj, self.i_traj, self.future_boundary,
                                      self.past_boundary, self.path_weights, ldt=ldt_short)
-        plots_tis.plot_zq_stopped(ax2, r_traj, self.b_traj, self.i_traj, self.path_weights, ldt=ldt)
-        plots_tis.plot_obs_pred_stopped(ax3, r_traj, self.b_traj, self.i_traj, self.path_weights)
+        plots_tis.plot_zq_stopped(ax2, r_traj, self.b_traj, self.i_traj, self.path_weights, ldt=ldt,
+                                  g_traj=self.group_traj)
+        plots_tis.plot_obs_pred_stopped(ax3, r_traj, self.b_traj, self.i_traj, self.path_weights,
+                                        g_traj=self.group_traj)
         fig.tight_layout()
         plt.show()
 

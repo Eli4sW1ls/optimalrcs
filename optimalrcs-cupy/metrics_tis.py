@@ -29,6 +29,13 @@ def _segments(i_traj, n):
                            cp.cumsum(i_traj[1:] != i_traj[:-1], dtype=cp.int64)])
 
 
+def _groups(g_traj, i_traj, n):
+    """Independence group 0, 1, ... of every frame: `g_traj` if given, else the segments."""
+    if g_traj is None:
+        return _segments(i_traj, n)
+    return cp.asarray(np.unique(cp.asnumpy(cp.asarray(g_traj)), return_inverse=True)[1].reshape(-1))
+
+
 def stop_index(i_traj, b_traj):
     """
     Index of the frame where each frame's window stops.
@@ -114,12 +121,15 @@ def comp_zq_stopped(r_traj, b_traj, i_traj, w_traj=None, dt=1, nbins=200, tau=No
     return lx, cp.cumsum(cp.bincount(bins[starts], weights=contrib[starts], minlength=nbins))
 
 
-def comp_zq_stopped_zscore(r_traj, b_traj, i_traj, w_traj=None, dt=1, nbins=200, tau=None):
+def comp_zq_stopped_zscore(r_traj, b_traj, i_traj, w_traj=None, dt=1, nbins=200, tau=None, g_traj=None):
     """
     Stopped cut profile Z(x, dt) divided by its standard error.
 
     For the committor the result stays within a few units of zero at every x and
-    dt; parameters as in `comp_zq_stopped`.
+    dt; parameters as in `comp_zq_stopped`, and `g_traj` (optional): the
+    independence group of every frame for the standard error (default: the
+    segments); pieces of one path that share frames, like its forward and
+    time-reversed piece, must share a group.
 
     Returns
     -------
@@ -129,13 +139,14 @@ def comp_zq_stopped_zscore(r_traj, b_traj, i_traj, w_traj=None, dt=1, nbins=200,
     r_traj, b_traj, w_traj = _cp(r_traj), _cp(b_traj), _cp(w_traj)
     tau = stop_index(i_traj, b_traj) if tau is None else _cp(tau)
     lx, bins, contrib, starts = _stopped_contributions(r_traj, b_traj, w_traj, dt, nbins, tau)
-    seg = _segments(i_traj, r_traj.shape[0])
+    grp = _groups(g_traj, i_traj, r_traj.shape[0])
     zq = cp.cumsum(cp.bincount(bins[starts], weights=contrib[starts], minlength=nbins))
-    sigma = _sigma_zq(seg[starts], bins[starts], contrib[starts], nbins)
+    sigma = _sigma_zq(grp[starts], bins[starts], contrib[starts], nbins)
     return lx, cp.where(sigma > 0, zq / cp.where(sigma > 0, sigma, 1), 0)
 
 
-def _comp_max_zq_stopped(r_traj, b_traj, i_traj, w_traj=None, ldt=None, nbins=200, tau=None, skip_bins=5):
+def _comp_max_zq_stopped(r_traj, b_traj, i_traj, w_traj=None, ldt=None, nbins=200, tau=None, skip_bins=5,
+                         g_traj=None):
     """
     Worst deviation of the stopped cut profile over all lag times.
 
@@ -152,7 +163,7 @@ def _comp_max_zq_stopped(r_traj, b_traj, i_traj, w_traj=None, ldt=None, nbins=20
     tau = stop_index(i_traj, b_traj) if tau is None else tau
     max_z = max_sd = (0, 0)
     for dt in ldt:
-        _, z = comp_zq_stopped_zscore(r_traj, b_traj, i_traj, w_traj, dt, nbins, tau)
+        _, z = comp_zq_stopped_zscore(r_traj, b_traj, i_traj, w_traj, dt, nbins, tau, g_traj)
         _, zq = comp_zq_stopped(r_traj, b_traj, i_traj, w_traj, dt, nbins, tau)
         z_dt, sd_dt = float(cp.max(cp.abs(z[skip_bins:]))), float(cp.std(zq))
         if z_dt > max_z[0]:
@@ -223,8 +234,8 @@ def _cached_max_zq_stopped(rc):
         rc._tau_stopped = stop_index(rc.i_traj, rc.b_traj)
     cache = getattr(rc, '_zq_stopped_cache', None)
     if cache is None or cache[0] is not rc.r_traj:
-        stats = _comp_max_zq_stopped(rc.r_traj, rc.b_traj, rc.i_traj,
-                                     getattr(rc, 'path_weights', None), tau=rc._tau_stopped)
+        stats = _comp_max_zq_stopped(rc.r_traj, rc.b_traj, rc.i_traj, getattr(rc, 'path_weights', None),
+                                     tau=rc._tau_stopped, g_traj=getattr(rc, 'group_traj', None))
         rc._zq_stopped_cache = (rc.r_traj, stats)
     return rc._zq_stopped_cache[1]
 

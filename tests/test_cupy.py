@@ -393,6 +393,9 @@ class TestAgainstTF(unittest.TestCase):
         for dt in (1, 4, 16):
             self.assertAlmostEqual(C.metrics_tis.dropped_fraction(ic, bc, dt, wc),
                                    T.metrics_tis.dropped_fraction(i, b, dt, w), places=12)
+        g = i // 2
+        npt.assert_allclose(np_(C.metrics_tis.comp_zq_stopped_zscore(rc, bc, ic, wc, 8, 50, g_traj=cp.asarray(g))[1]),
+                            T.metrics_tis.comp_zq_stopped_zscore(r, b, i, w, 8, 50, g_traj=g)[1], rtol=1e-9, atol=1e-9)
 
 
 @requires_cupy

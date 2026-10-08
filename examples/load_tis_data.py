@@ -70,6 +70,7 @@ def main():
         i_traj=data.i_traj,
         t_traj=data.t_traj,
         path_weights=data.path_weights,
+        group_traj=data.group_traj,
     )
 
     # Paths stop at their first A/B frame. Treat those ends as traps the path stays
