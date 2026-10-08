@@ -2,9 +2,11 @@ import numpy as np
 import cupy as cp
 import boundaries
 import metrics
+import metrics_tis
 import nonparametrics
 import time
 import plots
+import plots_tis
 import polybasis
 import matplotlib.pyplot as plt
 
@@ -69,8 +71,17 @@ def lazy_basis_poly_ry(r, y, n, fenv=None):
 
 
 
+# Metrics that `metrics_print` can name: the standard ones and the stopped-segment ones.
+metric2function = {**metrics.metric2function, **metrics_tis.metric2function}
+metrics_short_name = {**metrics.metrics_short_name, **metrics_tis.metrics_short_name}
+
+
 class CommittorNE:
-    def __init__(self, boundary0, boundary1, i_traj=None, t_traj=None, seed_r=None, prec=cp.float64):
+    def __init__(self, boundary0, boundary1, i_traj=None, t_traj=None, seed_r=None, prec=cp.float64,
+                 path_weights=None):
+        # path_weights: optional per-frame weight, e.g. the Monte Carlo weight of the
+        # frame's sampled path; each transition gets the weight of its starting frame,
+        # in the fit and in the metrics_tis metrics.
         self.boundary0 = cp.asarray(boundary0)
         self.boundary1 = cp.asarray(boundary1)
         self.b_traj = cp.asarray(boundary0 | boundary1, dtype=prec)
@@ -92,6 +103,7 @@ class CommittorNE:
         self.iter = 0
         self.p2i0 = None
         self.w_traj = None
+        self.path_weights = None if path_weights is None else cp.asarray(path_weights, dtype=prec)
         self.min_delta_zq = 10000
         self.r_traj_min_sd_zq = self.r_traj
         
@@ -104,22 +116,26 @@ class CommittorNE:
     def print_metrics(self, metrics_print):
         s = ''
         for metric in metrics_print:
-            s += '%s=%g, ' % (metrics.metrics_short_name[metric], self.metrics_history[metric][-1])
+            s += '%s=%g, ' % (metrics_short_name[metric], self.metrics_history[metric][-1])
         print(s[:-2])
 
     def compute_metrics(self, metrics_print):
         for metric in metrics_print:
             if metric not in self.metrics_history:
                 self.metrics_history[metric] = []
-            self.metrics_history[metric].append(metrics.metric2function[metric](self))
+            self.metrics_history[metric].append(metric2function[metric](self))
 
     def fit_transform(self, comp_y,
                       envelope=envelope_sigmoid, gamma=0, basis_functions=basis_poly_ry, ny=6,
                       max_iter=100000, min_delta_x=None, min_delta_r2=None,
                       print_step=1000, metrics_print=None, stable=False,
                       history_delta_t=None, history_type=None, history_shift_type=None,
-                      save_min_delta_zq=True, train_mask=None, delta_r2_max_change_allowed=1e3):
+                      save_min_delta_zq=True, train_mask=None, delta_r2_max_change_allowed=1e3,
+                      save_min_metric='max_sd_zq'):
+        # save_min_metric: metric (in metrics_print) whose minimum selects r_traj_min_sd_zq;
+        # for segment data use 'max_z_zq_stopped'.
         self.r_traj_old = self.r_traj
+        _transition_w = None if self.path_weights is None else self.path_weights[:-1]
         self.time_start = time.time()
         if metrics_print is None:
             metrics_print = ('iter', 'cross_entropy', 'mse', 'max_sd_zq', 'max_grad_zq', 'delta_r2', 'auc', 'delta_x', 'time_elapsed')
@@ -160,9 +176,11 @@ class CommittorNE:
             # compute next update of the RC
             if train_mask is not None and np.isscalar(train_mask):
                 _train_mask=(cp.random.rand(self.r_traj.shape[0]-1)<train_mask).astype(cp.float32)
-                r_traj = nonparametrics.npneq(self.r_traj, fk, self.i_traj, _gamma, stable, train_mask=_train_mask)
+                r_traj = nonparametrics.npneq(self.r_traj, fk, self.i_traj, _gamma, stable, train_mask=_train_mask,
+                                              w_traj=_transition_w)
             else:
-                r_traj = nonparametrics.npneq(self.r_traj, fk, self.i_traj, _gamma, stable, train_mask=train_mask)
+                r_traj = nonparametrics.npneq(self.r_traj, fk, self.i_traj, _gamma, stable, train_mask=train_mask,
+                                              w_traj=_transition_w)
 
             fk = None  # release before the next iteration rebuilds it
 
@@ -182,8 +200,8 @@ class CommittorNE:
                 self.r_traj_old = self.r_traj
                 if iter > 0:
                     if save_min_delta_zq:
-                        if self.metrics_history['max_sd_zq'][-1] < self.min_delta_zq:
-                            self.min_delta_zq = self.metrics_history['max_sd_zq'][-1]
+                        if self.metrics_history[save_min_metric][-1] < self.min_delta_zq:
+                            self.min_delta_zq = self.metrics_history[save_min_metric][-1]
                             self.r_traj_min_sd_zq = self.r_traj
                     if min_delta_x is not None and self.metrics_history['delta_x'][-1] < min_delta_x:
                         break
@@ -321,6 +339,20 @@ class CommittorNE:
             r_traj = self.r_traj
         plots.plot_obs_pred_q(ax1, r_traj, self.future_boundary, ax2=ax2, log_scale=log_scale, log_scale_pmin=log_scale_pmin)
         plots.plot_roc_curve(ax3, r_traj, self.future_boundary, log_scale=log_scale)
+        fig.tight_layout()
+        plt.show()
+
+    def plots_tis(self, r_traj=None, ldt=None, ldt_short=(1, 2, 4, 8)):
+        """Validation plots for path-sampling segments (see metrics_tis): the standard
+        Z_q at short lags `ldt_short` with the fraction of windows each drops, the
+        stopped Z_q / standard error for all lags `ldt`, and stopped observed-vs-predicted."""
+        fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(20, 4.5))
+        if r_traj is None:
+            r_traj = self.r_traj
+        plots_tis.plot_zq_short_lags(ax1, r_traj, self.b_traj, self.i_traj, self.future_boundary,
+                                     self.past_boundary, self.path_weights, ldt=ldt_short)
+        plots_tis.plot_zq_stopped(ax2, r_traj, self.b_traj, self.i_traj, self.path_weights, ldt=ldt)
+        plots_tis.plot_obs_pred_stopped(ax3, r_traj, self.b_traj, self.i_traj, self.path_weights)
         fig.tight_layout()
         plt.show()
 

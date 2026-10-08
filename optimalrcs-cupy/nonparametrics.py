@@ -142,13 +142,15 @@ def _npneq_update(r_traj, basis, al_j, step):
     return cp.clip(rn_traj, 0, 1, out=rn_traj)
 
 
-def _npneq_itw(r_traj, i_traj, train_mask):
+def _npneq_itw(r_traj, i_traj, train_mask, w_traj=None):
     if i_traj is None:
         itw = cp.ones_like(r_traj[:-1])
     else:
         itw = cp.asarray(i_traj[1:] == i_traj[:-1], dtype=r_traj.dtype)
     if train_mask is not None:
         itw = itw * train_mask
+    if w_traj is not None:
+        itw = itw * cp.asarray(w_traj, dtype=r_traj.dtype)
     return itw
 
 
@@ -157,7 +159,7 @@ def _as_basis(fk):
 
 
 def npneq(r_traj, fk, i_traj=None, gamma=0, stable=False, train_mask=None,
-          chunk=None):
+          chunk=None, w_traj=None):
     """ implements NPNEq (non-parametric non-equilibrium committor
     optimization) iteration.
 
@@ -167,6 +169,8 @@ def npneq(r_traj, fk, i_traj=None, gamma=0, stable=False, train_mask=None,
         Ib(i)=1 when X(i) belongs to the boundary states and 0 otherwise
     It is the trajectory indicator function:
         It(i)=1 if X(i) and X(i+1) belong to the same short trajectory
+    w_traj is an optional weight of each transition X(i) -> X(i+1), e.g. the
+        Monte Carlo weight of the path it belongs to. Default value is 1.
 
     akj and b are sums over transitions, so they are accumulated block by
     block: the full-length intermediates this would otherwise allocate
@@ -177,7 +181,7 @@ def npneq(r_traj, fk, i_traj=None, gamma=0, stable=False, train_mask=None,
     A basis with `transition_moments`/`apply` (polybasis.PolyBasisRY) is never
     materialized at all: akj, b and the update are computed frame by frame.
     """
-    itw = _npneq_itw(r_traj, i_traj, train_mask)
+    itw = _npneq_itw(r_traj, i_traj, train_mask, w_traj)
     if hasattr(fk, "transition_moments"):
         akj, b = fk.transition_moments(itw, -(r_traj[1:] - r_traj[:-1]) * itw, gamma, stable)
         al_j = cp.linalg.lstsq(akj, b, rcond=None)[0]

@@ -1,3 +1,4 @@
 optimalrcs.egg-info/
 .vscode/
 */__pycache__/
+examples/figures

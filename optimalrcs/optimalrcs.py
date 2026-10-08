@@ -6,7 +6,11 @@ import time
 import numpy as np
 import tensorflow as tf
 import matplotlib.pyplot as plt
-from . import boundaries, metrics, nonparametrics, plots
+from . import boundaries, metrics, metrics_tis, nonparametrics, plots, plots_tis
+
+# Metrics that `metrics_print` can name: the standard ones and the stopped-segment ones.
+metric2function = {**metrics.metric2function, **metrics_tis.metric2function}
+metrics_short_name = {**metrics.metrics_short_name, **metrics_tis.metrics_short_name}
 
 envelope_scale = 0.01
 
@@ -151,7 +155,8 @@ class CommittorNE:
     >>> q.plots_feps()
     >>> q.plots_obs_pred()
     """
-    def __init__(self, boundary0, boundary1, i_traj=None, t_traj=None, seed_r=None, prec=np.float64):
+    def __init__(self, boundary0, boundary1, i_traj=None, t_traj=None, seed_r=None, prec=np.float64,
+                 path_weights=None):
         """
         Initialize the CommittorNE class for non-equilibrium committor estimation.
 
@@ -175,6 +180,11 @@ class CommittorNE:
             in the interior and 0/1 at boundaries.
         prec : dtype, optional
             Precision used for internal computations (default: np.float64).
+        path_weights : array_like, optional
+            Per-frame weight, e.g. the Monte Carlo weight of the sampled path the frame
+            belongs to. Each transition gets the weight of its starting frame, in the fit
+            and in the `metrics_tis` metrics. Unlike the equilibrium weights `w_traj`,
+            these correct which paths were sampled, not where.
 
         Notes
         -----
@@ -205,6 +215,7 @@ class CommittorNE:
         self.iteration = 0
         self.p2i0 = None
         self.w_traj = None
+        self.path_weights = None if path_weights is None else np.asarray(path_weights, prec)
         self.r_traj_old=self.r_traj
         self.min_delta_zq = 10000
         self.r_traj_min_sd_zq = self.r_traj
@@ -267,7 +278,7 @@ class CommittorNE:
         """
         s = ''
         for metric in metrics_print:
-            s += '%s=%g, ' % (metrics.metrics_short_name[metric], self.metrics_history[metric][-1])
+            s += '%s=%g, ' % (metrics_short_name[metric], self.metrics_history[metric][-1])
         print(s[:-2])
 
     def _compute_metrics(self, metrics_print):
@@ -283,14 +294,15 @@ class CommittorNE:
         for metric in metrics_print:
             if metric not in self.metrics_history:
                 self.metrics_history[metric] = []
-            self.metrics_history[metric].append(metrics.metric2function[metric](self))
+            self.metrics_history[metric].append(metric2function[metric](self))
 
     def fit_transform(self, comp_y,
                       envelope=envelope_sigmoid, gamma=0, basis_functions=basis_poly_ry, ny=6,
                       max_iter=100000, min_delta_x=None, min_delta_r2=None,
                       print_step=1000, metrics_print=None,
                       history_delta_t=None, history_type='y(t-d),r(t-d)',
-                      save_min_delta_zq=True, train_mask=None, delta2_r2_max_change_allowed=1e3):
+                      save_min_delta_zq=True, train_mask=None, delta2_r2_max_change_allowed=1e3,
+                      save_min_metric='max_sd_zq'):
         """
         Optimize the reaction coordinate (RC) to approximate the committor function using a nonparametric,
         history-aware basis expansion.
@@ -332,11 +344,15 @@ class CommittorNE:
             Type(s) of history-based variation (e.g., 'y(t-d),r(t-d)', 'y(t-d),y(t)').
             Default: 'y(t-d),r(t-d)'.
         save_min_delta_zq : bool, optional
-            If True, save the RC with the smallest observed Z_q deviation (default: True).
+            If True, save the RC with the smallest value of `save_min_metric` in
+            `r_traj_min_sd_zq` (default: True).
         train_mask : array_like, optional
             Boolean mask indicating which frames to include in training.
         delta2_r2_max_change_allowed : float, optional
             Maximum allowed change in delta_r^2 for accepting RC updates (default: 1e3).
+        save_min_metric : str, optional
+            Metric whose minimum selects the saved RC; it must be in `metrics_print`
+            (default: 'max_sd_zq'; for segment data use 'max_z_zq_stopped').
 
         Returns
         -------
@@ -360,6 +376,9 @@ class CommittorNE:
         else:
             _gamma = tf.constant(gamma, dtype=self.prec)
         delta_r2=metrics._delta_r2_ne_dt1(self.r_traj, self.i_traj)
+        _transition_w = None
+        if self.path_weights is not None:
+            _transition_w = tf.constant(self.path_weights[:-1], dtype=self.prec)
 
         self.time_start = time.time()
         for self.iteration in range(max_iter + 1):
@@ -394,10 +413,11 @@ class CommittorNE:
 
             # compute next update of the RC
             if train_mask is None:
-                r_traj = nonparametrics.npneq(self.r_traj, fk, self.i_traj, _gamma)
+                r_traj = nonparametrics.npneq(self.r_traj, fk, self.i_traj, _gamma, w_traj=_transition_w)
             else:
                 _train_mask = tf.cast(tf.random.uniform(shape=[self.r_traj.shape[0] - 1]) < train_mask,dtype=self.r_traj.dtype)
-                r_traj = nonparametrics.npneq(self.r_traj, fk, self.i_traj, _gamma, train_mask=_train_mask)
+                r_traj = nonparametrics.npneq(self.r_traj, fk, self.i_traj, _gamma, train_mask=_train_mask,
+                                              w_traj=_transition_w)
 
             fk = None  # release before the next iteration rebuilds it
 
@@ -413,8 +433,8 @@ class CommittorNE:
                 self.r_traj_old = self.r_traj
                 if self.iteration > 0:
                     if save_min_delta_zq:
-                        if self.metrics_history['max_sd_zq'][-1] < self.min_delta_zq:
-                            self.min_delta_zq = self.metrics_history['max_sd_zq'][-1]
+                        if self.metrics_history[save_min_metric][-1] < self.min_delta_zq:
+                            self.min_delta_zq = self.metrics_history[save_min_metric][-1]
                             self.r_traj_min_sd_zq = self.r_traj
                     if min_delta_x is not None and self.metrics_history['delta_x'][-1] < min_delta_x:
                         break
@@ -601,6 +621,45 @@ class CommittorNE:
             r_traj = self.r_traj
         plots.plot_obs_pred_q(ax1, r_traj, self.future_boundary, ax2=ax2, log_scale=log_scale, log_scale_pmin=log_scale_pmin)
         plots.plot_roc_curve(ax3, r_traj, self.future_boundary, log_scale=log_scale)
+        fig.tight_layout()
+        plt.show()
+
+    def plots_tis(self, r_traj=None, ldt=None, ldt_short=(1, 2, 4, 8)):
+        """
+        Validation plots for path-sampling segments that end at a stopping time.
+
+        For (RE)TIS, REPPTIS and staple segments (cut at their first M crossing) the
+        standard Z_q and observed-vs-predicted plots are biased, because windows and
+        frames are dropped depending on where the segment ends. This method draws,
+        using `self.path_weights`:
+        1. The standard Z_q at short lag times, with the fraction of windows each
+           lag drops; usable while that fraction is a few percent.
+        2. Stopped Z_q / standard error for all lag times (`metrics_tis`); within
+           about +-2 for an RC consistent with the committor.
+        3. Observed (where each window stops) vs predicted committor, also for two
+           random halves of the segments.
+
+        Parameters
+        ----------
+        r_traj : array_like, optional
+            Reaction coordinate time-series to evaluate. If None, uses `self.r_traj`.
+        ldt : list of int, optional
+            Lag times of the stopped Z_q (default: 1, 2, 4, ..., 2**15).
+        ldt_short : list of int, optional
+            Lag times of the standard Z_q (default: 1, 2, 4, 8).
+
+        Returns
+        -------
+        None
+            Displays the plots using matplotlib.
+        """
+        fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(20, 4.5))
+        if r_traj is None:
+            r_traj = self.r_traj
+        plots_tis.plot_zq_short_lags(ax1, r_traj, self.b_traj, self.i_traj, self.future_boundary,
+                                     self.past_boundary, self.path_weights, ldt=ldt_short)
+        plots_tis.plot_zq_stopped(ax2, r_traj, self.b_traj, self.i_traj, self.path_weights, ldt=ldt)
+        plots_tis.plot_obs_pred_stopped(ax3, r_traj, self.b_traj, self.i_traj, self.path_weights)
         fig.tight_layout()
         plt.show()
 

@@ -34,11 +34,12 @@ def _load_cupy():
         spec = importlib.util.spec_from_file_location("optimalrcs_cupy", os.path.join(CUPY_DIR, "optimalrcs.py"))
         orc = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(orc)
-        import boundaries, cut_profiles, metrics, nonparametrics, plots, polybasis
+        import boundaries, cut_profiles, metrics, metrics_tis, nonparametrics, plots, plots_tis, polybasis
     finally:
         sys.path.remove(CUPY_DIR)
     return types.SimpleNamespace(cp=cp, orc=orc, bd=boundaries, cut_profiles=cut_profiles, metrics=metrics,
-                                 nonparametrics=nonparametrics, plots=plots, polybasis=polybasis)
+                                 metrics_tis=metrics_tis, nonparametrics=nonparametrics, plots=plots,
+                                 plots_tis=plots_tis, polybasis=polybasis)
 
 
 C = _load_cupy()
@@ -51,9 +52,10 @@ def _load_tf():
         for gpu in tf.config.list_physical_devices("GPU"):
             tf.config.experimental.set_memory_growth(gpu, True)
         import optimalrcs.boundaries as bd
+        import optimalrcs.metrics_tis as metrics_tis
         import optimalrcs.nonparametrics as nonparametrics
         import optimalrcs.optimalrcs as orc
-        return types.SimpleNamespace(tf=tf, bd=bd, nonparametrics=nonparametrics, orc=orc)
+        return types.SimpleNamespace(tf=tf, bd=bd, metrics_tis=metrics_tis, nonparametrics=nonparametrics, orc=orc)
     except Exception:
         return None
 
@@ -73,6 +75,25 @@ def random_walks(mtraj, msteps):
             i_traj.append(i)
             b_traj.append(1 if x0 in (0, 1) else 0)
     return np.asarray(r_traj), np.asarray(b_traj), np.asarray(i_traj)
+
+
+def lattice_segments(n_segments, n_sites=20, max_half_width=5, seed=0):
+    """Same segments as tests/test_metrics_tis.py: a +-1 walk on 0..n_sites (A = 0, B = n_sites),
+    each segment stopping in A/B or at its first exit from x0 +- k. The committor is x / n_sites."""
+    rng = np.random.default_rng(seed)
+    x_traj, i_traj = [], []
+    for i in range(n_segments):
+        x0 = x = int(rng.integers(1, n_sites))
+        k = int(rng.integers(1, max_half_width + 1))
+        path = [x]
+        while 0 < x < n_sites and abs(x - x0) < k:
+            x += 1 if rng.random() < 0.5 else -1
+            path.append(x)
+        x_traj += path
+        i_traj += [i] * len(path)
+    x_traj = np.asarray(x_traj, dtype=float)
+    b_traj = ((x_traj == 0) | (x_traj == n_sites)).astype(float)
+    return x_traj / n_sites, b_traj, np.asarray(i_traj)
 
 
 def read_2f4k(max_frames=None):
@@ -252,6 +273,27 @@ class TestPolyBasis(unittest.TestCase):
                 c = np_(C.nonparametrics.npneq(self.r, full, self.i, gamma, stable))
                 npt.assert_allclose(a, c, rtol=0, atol=1e-8, err_msg=f"ny={ny} gamma={gamma} stable={stable}")
 
+    def test_npneq_weights(self):
+        cp = C.cp
+        w = cp.asarray(np.random.default_rng(3).integers(1, 4, size=int(self.i.max()) + 1))[self.i][:-1]
+        fused = C.orc.lazy_basis_poly_ry(self.r, self.y, 4, 1 - self.b)
+        full = C.orc.basis_poly_ry(self.r, self.y, 4, 1 - self.b)
+        npt.assert_allclose(np_(C.nonparametrics.npneq(self.r, fused, self.i, 0.1, w_traj=w)),
+                            np_(C.nonparametrics.npneq(self.r, full, self.i, 0.1, w_traj=w)), rtol=0, atol=1e-8)
+
+    def test_npneq_weight_two_is_a_duplicated_segment(self):
+        # Without regularization a transition of weight 2 counts as the same transition twice.
+        cp = C.cp
+        full = C.orc.basis_poly_ry(self.r, self.y, 4, 1 - self.b)
+        seg0 = self.i == 0
+        n0 = int(seg0.sum())
+        w = cp.where(seg0, 2.0, 1.0)[:-1]
+        r_w = C.nonparametrics.npneq(self.r, full, self.i, 0, w_traj=w)
+        r_dup = C.nonparametrics.npneq(cp.concatenate([self.r[seg0], self.r]),
+                                       cp.concatenate([full[:, seg0], full], axis=1),
+                                       cp.concatenate([cp.full(n0, -1), self.i]), 0)
+        npt.assert_allclose(np_(r_w), np_(r_dup[n0:]), rtol=0, atol=1e-8)
+
     def test_npnet(self):
         cp = C.cp
         t = cp.arange(len(self.r), dtype=cp.float64)
@@ -262,6 +304,28 @@ class TestPolyBasis(unittest.TestCase):
             npt.assert_allclose(np_(C.nonparametrics.npnet(rt, fused, t, self.i, 0.1, subsample=subsample)),
                                 np_(C.nonparametrics.npnet(rt, full, t, self.i, 0.1, subsample=subsample)),
                                 rtol=0, atol=1e-7)
+
+
+@requires_cupy
+class TestMetricsTis(unittest.TestCase):
+    """The expected values and pass/fail cases of tests/test_metrics_tis.py."""
+
+    def test_values(self):
+        cp = C.cp
+        r = cp.asarray([0.55, 0.05, 0.45, 0.25, 0.35, 0.45, 0.55])
+        b = cp.asarray([0, 1, 0, 0, 0, 0, 0])
+        i = cp.asarray([0, 0, 0, 1, 1, 1, 1])
+        npt.assert_array_equal(np_(C.metrics_tis.stop_index(i, b)), [1, 1, 2, 6, 6, 6, 6])
+        npt.assert_array_equal(np_(C.metrics_tis.stop_index(None, b)), [1, 1, 6, 6, 6, 6, 6])
+        _, zq = C.metrics_tis.comp_zq_stopped(r, b, i, dt=2, nbins=10)
+        npt.assert_allclose(np_(zq), [0, 0, 0.1, 0.2, 0.25, 0, 0, 0, 0, 0], atol=1e-12)
+
+    def test_exact_committor_passes_and_wrong_rc_fails(self):
+        cp = C.cp
+        r, b, i = (cp.asarray(a) for a in lattice_segments(4000))
+        ldt = [1, 2, 4, 8, 16, 32]
+        self.assertLess(C.metrics_tis._comp_max_zq_stopped(r, b, i, ldt=ldt, nbins=20)[0], 4)
+        self.assertGreater(C.metrics_tis._comp_max_zq_stopped(r ** 2, b, i, ldt=ldt, nbins=20)[0], 6)
 
 
 T = _load_tf() if C is not None else None
@@ -297,6 +361,38 @@ class TestAgainstTF(unittest.TestCase):
                                                                                       cp.asarray(1 - self.b)),
                                          cp.asarray(self.i), gamma, stable)
             npt.assert_allclose(np_(new), ref, rtol=0, atol=1e-7, err_msg=f"gamma={gamma} stable={stable}")
+
+    def test_npneq_weights(self):
+        cp, tf = C.cp, T.tf
+        w = np.random.default_rng(4).integers(1, 4, size=self.i.max() + 1)[self.i][:-1].astype(float)
+        ref = T.nonparametrics.npneq(self.r, T.orc.lazy_basis_poly_ry(tf.constant(self.r), tf.constant(self.y), 6, 1 - self.b),
+                                     self.i, 0.1, w_traj=tf.constant(w)).numpy()
+        new = C.nonparametrics.npneq(cp.asarray(self.r), C.orc.lazy_basis_poly_ry(cp.asarray(self.r), cp.asarray(self.y), 6,
+                                                                                  cp.asarray(1 - self.b)),
+                                     cp.asarray(self.i), 0.1, w_traj=cp.asarray(w))
+        npt.assert_allclose(np_(new), ref, rtol=0, atol=1e-7)
+
+    def test_metrics_tis(self):
+        cp = C.cp
+        r, b, i = lattice_segments(800, seed=6)
+        w = np.random.default_rng(7).integers(1, 4, size=i.max() + 1)[i].astype(float)
+        r = np.clip(r + 0.01 * np.random.default_rng(8).standard_normal(len(r)) * (1 - b), 0, 1)
+        rc, bc, ic, wc = (cp.asarray(a) for a in (r, b, i, w))
+        npt.assert_array_equal(np_(C.metrics_tis.stop_index(ic, bc)), T.metrics_tis.stop_index(i, b))
+        for dt in (1, 3, 64):
+            for fn in ("comp_zq_stopped", "comp_zq_stopped_zscore"):
+                ref = getattr(T.metrics_tis, fn)(r, b, i, w, dt=dt, nbins=50)
+                new = getattr(C.metrics_tis, fn)(rc, bc, ic, wc, dt=dt, nbins=50)
+                for a, c in zip(new, ref):
+                    npt.assert_allclose(np_(a), c, rtol=1e-9, atol=1e-9, err_msg=f"{fn} dt={dt}")
+        for a, c in zip(C.metrics_tis.comp_obs_pred_stopped(rc, bc, ic, wc, nbins=20),
+                        T.metrics_tis.comp_obs_pred_stopped(r, b, i, w, nbins=20)):
+            npt.assert_allclose(np_(a), c, rtol=1e-9, atol=1e-12)
+        npt.assert_allclose(C.metrics_tis._comp_max_zq_stopped(rc, bc, ic, wc, ldt=[1, 8], nbins=50),
+                            T.metrics_tis._comp_max_zq_stopped(r, b, i, w, ldt=[1, 8], nbins=50), rtol=1e-9)
+        for dt in (1, 4, 16):
+            self.assertAlmostEqual(C.metrics_tis.dropped_fraction(ic, bc, dt, wc),
+                                   T.metrics_tis.dropped_fraction(i, b, dt, w), places=12)
 
 
 @requires_cupy
@@ -343,6 +439,20 @@ class TestFits(unittest.TestCase):
         q.plots_feps(delta_t_sim=1)
         q.plots_feps(delta_t_sim=1, reweight=True)
         q.plots_obs_pred()
+
+    def test_committorne_path_weights(self):
+        cp = C.cp
+        r, b, i = lattice_segments(500, seed=4)
+        w = np.random.default_rng(5).integers(1, 3, size=i.max() + 1)[i].astype(float)
+        q = C.orc.CommittorNE(boundary0=(b > 0) & (r == 0), boundary1=(b > 0) & (r == 1), i_traj=i,
+                              path_weights=w)
+        y = cp.asarray(r)
+        q.fit_transform(comp_y=lambda: y, max_iter=4, print_step=2, ny=3,
+                        metrics_print=('iter', 'delta_r2', 'max_z_zq_stopped', 'max_sd_zq_stopped', 'delta_x'),
+                        save_min_metric='max_z_zq_stopped')
+        self.assertEqual(len(q.metrics_history['max_z_zq_stopped']), 2)
+        self.assertTrue(np.all(np.isfinite(q.metrics_history['max_z_zq_stopped'])))
+        q.plots_tis(ldt=[1, 4, 16])
 
     def test_mfptne(self):
         r_traj = read_2f4k()

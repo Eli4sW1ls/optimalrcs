@@ -59,7 +59,7 @@ def npqsoft(r_traj, fk, ia_traj, ib_traj, lmbd_a, lmbd_b, i_traj=None, w_traj=No
     dfk = fk[:, 1:] - fk[:, :-1]
 
     akj = tf.tensordot(dfk * itw, dfk, axes=[1, 1])
-    akj = akj + tf.tensordot(fk * (lmbd_a * ia_traj + lmbd_a * ib_traj), fk, axes=[1, 1])
+    akj = akj + tf.tensordot(fk * (lmbd_a * ia_traj + lmbd_b * ib_traj), fk, axes=[1, 1])
 
     delta_r = -(r_traj[1:] - r_traj[:-1])
 
@@ -124,7 +124,7 @@ def _npneq_moments(fa, fb, itw, delta_r, gamma, stable):
 
 
 def npneq(r_traj, fk, i_traj=None, gamma=0, stable=False, train_mask=None,
-          chunk=None):
+          chunk=None, w_traj=None):
     """ implements NPNEq (non-parametric non-equilibrium committor
     optimization) iteration.
 
@@ -134,6 +134,8 @@ def npneq(r_traj, fk, i_traj=None, gamma=0, stable=False, train_mask=None,
         Ib(i)=1 when X(i) belongs to the boundary states and 0 otherwise
     It is the trajectory indicator function:
         It(i)=1 if X(i) and X(i+1) belong to the same short trajectory
+    w_traj is an optional weight of each transition X(i) -> X(i+1), e.g. the
+        Monte Carlo weight of the path it belongs to. Default value is 1.
 
     akj and b are sums over transitions, so they are accumulated block by
     block: the full-length intermediates this would otherwise allocate
@@ -151,6 +153,8 @@ def npneq(r_traj, fk, i_traj=None, gamma=0, stable=False, train_mask=None,
 
     if train_mask is not None:
         itw = itw * train_mask
+    if w_traj is not None:
+        itw = itw * tf.cast(w_traj, r_traj.dtype)
 
     delta_r = r_traj[1:] - r_traj[:-1]
 
