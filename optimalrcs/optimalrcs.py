@@ -297,10 +297,15 @@ class CommittorNE:
         Returns:
             None
         """
-        for metric in metrics_print:
-            if metric not in self.metrics_history:
-                self.metrics_history[metric] = []
-            self.metrics_history[metric].append(metric2function[metric](self))
+        # Compute the whole row before storing any of it, so that an interrupt
+        # during the (slow) computation cannot leave the metrics misaligned.
+        row = {metric: metric2function[metric](self) for metric in metrics_print}
+        for metric, value in row.items():
+            self.metrics_history.setdefault(metric, []).append(value)
+
+    def _stop_early(self):
+        print(f"\nTraining interrupted at iteration {self.iteration}; "
+              f"keeping the RC of the last completed update.")
 
     def fit_transform(self, comp_y,
                       envelope=envelope_sigmoid, gamma=0, basis_functions=basis_poly_ry, ny=6,
@@ -362,8 +367,10 @@ class CommittorNE:
 
         Returns
         -------
-        None
-        Updates `self.r_traj` in place and logs metrics in `self.metrics_history`.
+        r_traj
+            The optimized RC. `self.r_traj` is also updated in place and the metrics are
+            logged in `self.metrics_history`. Interrupting with Ctrl+C stops the
+            optimization early and returns the RC of the last completed update.
 
         Notes
         -----
@@ -387,67 +394,70 @@ class CommittorNE:
             _transition_w = tf.constant(self.path_weights[:-1], dtype=self.prec)
 
         self.time_start = time.time()
-        for self.iteration in range(max_iter + 1):
+        try:
+            for self.iteration in range(max_iter + 1):
 
-            # compute envelope, modulating the basis functions
-            if self.iteration % 10 == 0 and callable(envelope):
-                _envelope = envelope(self.r_traj, self.iteration, max_iter) * (1 - self.b_traj)
+                # compute envelope, modulating the basis functions
+                if self.iteration % 10 == 0 and callable(envelope):
+                    _envelope = envelope(self.r_traj, self.iteration, max_iter) * (1 - self.b_traj)
 
-            # compute next CV y, and cast it to the required accuracy
-            y = tf.cast(comp_y(), self.prec)
+                # compute next CV y, and cast it to the required accuracy
+                y = tf.cast(comp_y(), self.prec)
 
-            # compute the basis functions
-            if history_delta_t is None:
-                delta_t = 0
-            else:
-                delta_t = np.random.choice(history_delta_t)
-            if delta_t == 0:
-                y1, y2 = self.r_traj, y
-            else:
-                if self.p2i0 is None: self._compute_p2i0()
-                var1, var2 = (np.random.choice(history_type) if isinstance(history_type, list) else history_type).split(',')
-                y1, y2 = self._history_select_y1y2(y, self.r_traj, delta_t, var1, var2)
+                # compute the basis functions
+                if history_delta_t is None:
+                    delta_t = 0
+                else:
+                    delta_t = np.random.choice(history_delta_t)
+                if delta_t == 0:
+                    y1, y2 = self.r_traj, y
+                else:
+                    if self.p2i0 is None: self._compute_p2i0()
+                    var1, var2 = (np.random.choice(history_type) if isinstance(history_type, list) else history_type).split(',')
+                    y1, y2 = self._history_select_y1y2(y, self.r_traj, delta_t, var1, var2)
 
-            if basis_functions is basis_poly_ry:
-                fk = lazy_basis_poly_ry(tf.convert_to_tensor(y1, self.prec), y2, ny, _envelope)
-            else:
-                fk = basis_functions(y1, y2, ny, _envelope)
+                if basis_functions is basis_poly_ry:
+                    fk = lazy_basis_poly_ry(tf.convert_to_tensor(y1, self.prec), y2, ny, _envelope)
+                else:
+                    fk = basis_functions(y1, y2, ny, _envelope)
 
-            # compute the gamma parameter
-            if callable(gamma):
-                _gamma = tf.constant(gamma(self.iteration, max_iter), dtype=self.prec)
+                # compute the gamma parameter
+                if callable(gamma):
+                    _gamma = tf.constant(gamma(self.iteration, max_iter), dtype=self.prec)
 
-            # compute next update of the RC
-            if train_mask is None:
-                r_traj = nonparametrics.npneq(self.r_traj, fk, self.i_traj, _gamma, w_traj=_transition_w)
-            else:
-                _train_mask = tf.cast(tf.random.uniform(shape=[self.r_traj.shape[0] - 1]) < train_mask,dtype=self.r_traj.dtype)
-                r_traj = nonparametrics.npneq(self.r_traj, fk, self.i_traj, _gamma, train_mask=_train_mask,
-                                              w_traj=_transition_w)
+                # compute next update of the RC
+                if train_mask is None:
+                    r_traj = nonparametrics.npneq(self.r_traj, fk, self.i_traj, _gamma, w_traj=_transition_w)
+                else:
+                    _train_mask = tf.cast(tf.random.uniform(shape=[self.r_traj.shape[0] - 1]) < train_mask,dtype=self.r_traj.dtype)
+                    r_traj = nonparametrics.npneq(self.r_traj, fk, self.i_traj, _gamma, train_mask=_train_mask,
+                                                  w_traj=_transition_w)
 
-            fk = None  # release before the next iteration rebuilds it
+                fk = None  # release before the next iteration rebuilds it
 
-            delta_r2_new = metrics._delta_r2_ne_dt1(r_traj, self.i_traj)
-            if delta_r2_new-delta_r2<delta2_r2_max_change_allowed:
-                self.r_traj=r_traj
-                delta_r2=delta_r2_new
+                delta_r2_new = metrics._delta_r2_ne_dt1(r_traj, self.i_traj)
+                if delta_r2_new-delta_r2<delta2_r2_max_change_allowed:
+                    self.r_traj=r_traj
+                    delta_r2=delta_r2_new
 
-            # compute and print various metrics
-            if self.iteration % print_step == 0:
-                self._compute_metrics(metrics_print)
-                self._print_metrics(metrics_print)
-                self.r_traj_old = self.r_traj
-                if self.iteration > 0:
-                    if save_min_delta_zq:
-                        if self.metrics_history[save_min_metric][-1] < self.min_delta_zq:
-                            self.min_delta_zq = self.metrics_history[save_min_metric][-1]
-                            self.r_traj_min_sd_zq = self.r_traj
-                    if min_delta_x is not None and self.metrics_history['delta_x'][-1] < min_delta_x:
-                        break
-                    if min_delta_r2 is not None and self.metrics_history['delta_r2'][-1] < min_delta_r2:
-                        break
-                    
-                    
+                # compute and print various metrics
+                if self.iteration % print_step == 0:
+                    self._compute_metrics(metrics_print)
+                    self._print_metrics(metrics_print)
+                    self.r_traj_old = self.r_traj
+                    if self.iteration > 0:
+                        if save_min_delta_zq:
+                            if self.metrics_history[save_min_metric][-1] < self.min_delta_zq:
+                                self.min_delta_zq = self.metrics_history[save_min_metric][-1]
+                                self.r_traj_min_sd_zq = self.r_traj
+                        if min_delta_x is not None and self.metrics_history['delta_x'][-1] < min_delta_x:
+                            break
+                        if min_delta_r2 is not None and self.metrics_history['delta_r2'][-1] < min_delta_r2:
+                            break
+        except KeyboardInterrupt:
+            self._stop_early()
+        return self.r_traj
+
     def _compute_p2i0(self):
         """
             Precompute trajectory boundary indices for history-aware variable selection.

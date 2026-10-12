@@ -124,10 +124,15 @@ class CommittorNE:
         print(s[:-2])
 
     def compute_metrics(self, metrics_print):
-        for metric in metrics_print:
-            if metric not in self.metrics_history:
-                self.metrics_history[metric] = []
-            self.metrics_history[metric].append(metric2function[metric](self))
+        # Compute the whole row before storing any of it, so that an interrupt
+        # during the (slow) computation cannot leave the metrics misaligned.
+        row = {metric: metric2function[metric](self) for metric in metrics_print}
+        for metric, value in row.items():
+            self.metrics_history.setdefault(metric, []).append(value)
+
+    def _stop_early(self):
+        print(f"\nTraining interrupted at iteration {self.iter}; "
+              f"keeping the RC of the last completed update.")
 
     def fit_transform(self, comp_y,
                       envelope=envelope_sigmoid, gamma=0, basis_functions=basis_poly_ry, ny=6,
@@ -152,65 +157,69 @@ class CommittorNE:
         else:
             delta_r2=metrics._delta_r2_ne_dt1(self.r_traj, self.i_traj)
         
-        for iter in range(max_iter + 1):
-            self.iter+=1
+        try:
+            for iter in range(max_iter + 1):
+                self.iter+=1
 
-            # compute envelope, modulating the basis functions
-            if iter % 10 == 0 and callable(envelope):
-                _envelope = envelope(self.r_traj, iter, max_iter) * (1 - self.b_traj)
+                # compute envelope, modulating the basis functions
+                if iter % 10 == 0 and callable(envelope):
+                    _envelope = envelope(self.r_traj, iter, max_iter) * (1 - self.b_traj)
 
-            # compute next CV y, and cast it to the required accuracy
-            y = cp.asarray(comp_y(), dtype=self.prec)
+                # compute next CV y, and cast it to the required accuracy
+                y = cp.asarray(comp_y(), dtype=self.prec)
 
-            # compute the basis functions
-            if history_delta_t is None:
-                y1, y2 = self.r_traj, y
-            else:
-                y1, y2 = self.history_select_y1y2(y, history_delta_t, history_type, history_shift_type)
-            if basis_functions is basis_poly_ry:
-                fk = lazy_basis_poly_ry(y1, y2, ny, _envelope)
-            else:
-                fk = basis_functions(y1, y2, ny, _envelope)
+                # compute the basis functions
+                if history_delta_t is None:
+                    y1, y2 = self.r_traj, y
+                else:
+                    y1, y2 = self.history_select_y1y2(y, history_delta_t, history_type, history_shift_type)
+                if basis_functions is basis_poly_ry:
+                    fk = lazy_basis_poly_ry(y1, y2, ny, _envelope)
+                else:
+                    fk = basis_functions(y1, y2, ny, _envelope)
 
 
-            # compute the gamma parameter
-            if callable(gamma):
-                _gamma = gamma(self.iter, max_iter)
+                # compute the gamma parameter
+                if callable(gamma):
+                    _gamma = gamma(self.iter, max_iter)
 
-            # compute next update of the RC
-            if train_mask is not None and np.isscalar(train_mask):
-                _train_mask=(cp.random.rand(self.r_traj.shape[0]-1)<train_mask).astype(cp.float32)
-                r_traj = nonparametrics.npneq(self.r_traj, fk, self.i_traj, _gamma, stable, train_mask=_train_mask,
-                                              w_traj=_transition_w)
-            else:
-                r_traj = nonparametrics.npneq(self.r_traj, fk, self.i_traj, _gamma, stable, train_mask=train_mask,
-                                              w_traj=_transition_w)
+                # compute next update of the RC
+                if train_mask is not None and np.isscalar(train_mask):
+                    _train_mask=(cp.random.rand(self.r_traj.shape[0]-1)<train_mask).astype(cp.float32)
+                    r_traj = nonparametrics.npneq(self.r_traj, fk, self.i_traj, _gamma, stable, train_mask=_train_mask,
+                                                  w_traj=_transition_w)
+                else:
+                    r_traj = nonparametrics.npneq(self.r_traj, fk, self.i_traj, _gamma, stable, train_mask=train_mask,
+                                                  w_traj=_transition_w)
 
-            fk = None  # release before the next iteration rebuilds it
+                fk = None  # release before the next iteration rebuilds it
 
-            if self.i_traj is None:
-                delta_r2_new = metrics._delta_r2_eq_dt1(r_traj)
-            else:
-                delta_r2_new = metrics._delta_r2_ne_dt1(r_traj, self.i_traj)
-            if delta_r2_new-delta_r2 < delta_r2_max_change_allowed:
-                self.r_traj=r_traj
-                delta_r2=delta_r2_new
+                if self.i_traj is None:
+                    delta_r2_new = metrics._delta_r2_eq_dt1(r_traj)
+                else:
+                    delta_r2_new = metrics._delta_r2_ne_dt1(r_traj, self.i_traj)
+                if delta_r2_new-delta_r2 < delta_r2_max_change_allowed:
+                    self.r_traj=r_traj
+                    delta_r2=delta_r2_new
             
 
-            # compute and print various metrics
-            if self.iter % print_step == 0:
-                self.compute_metrics(metrics_print)
-                self.print_metrics(metrics_print)
-                self.r_traj_old = self.r_traj
-                if iter > 0:
-                    if save_min_delta_zq:
-                        if self.metrics_history[save_min_metric][-1] < self.min_delta_zq:
-                            self.min_delta_zq = self.metrics_history[save_min_metric][-1]
-                            self.r_traj_min_sd_zq = self.r_traj
-                    if min_delta_x is not None and self.metrics_history['delta_x'][-1] < min_delta_x:
-                        break
-                    if min_delta_r2 is not None and self.metrics_history['delta_r2'][-1] < min_delta_r2:
-                        break
+                # compute and print various metrics
+                if self.iter % print_step == 0:
+                    self.compute_metrics(metrics_print)
+                    self.print_metrics(metrics_print)
+                    self.r_traj_old = self.r_traj
+                    if iter > 0:
+                        if save_min_delta_zq:
+                            if self.metrics_history[save_min_metric][-1] < self.min_delta_zq:
+                                self.min_delta_zq = self.metrics_history[save_min_metric][-1]
+                                self.r_traj_min_sd_zq = self.r_traj
+                        if min_delta_x is not None and self.metrics_history['delta_x'][-1] < min_delta_x:
+                            break
+                        if min_delta_r2 is not None and self.metrics_history['delta_r2'][-1] < min_delta_r2:
+                            break
+        except KeyboardInterrupt:
+            self._stop_early()
+        return self.r_traj
 
     def history_select_y1y2(self, y, history_delta_t, history_type, history_shift_type):
         d = np.random.choice(history_delta_t)

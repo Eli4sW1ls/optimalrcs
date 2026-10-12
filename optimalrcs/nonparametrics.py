@@ -175,9 +175,12 @@ def npneq(r_traj, fk, i_traj=None, gamma=0, stable=False, train_mask=None,
     al_j = tf.linalg.lstsq(akj, b, fast=False)
     al_j = tf.reshape(al_j, [al_j.shape[0]])
 
-    delta = tf.concat([tf.tensordot(al_j, basis(s, min(s + step, n_frames)), 1)
-                       for s in range(0, n_frames, step)], axis=0)
-    rn_traj = tf.clip_by_value(r_traj + delta, 0, 1)
+    # The clip is elementwise, so apply it per block rather than building the
+    # full-length update and its clip intermediates.
+    rn_traj = tf.concat(
+        [tf.clip_by_value(r_traj[s:e] + tf.tensordot(al_j, basis(s, e), 1), 0, 1)
+         for s, e in ((s, min(s + step, n_frames)) for s in range(0, n_frames, step))],
+        axis=0)
     return rn_traj
 
 @tf.function

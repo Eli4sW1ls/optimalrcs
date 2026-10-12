@@ -42,6 +42,43 @@ def read_interfaces(tis_dir, interfaces_file=None):
     raise SystemExit(f"No interface file found (tried {', '.join(candidates)})")
 
 
+def read_run_settings(tis_dir):
+    """Dimension of the simulated system and whether `order.txt` also holds velocities.
+
+    Read from the settings the toy TIS code writes to `logging.log` ('dim' and
+    'v_ord'), else from `dimensions = N` in a PyRETIS repptis.rst/retis.rst.
+    Older logs do not record 'v_ord'; then it is inferred from the first frame
+    of an `order.txt`: with velocities a row holds 2 * dim values after the time.
+    Returns (dim or None if not recorded, v_ord).
+    """
+    dim, v_ord = None, None
+    log = os.path.join(tis_dir, "logging.log")
+    if os.path.isfile(log):
+        with open(log) as f:
+            text = f.read()
+        match = re.search(r"'dim':\s*(\d+)", text)
+        dim = int(match.group(1)) if match else None
+        match = re.search(r"'v_ord':\s*(True|False)", text)
+        v_ord = None if match is None else match.group(1) == "True"
+    if dim is None:
+        for name in ("repptis.rst", "retis.rst"):
+            path = os.path.join(tis_dir, name)
+            if os.path.isfile(path):
+                with open(path) as f:
+                    match = re.search(r"^\s*dimensions\s*=\s*(\d+)", f.read(), re.MULTILINE)
+                if match:
+                    dim = int(match.group(1))
+                    break
+    if v_ord is None:
+        v_ord = False
+        orders = sorted(glob.glob(os.path.join(tis_dir, "0[0-9][0-9]", "order.txt")))
+        if dim is not None and orders:
+            with open(orders[0]) as f:
+                n_values = next(len(line.split()) - 1 for line in f if not line.startswith("#"))
+            v_ord = n_values == 2 * dim
+    return dim, v_ord
+
+
 def read_path_info(folder, ensemble_index, n_ensembles, weighting):
     """Per-cycle Monte Carlo weight and path metadata from `<folder>/pathensemble.txt`.
 
@@ -109,7 +146,7 @@ def last_frame_before_m(order, core_start, core_end, lambda_m):
 
 
 def load_order_file(order_file, path_info, lambda_m=None, burn_in=0, max_paths=None, rng=None,
-                    reversed_pieces=False):
+                    reversed_pieces=False, odd_columns=()):
     """Load accepted paths and their Monte Carlo weights from one ensemble's `order.txt`.
 
     An `order.txt` file holds one or more paths, each introduced by a
@@ -123,7 +160,8 @@ def load_order_file(order_file, path_info, lambda_m=None, burn_in=0, max_paths=N
     With `lambda_m`, each path is cut to start at `first_frame_past_m`; with
     `reversed_pieces` as well, the frames from its start up to
     `last_frame_before_m` are added read backwards (time t_end - t), which needs
-    time-reversible dynamics at equilibrium. If `max_paths` is given, at most that
+    time-reversible dynamics at equilibrium; the columns in `odd_columns`
+    (velocities) change sign there. If `max_paths` is given, at most that
     many paths are kept, drawn at random (in their original order); they keep
     their weights, so the subset stays unbiased.
 
@@ -190,6 +228,7 @@ def load_order_file(order_file, path_info, lambda_m=None, burn_in=0, max_paths=N
                 if t_last is not None:
                     backwards = block[t_last::-1].copy()
                     backwards[:, 0] = block[t_last, 0] - backwards[:, 0]
+                    backwards[:, list(odd_columns)] *= -1
                     pieces.append(backwards)
         for piece in pieces:
             if len(piece) < 2:
@@ -206,7 +245,7 @@ def load_order_file(order_file, path_info, lambda_m=None, burn_in=0, max_paths=N
 
 def load_tis_data(tis_dir, interfaces, ensemble_glob="0[0-9][0-9]", include_zero_minus=False,
                   weighting="rejections", cut_at_m=True, burn_in=0, paths_per_ensemble=None,
-                  seed=None, reversed_pieces=False):
+                  seed=None, reversed_pieces=False, odd_columns=()):
     """Load per-path time/order/CV arrays and MC weights from all ensemble folders in `tis_dir`.
 
     Ensemble folders are expected at `tis_dir/<ensemble_glob>/`, each with an
@@ -216,7 +255,8 @@ def load_tis_data(tis_dir, interfaces, ensemble_glob="0[0-9][0-9]", include_zero
     so on. The [0-] folder is skipped unless `include_zero_minus` is set. With
     `paths_per_ensemble`, a random subset of that many paths is taken from
     each ensemble. With `reversed_pieces` (needs `cut_at_m`), every path also
-    gives its piece before the last M crossing, read backwards.
+    gives its piece before the last M crossing, read backwards, with the
+    `order.txt` columns in `odd_columns` (velocities) negated.
 
     Returns per-piece cvs, order, time, weight and path-number lists; the path
     numbers are unique over all ensembles and shared by the two pieces of a path.
@@ -240,7 +280,8 @@ def load_tis_data(tis_dir, interfaces, ensemble_glob="0[0-9][0-9]", include_zero
         path_info = read_path_info(folder, k, n_ensembles, weighting)
         c, o, t, w, pth, n_no_crossing = load_order_file(
             order_file, path_info, lambda_m=lambda_m, burn_in=burn_in,
-            max_paths=paths_per_ensemble, rng=rng, reversed_pieces=reversed_pieces)
+            max_paths=paths_per_ensemble, rng=rng, reversed_pieces=reversed_pieces,
+            odd_columns=odd_columns)
         offset = paths[-1] + 1 if paths else 0
         cvs += c
         order += o
@@ -301,6 +342,36 @@ def load_engine_potential(sim_dir, engine_class):
                 {"np": np, name: getattr(module, name)})
 
 
+def read_order_columns(sim_dir, dim):
+    """Which position each `order.txt` column is, for a `dim`-dimensional toy TIS run.
+
+    The run's order.py computes the order columns from the phase point; for
+    dim > 1 its `calculate` returns `[ph[0][i], ph[0][j], ...]`. This returns
+    [i, j, ...] from the active (uncommented) return, or None if order.py has no
+    such return.
+    """
+    path = os.path.join(sim_dir, "order.py")
+    if not os.path.isfile(path):
+        return None
+    with open(path) as f:
+        tree = ast.parse(f.read())
+
+    def position_index(node):
+        # ph[0][k] -> k
+        if (isinstance(node, ast.Subscript) and isinstance(node.value, ast.Subscript)
+                and isinstance(node.value.value, ast.Name) and isinstance(node.slice, ast.Constant)
+                and isinstance(node.value.slice, ast.Constant) and node.value.slice.value == 0):
+            return node.slice.value
+        return None
+
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Return) and isinstance(node.value, ast.List) and len(node.value.elts) == dim:
+            columns = [position_index(e) for e in node.value.elts]
+            if all(c is not None for c in columns):
+                return columns
+    return None
+
+
 def save_open_figures(figure_dir, label):
     """Save every open figure as `<figure_dir>/<label>[_n].png`, then close them."""
     numbers = plt.get_fignums()
@@ -334,8 +405,9 @@ def add_data_arguments(parser):
     parser.add_argument("--reversed", action="store_true",
                         help="also use every path read backwards from its last M crossing to its "
                              "start, which recovers the frames the cut drops; needs time-reversible "
-                             "dynamics at equilibrium (CVs must be even under time reversal, e.g. "
-                             "no velocities). On a flat 1D REPPTIS test it halved the committor "
+                             "dynamics at equilibrium. Velocity columns written with v_ord are "
+                             "negated in the reversed pieces; other CVs must be even under time "
+                             "reversal. On a flat 1D REPPTIS test it halved the committor "
                              "error; on a flat 1D staple test the reversed pieces showed a small "
                              "bias in the stopped Z_q of the exact committor, so check before "
                              "using it with staple paths")
@@ -367,6 +439,7 @@ def prepare_data(args):
     """Load the paths and build the per-frame arrays the fit needs.
 
     Fills in `args.lambda_a`/`args.lambda_b` from the interfaces when not given.
+    Also returns `dim`, the simulated system's dimension if recorded (else None).
     Returns a namespace with X (the CVs to train on), X_all (all CVs, for plots),
     lam (order parameter), t_traj, i_traj (segment index), group_traj (path number:
     the forward and reversed piece of a path are not independent, and the standard
@@ -383,11 +456,17 @@ def prepare_data(args):
 
     if args.reversed and args.no_cut:
         raise SystemExit("--reversed needs the cut at M (drop --no-cut)")
+    dim, v_ord = read_run_settings(args.tis_dir)
+    # order.txt columns: time, `dim` positions (order parameter first), then with
+    # v_ord `dim` velocities, which change sign under time reversal.
+    odd_columns = range(1 + dim, 1 + 2 * dim) if (v_ord and dim) else ()
+    if args.reversed and v_ord and not dim:
+        raise SystemExit("--reversed: order.txt holds velocities but the dimension is not recorded")
     cvs, order, time, weights, paths = load_tis_data(
         args.tis_dir, interfaces, include_zero_minus=args.include_zero_minus,
         weighting=args.weights, cut_at_m=not args.no_cut, burn_in=args.burn_in,
         paths_per_ensemble=args.paths_per_ensemble, seed=args.seed,
-        reversed_pieces=args.reversed)
+        reversed_pieces=args.reversed, odd_columns=odd_columns)
 
     path_weights = np.concatenate([np.full(len(path), w, dtype=float)
                                    for path, w in zip(order, weights)])
@@ -422,7 +501,7 @@ def prepare_data(args):
     assert np.all(np.diff(t_traj)[same_path] > 0)
     return types.SimpleNamespace(X=X, X_all=X_all, lam=lam, t_traj=t_traj, i_traj=i_traj,
                                  group_traj=group_traj, path_weights=path_weights,
-                                 boundary0=boundary0, boundary1=boundary1)
+                                 boundary0=boundary0, boundary1=boundary1, dim=dim)
 
 
 def save_fit_figures(q, figure_dir, iteration_key):
@@ -465,12 +544,13 @@ def plot_committor(data, r_traj, args):
     if not os.path.isfile(os.path.join(args.tis_dir, "engine.py")):
         print("No engine.py in tis_dir, skipping the potential plot.")
         return
-    engine_class = args.engine_class or ("LangevinEngine" if X_all.shape[1] == 1
-                                         else "ndLangevinEngine")
+    # The number of CV columns is not the dimension: order.txt can also hold velocities.
+    dim = data.dim if data.dim is not None else (1 if X_all.shape[1] == 1 else 2)
+    engine_class = args.engine_class or ("LangevinEngine" if dim == 1 else "ndLangevinEngine")
     potential = load_engine_potential(args.tis_dir, engine_class)
 
     fig, ax = plt.subplots()
-    if X_all.shape[1] == 1:
+    if dim == 1:
         # 1D: the order parameter is the position the potential is defined on.
         grid = np.linspace(lam.min(), lam.max(), 500)
         ax.plot(grid, [potential.potential_and_force((x, 0.))[0] for x in grid], color="gray")
@@ -479,9 +559,23 @@ def plot_committor(data, r_traj, args):
         ax_q.scatter(lam, r_traj, c=r_traj, cmap="coolwarm", s=1, edgecolors="none")
         ax_q.set_ylabel("committor")
     else:
-        # Assumes the order parameter (x-axis) and CV 1 (y-axis) are the
-        # coordinates the 2D potential is defined on.
-        potential.plot_potential(ax)
+        # The order parameter (x-axis) and CV 1 (y-axis) are two of the positions;
+        # order.py says which, so the potential can be evaluated on a grid of them.
+        columns = read_order_columns(args.tis_dir, dim)
+        if columns is None:
+            columns = list(range(dim))
+            print(f"order.py does not say which positions the order columns are; assuming {columns}")
+        gx = np.linspace(lam.min(), lam.max(), 120)
+        gy = np.linspace(X_all[:, 1].min(), X_all[:, 1].max(), 120)
+        pot = np.empty((len(gy), len(gx)))
+        pos = np.zeros(dim)
+        for iy, y in enumerate(gy):
+            for ix, x in enumerate(gx):
+                pos[columns[0]], pos[columns[1]] = x, y
+                pot[iy, ix] = potential.potential_and_force((pos.copy(), np.zeros(dim)))[0]
+        # Contours over the sampled energy range, so steep walls do not take all levels.
+        levels = np.linspace(*np.percentile(pot, [1, 95]), 15)
+        ax.contour(gx, gy, pot, levels=levels, colors="0.55", linewidths=0.6)
         sc = ax.scatter(lam, X_all[:, 1], c=r_traj, cmap="coolwarm", s=2, edgecolors="none")
         fig.colorbar(sc, ax=ax, label="committor")
         ax.set_ylabel("CV[1]")
