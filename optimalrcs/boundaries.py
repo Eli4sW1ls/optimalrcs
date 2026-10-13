@@ -17,7 +17,37 @@ def _segment_bounds(n, i_traj):
     return starts, ends
 
 
-class FutureBoundary:
+def _delta_i(index):
+    return np.where(index > -1, index - np.arange(len(index), dtype=index.dtype), 0)
+
+
+def _delta_t(index, t_traj):
+    return np.where(index > -1, t_traj[index] - t_traj, 0)
+
+
+class _Boundary:
+    """delta_i/delta_t are derived from the stored indices when accessed rather than
+    kept as length-N arrays: only the standard Z_q and the plots read them, and
+    storing them costs 24 bytes per frame for each boundary object."""
+
+    @property
+    def delta_i(self):
+        return _delta_i(self.index)
+
+    @property
+    def delta_i2(self):
+        return _delta_i(self.index2)
+
+    @property
+    def delta_t(self):
+        return self.delta_i if self._t_traj is None else _delta_t(self.index, self._t_traj)
+
+    @property
+    def delta_t2(self):
+        return self.delta_i2 if self._t_traj is None else _delta_t(self.index2, self._t_traj)
+
+
+class FutureBoundary(_Boundary):
     """
     class to contain information about boundaries in the future, to correctly describe martingale at the boundaries
     self.index[i] - index of the next boundary in the future for the current point with index i
@@ -52,33 +82,24 @@ class FutureBoundary:
             self.delta_i_to_end[s:e] = np.arange(e - s - 1, -1, -1)
 
         self.r = np.where(self.index > -1, r_traj[self.index], 0)
-        index_frame = np.arange(n, dtype='int32')
-        self.delta_i = np.where(self.index > -1, self.index - index_frame, 0)
         self.index2=np.roll(self.index, -1)
         self.index2[-1]=-1
         if i_traj is not None:
             self.index2[i_traj!=np.roll(i_traj,-1)]=-1
         self.r2 = np.where(self.index2 > -1, r_traj[self.index2], 0)
-        self.delta_i2 = np.where(self.index2 > -1, self.index2 - index_frame, 0)
-
-        if t_traj is None:
-            self.delta_t = self.delta_i
-            self.delta_t2 = self.delta_i2
-        else:
-            self.delta_t = np.where(self.index > -1, t_traj[self.index] - t_traj, 0)
-            self.delta_t2 = np.where(self.index2 > -1, t_traj[self.index2] - t_traj, 0)
+        self._t_traj = t_traj
 
     def set_distance_to_end(self, i_traj):
         traj_ends=np.where(np.roll(i_traj,-1)!=i_traj)[0]
         traj_starts=np.concatenate(([0],traj_ends[:-1]+1))
-        self.delta_i_to_end=np.zeros_like(i_traj)
+        self.delta_i_to_end=np.zeros(len(i_traj), 'int32')
         for i_start, i_end in zip(traj_starts, traj_ends):
             self.delta_i_to_end[i_start:i_end+1] = range(i_end-i_start,-1,-1)
             
     def set_distance_to_end_fixed_traj_length_trap(self, i_traj, trap_boundary, traj_length):
         traj_ends=np.where(np.roll(i_traj,-1)!=i_traj)[0]
         traj_starts=np.concatenate(([0],traj_ends[:-1]+1))
-        self.delta_i_to_end=np.zeros_like(i_traj)
+        self.delta_i_to_end=np.zeros(len(i_traj), 'int32')
         traj_length=traj_length-1
         for i_start, i_end in zip(traj_starts, traj_ends):
             self.delta_i_to_end[i_start:i_end+1] = range(i_end-i_start,-1,-1)
@@ -88,7 +109,7 @@ class FutureBoundary:
     def set_distance_to_end_poisson_traj_length_trap(self, i_traj, trap_boundary, average_traj_length=None):
             traj_ends=np.where(np.roll(i_traj,-1)!=i_traj)[0]
             traj_starts=np.concatenate(([0],traj_ends[:-1]+1))
-            self.delta_i_to_end=np.zeros_like(i_traj)
+            self.delta_i_to_end=np.zeros(len(i_traj), 'int32')
             tb=0
             nb=0
             if average_traj_length is None:
@@ -106,7 +127,7 @@ class FutureBoundary:
                     traj_length=int(-np.log(np.random.random())*average_traj_length -1)
                     self.delta_i_to_end[i_start:i_end+1] += traj_length
             
-class PastBoundary:
+class PastBoundary(_Boundary):
     def __init__(self, r_traj: np.ndarray, b_traj: np.ndarray, t_traj: np.ndarray = None, i_traj: np.ndarray = None) -> None:
         n = len(r_traj)
         starts, ends = _segment_bounds(n, i_traj)
@@ -126,17 +147,9 @@ class PastBoundary:
             self.delta_i_from_start[s:e] = np.arange(e - s)
 
         self.r = np.where(self.index > -1, r_traj[self.index], 0)
-        index_frame = np.arange(n, dtype='int32')
-        self.delta_i = np.where(self.index > -1, self.index - index_frame, 0)
         self.index2=np.roll(self.index, 1)
         self.index2[0]=-1
         if i_traj is not None:
             self.index2[i_traj!=np.roll(i_traj,1)]=-1
         self.r2 = np.where(self.index2 > -1, r_traj[self.index2], 0)
-        self.delta_i2 = np.where(self.index2 > -1, self.index2 - index_frame, 0)
-        if t_traj is None:
-            self.delta_t=self.delta_i
-            self.delta_t2=self.delta_i2
-        else:
-            self.delta_t = np.where(self.index > -1, t_traj[self.index] - t_traj, 0)
-            self.delta_t2 = np.where(self.index2 > -1, t_traj[self.index2] - t_traj, 0)
+        self._t_traj = t_traj

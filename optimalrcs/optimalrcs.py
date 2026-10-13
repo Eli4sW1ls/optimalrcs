@@ -104,19 +104,28 @@ def _poly_ry(r, y, n, f):
     return tf.stack(fk)
 
 
-def lazy_basis_poly_ry(r, y, n, fenv=None):
+def lazy_basis_poly_ry(r, y, n, fenv=None, chunk_device=None):
     """`basis_poly_ry` as a function of a frame range [s, e).
 
     The normalization uses the full-length r and y, so every block matches the
     corresponding columns of `basis_poly_ry(r, y, n, fenv)`, but the full
-    (M, N) basis is never held in memory at once.
+    (M, N) basis is never held in memory at once. With `chunk_device` a block is
+    sliced where r, y and fenv live and only that block is evaluated there.
     """
     r = r / tf.math.reduce_max(tf.math.abs(r))
     y = y / tf.math.reduce_max(tf.math.abs(y))
     if fenv is None:
         fenv = tf.ones_like(r)
     fenv = tf.cast(fenv, r.dtype)
-    return lambda s, e: _poly_ry(r[s:e], y[s:e], n, fenv[s:e])
+    if chunk_device is None:
+        return lambda s, e: _poly_ry(r[s:e], y[s:e], n, fenv[s:e])
+
+    def block(s, e):
+        with tf.device(r.device):
+            r_s, y_s, f_s = r[s:e], y[s:e], fenv[s:e]
+        with tf.device(chunk_device):
+            return _poly_ry(r_s, y_s, n, f_s)
+    return block
 
 
 class CommittorNE:
@@ -313,7 +322,7 @@ class CommittorNE:
                       print_step=1000, metrics_print=None,
                       history_delta_t=None, history_type='y(t-d),r(t-d)',
                       save_min_delta_zq=True, train_mask=None, delta2_r2_max_change_allowed=1e3,
-                      save_min_metric='max_sd_zq'):
+                      save_min_metric='max_sd_zq', chunk_device=None):
         """
         Optimize the reaction coordinate (RC) to approximate the committor function using a nonparametric,
         history-aware basis expansion.
@@ -364,6 +373,12 @@ class CommittorNE:
         save_min_metric : str, optional
             Metric whose minimum selects the saved RC; it must be in `metrics_print`
             (default: 'max_sd_zq'; for segment data use 'max_z_zq_stopped').
+        chunk_device : str, optional
+            Device for the per-block basis and update work, e.g. '/GPU:0'. Call
+            fit_transform inside `with tf.device('/CPU:0'):` to keep the per-frame
+            arrays in host memory; the GPU then only holds one block of
+            `nonparametrics.npneq_chunk` frames at a time (default: None, everything
+            follows TensorFlow's normal placement).
 
         Returns
         -------
@@ -417,7 +432,8 @@ class CommittorNE:
                     y1, y2 = self._history_select_y1y2(y, self.r_traj, delta_t, var1, var2)
 
                 if basis_functions is basis_poly_ry:
-                    fk = lazy_basis_poly_ry(tf.convert_to_tensor(y1, self.prec), y2, ny, _envelope)
+                    fk = lazy_basis_poly_ry(tf.convert_to_tensor(y1, self.prec), y2, ny, _envelope,
+                                            chunk_device=chunk_device)
                 else:
                     fk = basis_functions(y1, y2, ny, _envelope)
 
@@ -427,11 +443,12 @@ class CommittorNE:
 
                 # compute next update of the RC
                 if train_mask is None:
-                    r_traj = nonparametrics.npneq(self.r_traj, fk, self.i_traj, _gamma, w_traj=_transition_w)
+                    r_traj = nonparametrics.npneq(self.r_traj, fk, self.i_traj, _gamma, w_traj=_transition_w,
+                                                  chunk_device=chunk_device)
                 else:
                     _train_mask = tf.cast(tf.random.uniform(shape=[self.r_traj.shape[0] - 1]) < train_mask,dtype=self.r_traj.dtype)
                     r_traj = nonparametrics.npneq(self.r_traj, fk, self.i_traj, _gamma, train_mask=_train_mask,
-                                                  w_traj=_transition_w)
+                                                  w_traj=_transition_w, chunk_device=chunk_device)
 
                 fk = None  # release before the next iteration rebuilds it
 

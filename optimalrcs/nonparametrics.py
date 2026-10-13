@@ -2,6 +2,8 @@
 # This file is licensed under the MIT License.
 # See the LICENSE file in the project root for full license information.
 
+import contextlib
+
 import tensorflow as tf
 
 
@@ -124,7 +126,7 @@ def _npneq_moments(fa, fb, itw, delta_r, gamma, stable):
 
 
 def npneq(r_traj, fk, i_traj=None, gamma=0, stable=False, train_mask=None,
-          chunk=None, w_traj=None):
+          chunk=None, w_traj=None, chunk_device=None):
     """ implements NPNEq (non-parametric non-equilibrium committor
     optimization) iteration.
 
@@ -143,8 +145,24 @@ def npneq(r_traj, fk, i_traj=None, gamma=0, stable=False, train_mask=None,
 
     fk is either the (n_basis, N) basis tensor or a callable fk(s, e) returning
     its columns s..e-1; the callable form never materializes the full basis.
+
+    chunk_device (e.g. '/GPU:0') runs the per-block work on that device while the
+    full-length arrays stay where they are: blocks are sliced on the arrays' own
+    device and only the block is copied, so with the arrays on the CPU the
+    device's memory use is set by `chunk`, not by the number of frames.
     """
-    basis = fk if callable(fk) else (lambda s, e: fk[:, s:e])
+    on_device = (lambda: tf.device(chunk_device)) if chunk_device else contextlib.nullcontext
+    host = getattr(r_traj, "device", None) or "/CPU:0"
+    if callable(fk):
+        basis = fk
+    elif chunk_device:
+        fk_host = getattr(fk, "device", None) or "/CPU:0"
+
+        def basis(s, e):
+            with tf.device(fk_host):
+                return fk[:, s:e]
+    else:
+        basis = lambda s, e: fk[:, s:e]
 
     if i_traj is None:
         itw = tf.ones_like(r_traj[:-1])
@@ -164,9 +182,10 @@ def npneq(r_traj, fk, i_traj=None, gamma=0, stable=False, train_mask=None,
     step = chunk or npneq_chunk
     for s in range(0, n_frames - 1, step):
         e = min(s + step, n_frames - 1)
-        f = basis(s, e + 1)
-        akj_i, b_i = _npneq_moments(f[:, :-1], f[:, 1:], itw[s:e],
-                                    delta_r[s:e], gamma, stable)
+        itw_s, delta_r_s = itw[s:e], delta_r[s:e]
+        with on_device():
+            f = basis(s, e + 1)
+            akj_i, b_i = _npneq_moments(f[:, :-1], f[:, 1:], itw_s, delta_r_s, gamma, stable)
         akj += akj_i
         b += b_i
 
@@ -177,11 +196,17 @@ def npneq(r_traj, fk, i_traj=None, gamma=0, stable=False, train_mask=None,
 
     # The clip is elementwise, so apply it per block rather than building the
     # full-length update and its clip intermediates.
-    rn_traj = tf.concat(
-        [tf.clip_by_value(r_traj[s:e] + tf.tensordot(al_j, basis(s, e), 1), 0, 1)
-         for s, e in ((s, min(s + step, n_frames)) for s in range(0, n_frames, step))],
-        axis=0)
-    return rn_traj
+    pieces = []
+    for s in range(0, n_frames, step):
+        e = min(s + step, n_frames)
+        r_s = r_traj[s:e]
+        with on_device():
+            piece = tf.clip_by_value(r_s + tf.tensordot(al_j, basis(s, e), 1), 0, 1)
+        if chunk_device:
+            with tf.device(host):  # bring each block back now, not all at the end
+                piece = tf.identity(piece)
+        pieces.append(piece)
+    return tf.concat(pieces, axis=0)
 
 @tf.function
 def npneq_dt(r_traj, fk, i_traj, future_boundary, gamma=0, dt=1):
