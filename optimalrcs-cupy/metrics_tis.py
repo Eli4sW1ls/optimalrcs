@@ -76,6 +76,8 @@ def _sigma_zq(seg, bins, contrib, nbins):
     entry k holds from its bin up to the bin of the segment's next entry, so the
     squares are added over those bin ranges; memory stays O(frames).
     """
+    if seg.shape[0] == 0:
+        return cp.zeros(nbins)
     order = cp.argsort(seg * nbins + bins)
     seg_s, bin_s, c_s = seg[order], bins[order], contrib[order]
     cs = cp.cumsum(c_s)

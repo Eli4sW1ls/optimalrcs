@@ -146,7 +146,7 @@ def last_frame_before_m(order, core_start, core_end, lambda_m):
 
 
 def load_order_file(order_file, path_info, lambda_m=None, burn_in=0, max_paths=None, rng=None,
-                    reversed_pieces=False, odd_columns=()):
+                    reversed_pieces=False, odd_columns=(), fd_velocity=False):
     """Load accepted paths and their Monte Carlo weights from one ensemble's `order.txt`.
 
     An `order.txt` file holds one or more paths, each introduced by a
@@ -216,6 +216,16 @@ def load_order_file(order_file, path_info, lambda_m=None, burn_in=0, max_paths=N
     for n_path, i in enumerate(keep):
         weight, _, _, core_start, core_end = path_info[cycles[i]]
         block = data[starts[i]:starts[i + 1]]
+        if fd_velocity:
+            # Change of the order parameter over the last d = fd_velocity frames, per frame,
+            # on the whole path so that frames after the cut keep their true previous frames.
+            # A longer d averages out the random position kick of single steps.
+            idx = np.arange(len(block))
+            prev = np.maximum(idx - int(fd_velocity), 0)
+            v = (block[:, 1] - block[prev, 1]) / np.maximum(idx - prev, 1)
+            if len(block) > 1:
+                v[0] = v[1]
+            block = np.column_stack([block, v])
         pieces = [block]
         if lambda_m is not None:
             t_star = first_frame_past_m(block[:, 1], core_start, lambda_m)
@@ -229,6 +239,13 @@ def load_order_file(order_file, path_info, lambda_m=None, burn_in=0, max_paths=N
                     backwards = block[t_last::-1].copy()
                     backwards[:, 0] = block[t_last, 0] - backwards[:, 0]
                     backwards[:, list(odd_columns)] *= -1
+                    if fd_velocity:
+                        # Read backwards, the frames before frame i are i + 1, i + 2, ..., so
+                        # the change over d frames is x[i] - x[i + d] (fewer at the path end).
+                        idx = np.arange(t_last + 1)
+                        nxt = np.minimum(idx + int(fd_velocity), len(block) - 1)
+                        vrev = (block[idx, 1] - block[nxt, 1]) / np.maximum(nxt - idx, 1)
+                        backwards[:, -1] = vrev[::-1]
                     pieces.append(backwards)
         for piece in pieces:
             if len(piece) < 2:
@@ -245,7 +262,7 @@ def load_order_file(order_file, path_info, lambda_m=None, burn_in=0, max_paths=N
 
 def load_tis_data(tis_dir, interfaces, ensemble_glob="0[0-9][0-9]", include_zero_minus=False,
                   weighting="rejections", cut_at_m=True, burn_in=0, paths_per_ensemble=None,
-                  seed=None, reversed_pieces=False, odd_columns=()):
+                  seed=None, reversed_pieces=False, odd_columns=(), fd_velocity=False):
     """Load per-path time/order/CV arrays and MC weights from all ensemble folders in `tis_dir`.
 
     Ensemble folders are expected at `tis_dir/<ensemble_glob>/`, each with an
@@ -281,7 +298,7 @@ def load_tis_data(tis_dir, interfaces, ensemble_glob="0[0-9][0-9]", include_zero
         c, o, t, w, pth, n_no_crossing = load_order_file(
             order_file, path_info, lambda_m=lambda_m, burn_in=burn_in,
             max_paths=paths_per_ensemble, rng=rng, reversed_pieces=reversed_pieces,
-            odd_columns=odd_columns)
+            odd_columns=odd_columns, fd_velocity=fd_velocity)
         offset = paths[-1] + 1 if paths else 0
         cvs += c
         order += o
@@ -411,6 +428,13 @@ def add_data_arguments(parser):
                              "error; on a flat 1D staple test the reversed pieces showed a small "
                              "bias in the stopped Z_q of the exact committor, so check before "
                              "using it with staple paths")
+    parser.add_argument("--fd-velocity", type=int, nargs="?", const=1, default=0, metavar="D",
+                        help="add the change of the order parameter over the last D frames (per "
+                             "frame; D = 1 if not given) as an extra (last) CV: a velocity estimate "
+                             "from positions only, for underdamped dynamics when order.txt has no "
+                             "velocities. Computed before the cut at M. A larger D averages out the "
+                             "random position kick of single steps, which otherwise looks like extra "
+                             "friction at lag 1.")
     parser.add_argument("--burn-in", type=int, default=0, metavar="N",
                         help="skip the first N cycles of every ensemble")
     parser.add_argument("--include-zero-minus", action="store_true",
@@ -466,7 +490,7 @@ def prepare_data(args):
         args.tis_dir, interfaces, include_zero_minus=args.include_zero_minus,
         weighting=args.weights, cut_at_m=not args.no_cut, burn_in=args.burn_in,
         paths_per_ensemble=args.paths_per_ensemble, seed=args.seed,
-        reversed_pieces=args.reversed, odd_columns=odd_columns)
+        reversed_pieces=args.reversed, odd_columns=odd_columns, fd_velocity=args.fd_velocity)
 
     path_weights = np.concatenate([np.full(len(path), w, dtype=float)
                                    for path, w in zip(order, weights)])

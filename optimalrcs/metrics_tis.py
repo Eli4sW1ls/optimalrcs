@@ -100,6 +100,8 @@ def _sigma_zq(seg, bins, contrib, nbins):
     entry k holds from its bin up to the bin of the segment's next entry, so the
     squares are added over those bin ranges; memory stays O(frames).
     """
+    if seg.shape[0] == 0:
+        return np.zeros(nbins)
     order = np.argsort(seg * nbins + bins, kind='stable')
     seg_s, bin_s, c_s = seg[order], bins[order], contrib[order]
     cs = np.cumsum(c_s)
