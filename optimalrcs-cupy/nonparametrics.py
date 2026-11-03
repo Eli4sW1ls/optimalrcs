@@ -101,10 +101,45 @@ def npt(r_traj, fk, i_traj=None, w_traj=None):
     return rn_traj
 
 
-npneq_chunk = 1_000_000
+# Transitions per block when accumulating akj/b (the original cupy default).
+npneq_chunk = 1024 * 64 + 1
 
 
-def _npneq_moments(fa, fb, itw, delta_r, gamma, stable):
+# Opt-in conventions for the npneq family. The defaults reproduce the original
+# cupy implementation exactly; both alternatives are what the TensorFlow version
+# (optimalrcs/nonparametrics.py) uses.
+#
+# gamma_all_frames=False (original): akj = sum fa (fb - fa (1 + gamma)) itw, i.e.
+#     the gamma regularization is only applied to transitions with itw > 0.
+#     POSSIBLE_BUG: transitions across trajectory ends, masked out by train_mask,
+#     or with zero path weight then carry no regularization, unlike npnet / TF.
+# gamma_all_frames=True: akj = sum fa (fb itw - fa (itw + gamma)), as in npnet and
+#     TF. Use it to match the TensorFlow results, or when training on many short
+#     trajectories (TIS) with gamma > 0. Mathematically identical to the default
+#     when gamma == 0, or when every itw is 1.
+#
+# stable_negative=False (original): with stable=True, akj = +sum fa fa itw.
+#     POSSIBLE_BUG: the TF version, and an earlier (shadowed) definition of npneq in
+#     this file, use -sum fa fa itw, so this flips the sign of the update.
+# stable_negative=True: akj = -sum fa fa itw, as in TF. Use it with stable=True to
+#     match the TensorFlow results. Irrelevant when stable=False.
+
+
+def _npneq_chunks(n_trans, step):
+    """[s, e) blocks of transitions, as cut by the original cupy npneq: the block
+    size is made odd and an even-sized last block has its last transition split
+    off. Only the summation order depends on this, kept for exact reproducibility."""
+    if step == 0: step = n_trans
+    if step % 2 == 0: step -= 1  # to keep even the chunks
+    s = 0
+    while s < n_trans:
+        e = min(s + step, n_trans)
+        if e == n_trans and e - s > 2 and (e - s) % 2 == 0: e = e - 1
+        yield s, e
+        s = e
+
+
+def _npneq_moments(fa, fb, itw, delta_r, gamma, stable, gamma_all_frames=False, stable_negative=False):
     """akj/b contributions of one block of consecutive transitions.
 
     fa/fb are the basis functions at the start/end frames of each transition.
@@ -112,41 +147,58 @@ def _npneq_moments(fa, fb, itw, delta_r, gamma, stable):
     bounded instead of scaling with the full trajectory length.
     """
     if stable:
-        akj = -cp.matmul(fa, (fa * itw).T)
+        akj = cp.tensordot(fa, fa * itw, axes=[1, 1])  # POSSIBLE_BUG: sign, see stable_negative
+        if stable_negative:
+            akj = -akj
+    elif gamma_all_frames:
+        akj = cp.tensordot(fa, fb * itw - fa * (itw + gamma), axes=[1, 1])
     else:
-        akj = cp.matmul(fa, (fb * itw - fa * (itw + gamma)).T)
-    return akj, cp.matmul(fa, -delta_r * itw)
+        akj = cp.tensordot(fa, (fb - fa * (1 + gamma)) * itw, axes=[1, 1])  # POSSIBLE_BUG: see gamma_all_frames
+    return akj, cp.tensordot(fa, -delta_r * itw, 1)
 
 
-def _npneq_accumulate(r_traj, basis, itw, gamma, stable, step, akj=0, b=0):
+def _npneq_accumulate(r_traj, basis, itw, gamma, stable, step, akj=None, b=None,
+                      gamma_all_frames=False, stable_negative=False):
     """Sums the akj/b moments over all transitions, block by block."""
-    n_frames = r_traj.shape[0]
-    delta_r = r_traj[1:] - r_traj[:-1]
-    for s in range(0, n_frames - 1, step):
-        e = min(s + step, n_frames - 1)
+    n_trans = r_traj.shape[0] - 1
+    n_basis = basis(0, 1).shape[0]
+    if akj is None:
+        akj = cp.zeros((n_basis, n_basis), dtype=r_traj.dtype)
+        b = cp.zeros(n_basis, dtype=r_traj.dtype)
+    for s, e in _npneq_chunks(n_trans, step):
         f = basis(s, e + 1)
-        akj_i, b_i = _npneq_moments(f[:, :-1], f[:, 1:], itw[s:e],
-                                    delta_r[s:e], gamma, stable)
-        akj = akj + akj_i
-        b = b + b_i
+        akj_i, b_i = _npneq_moments(f[:, :-1], f[:, 1:], itw[s:e], r_traj[s + 1:e + 1] - r_traj[s:e],
+                                    gamma, stable, gamma_all_frames, stable_negative)
+        akj += akj_i
+        b += b_i
     return akj, b
 
 
-def _npneq_update(r_traj, basis, al_j, step):
-    """r + sum_j al_j f_j, clipped to [0, 1], built block by block."""
+def _npneq_solve(akj, b):
+    al_j = cp.linalg.lstsq(akj, cp.reshape(b, [b.shape[0], 1]), rcond=None)[0]
+    return cp.reshape(al_j, [al_j.shape[0]])
+
+
+def _npneq_update(r_traj, fk, al_j, step):
+    """r + sum_j al_j f_j, clipped to [0, 1]. A basis array is contracted in one go,
+    as in the original; a callable basis is evaluated block by block."""
+    if not callable(fk):
+        return cp.clip(r_traj + cp.tensordot(al_j, fk, 1), 0, 1)
     n_frames = r_traj.shape[0]
     rn_traj = r_traj.copy()
     for s in range(0, n_frames, step):
         e = min(s + step, n_frames)
-        rn_traj[s:e] += cp.matmul(al_j, basis(s, e))
+        rn_traj[s:e] += cp.tensordot(al_j, fk(s, e), 1)
     return cp.clip(rn_traj, 0, 1, out=rn_traj)
 
 
-def _npneq_itw(r_traj, i_traj, train_mask, w_traj=None):
+def _npneq_itw(r_traj, i_traj, train_mask, w_traj=None, weight=None):
     if i_traj is None:
         itw = cp.ones_like(r_traj[:-1])
     else:
         itw = cp.asarray(i_traj[1:] == i_traj[:-1], dtype=r_traj.dtype)
+    if weight is not None:
+        itw = itw * weight
     if train_mask is not None:
         itw = itw * train_mask
     if w_traj is not None:
@@ -159,7 +211,7 @@ def _as_basis(fk):
 
 
 def npneq(r_traj, fk, i_traj=None, gamma=0, stable=False, train_mask=None,
-          chunk=None, w_traj=None):
+          chunk=None, w_traj=None, gamma_all_frames=False, stable_negative=False):
     """ implements NPNEq (non-parametric non-equilibrium committor
     optimization) iteration.
 
@@ -171,10 +223,11 @@ def npneq(r_traj, fk, i_traj=None, gamma=0, stable=False, train_mask=None,
         It(i)=1 if X(i) and X(i+1) belong to the same short trajectory
     w_traj is an optional weight of each transition X(i) -> X(i+1), e.g. the
         Monte Carlo weight of the path it belongs to. Default value is 1.
+    gamma_all_frames, stable_negative: opt-in conventions, see the comment above
+        `_npneq_chunks`. The defaults reproduce the original cupy implementation.
 
     akj and b are sums over transitions, so they are accumulated block by
-    block: the full-length intermediates this would otherwise allocate
-    dominate peak memory for multi-million-frame trajectories.
+    block of `chunk` transitions (default `npneq_chunk`).
 
     fk is either the (n_basis, N) basis array or a callable fk(s, e) returning
     its columns s..e-1; the callable form never materializes the full basis.
@@ -183,47 +236,47 @@ def npneq(r_traj, fk, i_traj=None, gamma=0, stable=False, train_mask=None,
     """
     itw = _npneq_itw(r_traj, i_traj, train_mask, w_traj)
     if hasattr(fk, "transition_moments"):
-        akj, b = fk.transition_moments(itw, -(r_traj[1:] - r_traj[:-1]) * itw, gamma, stable)
-        al_j = cp.linalg.lstsq(akj, b, rcond=None)[0]
-        return fk.apply(r_traj, al_j, 0, 1)
+        akj, b = fk.transition_moments(itw, -(r_traj[1:] - r_traj[:-1]) * itw, gamma, stable,
+                                       gamma_all_frames=gamma_all_frames, stable_negative=stable_negative)
+        return fk.apply(r_traj, _npneq_solve(akj, b), 0, 1)
 
-    basis = _as_basis(fk)
     step = chunk or npneq_chunk
-    akj, b = _npneq_accumulate(r_traj, basis, itw, gamma, stable, step)
+    akj, b = _npneq_accumulate(r_traj, _as_basis(fk), itw, gamma, stable, step,
+                               gamma_all_frames=gamma_all_frames, stable_negative=stable_negative)
+    return _npneq_update(r_traj, fk, _npneq_solve(akj, b), step)
 
-    al_j = cp.linalg.lstsq(akj, b, rcond=None)[0]
-    return _npneq_update(r_traj, basis, al_j, step)
-
-def npneq_(r_traj, fk, i_traj=None, gamma=0, stable=False, train_mask=None, chunk_size=None):
+def npneq_(r_traj, fk, i_traj=None, gamma=0, stable=False, train_mask=None, chunk_size=None,
+           gamma_all_frames=False, stable_negative=False):
     """ as `npneq`, but also returns the expansion coefficients al_j (on the host). """
-    basis = _as_basis(fk)
     step = chunk_size or npneq_chunk
     itw = _npneq_itw(r_traj, i_traj, train_mask)
-    akj, b = _npneq_accumulate(r_traj, basis, itw, gamma, stable, step)
+    akj, b = _npneq_accumulate(r_traj, _as_basis(fk), itw, gamma, stable, step,
+                               gamma_all_frames=gamma_all_frames, stable_negative=stable_negative)
 
-    al_j = cp.linalg.lstsq(akj, b, rcond=None)[0]
-    return _npneq_update(r_traj, basis, al_j, step), al_j.get()
+    al_j = _npneq_solve(akj, b)
+    return _npneq_update(r_traj, fk, al_j, step), al_j.get()
 
-def npneq_2(r_traj, fk, i_traj=None, gamma=0, stable=False, train_mask=None, chunk_size=None, _=None, weight=1):
+def npneq_2(r_traj, fk, i_traj=None, gamma=0, stable=False, train_mask=None, chunk_size=None, _=None, weight=1,
+            gamma_all_frames=False, stable_negative=False):
     """ as `npneq`, but the transitions are weighted by `weight` and the akj/b
     moments are added to previously accumulated ones `_` = (akj, b, ...).
 
     returns the new RC and (akj, b, al_j) on the host.
     """
-    basis = _as_basis(fk)
     step = chunk_size or npneq_chunk
-    itw = _npneq_itw(r_traj, i_traj, train_mask) * weight
+    itw = _npneq_itw(r_traj, i_traj, train_mask, weight=weight)
     if _ is None:
-        akj, b = 0, 0
+        akj, b = None, None
     else:
         akj, b = cp.asarray(_[0]), cp.asarray(_[1])
-    akj, b = _npneq_accumulate(r_traj, basis, itw, gamma, stable, step, akj, b)
+    akj, b = _npneq_accumulate(r_traj, _as_basis(fk), itw, gamma, stable, step, akj, b,
+                               gamma_all_frames=gamma_all_frames, stable_negative=stable_negative)
 
-    al_j = cp.linalg.lstsq(akj, b, rcond=None)[0]
-    return _npneq_update(r_traj, basis, al_j, step), (akj.get(), b.get(), al_j.get())
+    al_j = _npneq_solve(akj, b)
+    return _npneq_update(r_traj, fk, al_j, step), (akj.get(), b.get(), al_j.get())
 
 
-def npneq_dt(r_traj, fk, i_traj, future_boundary, gamma=0, dt=1):
+def npneq_dt(r_traj, fk, i_traj, future_boundary, gamma=0, dt=1, gamma_all_frames=False):
     """ implements NPNEq (non-parametric non-equilibrium committor
     optimization) iteration.
     r is the putative RC time-series
@@ -237,7 +290,10 @@ def npneq_dt(r_traj, fk, i_traj, future_boundary, gamma=0, dt=1):
     not_crossed = (cp.logical_or(future_boundary.index[:-dt] == -1,
                                   future_boundary.delta_t[:-dt] > dt)).astype(r_traj.dtype)
 
-    delta_fj = fk[:, dt:] * not_crossed * it - fk[:, :-dt] * (it + gamma)
+    if gamma_all_frames:  # see the comment above `_npneq_chunks`
+        delta_fj = fk[:, dt:] * not_crossed * it - fk[:, :-dt] * (it + gamma)
+    else:  # POSSIBLE_BUG: gamma only on transitions within a trajectory, see gamma_all_frames
+        delta_fj = (fk[:, dt:] * not_crossed - fk[:, :-dt] * (1 + gamma)) * it
     akj = cp.tensordot(fk[:, :-dt], delta_fj, axes=[1, 1])
 
     r_plus = cp.where(cp.logical_and(future_boundary.index[:-dt] > -1, future_boundary.delta_t[:-dt] <= dt),
@@ -306,7 +362,7 @@ def npnet(r_traj, fk, t_traj, i_traj, gamma=0, t_max=1e10, subsample=None, train
 
     if hasattr(fk, "transition_moments"):  # never materialized, see npneq
         delta_r = r_traj[1:] - r_traj[:-1] + t_traj[1:] - t_traj[:-1]
-        akj, b = fk.transition_moments(itw, -delta_r * itw, gamma)
+        akj, b = fk.transition_moments(itw, -delta_r * itw, gamma, gamma_all_frames=True)
         al_j = cp.linalg.lstsq(akj, b, rcond=None)[0]
         if subsample is None:
             return fk.apply(r_traj, al_j, 0, t_max)

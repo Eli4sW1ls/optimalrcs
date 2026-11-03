@@ -106,6 +106,48 @@ def read_2f4k(max_frames=None):
     return np.asarray(r_traj)
 
 
+def _npneq_original(r_traj, fk, i_traj=None, gamma=0, stable=False, train_mask=None, chunk_size=1024*64+1):
+    """npneq of the original cupy implementation (commit 77f62ea), verbatim."""
+    cp = C.cp
+    if i_traj is None:
+        itw = cp.ones_like(r_traj[:-1])
+    else:
+        itw = cp.asarray(i_traj[1:] == i_traj[:-1],dtype=r_traj.dtype)
+
+    if train_mask is not None:
+        itw = itw * train_mask
+
+    n_points = fk.shape[1] - 1
+    n_basis = fk.shape[0]
+    akj_accum = cp.zeros((n_basis, n_basis), dtype=r_traj.dtype)
+    b_accum = cp.zeros(n_basis, dtype=r_traj.dtype)
+    if chunk_size==0:chunk_size=n_points
+    if chunk_size%2==0: chunk_size-=1 # to keep even the chunks
+    start=0
+    while start < n_points:
+        end = min(start + chunk_size, n_points)
+        if end == n_points and end-start>2 and (end-start)%2==0 : end=end-1
+        fk_chunk = fk[:, start:end]
+        itw_chunk = itw[start:end]
+        if stable:
+            akj_accum += cp.tensordot(fk_chunk, fk_chunk * itw_chunk, axes=[1, 1])
+        else:
+            delta_chunk = fk[:, start+1:end+1] - fk_chunk * (1 + gamma)
+            akj_accum += cp.tensordot(fk_chunk, delta_chunk * itw_chunk, axes=[1, 1])
+        delta_r_chunk = r_traj[start+1:end+1] - r_traj[start:end]
+        b_accum += cp.tensordot(fk_chunk, -delta_r_chunk * itw_chunk, 1)
+        start = end
+
+    b_accum = cp.reshape(b_accum, [b_accum.shape[0], 1])
+
+    al_j = cp.linalg.lstsq(akj_accum, b_accum, rcond=None)[0]
+    al_j = cp.reshape(al_j, [al_j.shape[0]])
+
+    rn_traj = r_traj + cp.tensordot(al_j, fk, 1)
+    rn_traj = cp.clip(rn_traj, 0, 1)
+    return rn_traj
+
+
 @requires_cupy
 class TestBoundaries(unittest.TestCase):
     """The expected values of tests/test_boundaries.py."""
@@ -269,9 +311,23 @@ class TestPolyBasis(unittest.TestCase):
             fused = C.orc.lazy_basis_poly_ry(self.r, self.y, ny, 1 - self.b)
             full = C.orc.basis_poly_ry(self.r, self.y, ny, 1 - self.b)
             for gamma, stable in ((0.0, False), (0.2, False), (0.2, True)):
-                a = np_(C.nonparametrics.npneq(self.r, fused, self.i, gamma, stable))
-                c = np_(C.nonparametrics.npneq(self.r, full, self.i, gamma, stable))
-                npt.assert_allclose(a, c, rtol=0, atol=1e-8, err_msg=f"ny={ny} gamma={gamma} stable={stable}")
+                for flags in ({}, {"gamma_all_frames": True, "stable_negative": True}):
+                    a = np_(C.nonparametrics.npneq(self.r, fused, self.i, gamma, stable, **flags))
+                    c = np_(C.nonparametrics.npneq(self.r, full, self.i, gamma, stable, **flags))
+                    npt.assert_allclose(a, c, rtol=0, atol=1e-8,
+                                        err_msg=f"ny={ny} gamma={gamma} stable={stable} {flags}")
+
+    def test_npneq_is_the_original(self):
+        # The default path must reproduce the original cupy npneq bit for bit.
+        full = C.orc.basis_poly_ry(self.r, self.y, 6, 1 - self.b)
+        mask = C.cp.asarray(np.random.default_rng(5).random(len(self.r) - 1) < 0.7, dtype=C.cp.float32)
+        for gamma, stable, train_mask, chunk in ((0.0, False, None, None), (0.2, False, None, None),
+                                                 (0.2, True, None, None), (0.2, False, mask, None),
+                                                 (0.1, False, None, 1000)):
+            new = C.nonparametrics.npneq(self.r, full, self.i, gamma, stable, train_mask=train_mask, chunk=chunk)
+            ref = _npneq_original(self.r, full, self.i, gamma, stable, train_mask=train_mask,
+                                  chunk_size=chunk or 1024 * 64 + 1)
+            npt.assert_array_equal(np_(new), np_(ref), err_msg=f"gamma={gamma} stable={stable} chunk={chunk}")
 
     def test_npneq_weights(self):
         cp = C.cp
@@ -359,7 +415,7 @@ class TestAgainstTF(unittest.TestCase):
                                          self.i, gamma, stable).numpy()
             new = C.nonparametrics.npneq(cp.asarray(self.r), C.orc.lazy_basis_poly_ry(cp.asarray(self.r), cp.asarray(self.y), 6,
                                                                                       cp.asarray(1 - self.b)),
-                                         cp.asarray(self.i), gamma, stable)
+                                         cp.asarray(self.i), gamma, stable, gamma_all_frames=True, stable_negative=True)
             npt.assert_allclose(np_(new), ref, rtol=0, atol=1e-7, err_msg=f"gamma={gamma} stable={stable}")
 
     def test_npneq_weights(self):
@@ -369,7 +425,7 @@ class TestAgainstTF(unittest.TestCase):
                                      self.i, 0.1, w_traj=tf.constant(w)).numpy()
         new = C.nonparametrics.npneq(cp.asarray(self.r), C.orc.lazy_basis_poly_ry(cp.asarray(self.r), cp.asarray(self.y), 6,
                                                                                   cp.asarray(1 - self.b)),
-                                     cp.asarray(self.i), 0.1, w_traj=cp.asarray(w))
+                                     cp.asarray(self.i), 0.1, w_traj=cp.asarray(w), gamma_all_frames=True)
         npt.assert_allclose(np_(new), ref, rtol=0, atol=1e-7)
 
     def test_metrics_tis(self):
@@ -431,6 +487,18 @@ class TestFits(unittest.TestCase):
         r = np_(q.r_traj)
         self.assertTrue(np.all((r >= 0) & (r <= 1)))
         self.assertTrue(np.all(r[np_(q.boundary0)] == 0) and np.all(r[np_(q.boundary1)] == 1))
+
+    def test_committorne_lazy_basis(self):
+        # The opt-in fused kernels follow the default fit up to rounding.
+        r_traj = read_2f4k(10000)
+        y = C.cp.asarray(r_traj)
+        rs = []
+        for lazy_basis in (False, True):
+            np.random.seed(0)
+            q = C.orc.CommittorNE(boundary0=r_traj > 10.5, boundary1=r_traj < 1.0)
+            q.fit_transform(comp_y=lambda: y, gamma=0.1, max_iter=5, print_step=1000, lazy_basis=lazy_basis)
+            rs.append(np_(q.r_traj))
+        npt.assert_allclose(rs[1], rs[0], rtol=0, atol=1e-7)
 
     def test_committorne_full_trajectory(self):
         r_traj = read_2f4k()

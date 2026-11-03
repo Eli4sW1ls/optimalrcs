@@ -140,9 +140,21 @@ class CommittorNE:
                       print_step=1000, metrics_print=None, stable=False,
                       history_delta_t=None, history_type=None, history_shift_type=None,
                       save_min_delta_zq=True, train_mask=None, delta_r2_max_change_allowed=1e3,
-                      save_min_metric='max_sd_zq'):
+                      save_min_metric='max_sd_zq', lazy_basis=False, gamma_all_frames=False,
+                      stable_negative=False):
         # save_min_metric: metric (in metrics_print) whose minimum selects r_traj_min_sd_zq;
         # for segment data use 'max_z_zq_stopped'.
+        #
+        # Opt-in flags; the defaults reproduce the original cupy implementation exactly.
+        # lazy_basis: with the default basis_poly_ry, never build the (n_basis, N) basis
+        #   array but evaluate it on the fly in fused GPU kernels (polybasis.PolyBasisRY).
+        #   Use it when the basis does not fit in GPU memory (n_basis*8 bytes per frame,
+        #   224 for ny=6) or to speed up long trajectories. Same maths, but the sums are
+        #   taken in a different order, so results agree only to rounding (not bit for
+        #   bit), and the computation is always float64, also when prec=cp.float32.
+        # gamma_all_frames, stable_negative: alternative conventions for the gamma
+        #   regularization and the sign of stable=True, as in the TensorFlow version;
+        #   see nonparametrics.npneq (POSSIBLE_BUG).
         self.r_traj_old = self.r_traj
         _transition_w = None if self.path_weights is None else self.path_weights[:-1]
         self.time_start = time.time()
@@ -161,19 +173,20 @@ class CommittorNE:
             for iter in range(max_iter + 1):
                 self.iter+=1
 
+                # compute next CV y, and cast it to the required accuracy
+                # (before the envelope: both may draw from np.random, keep the original order)
+                y = cp.asarray(comp_y(), dtype=self.prec)
+
                 # compute envelope, modulating the basis functions
                 if iter % 10 == 0 and callable(envelope):
                     _envelope = envelope(self.r_traj, iter, max_iter) * (1 - self.b_traj)
-
-                # compute next CV y, and cast it to the required accuracy
-                y = cp.asarray(comp_y(), dtype=self.prec)
 
                 # compute the basis functions
                 if history_delta_t is None:
                     y1, y2 = self.r_traj, y
                 else:
                     y1, y2 = self.history_select_y1y2(y, history_delta_t, history_type, history_shift_type)
-                if basis_functions is basis_poly_ry:
+                if lazy_basis and basis_functions is basis_poly_ry:
                     fk = lazy_basis_poly_ry(y1, y2, ny, _envelope)
                 else:
                     fk = basis_functions(y1, y2, ny, _envelope)
@@ -187,10 +200,12 @@ class CommittorNE:
                 if train_mask is not None and np.isscalar(train_mask):
                     _train_mask=(cp.random.rand(self.r_traj.shape[0]-1)<train_mask).astype(cp.float32)
                     r_traj = nonparametrics.npneq(self.r_traj, fk, self.i_traj, _gamma, stable, train_mask=_train_mask,
-                                                  w_traj=_transition_w)
+                                                  w_traj=_transition_w, gamma_all_frames=gamma_all_frames,
+                                                  stable_negative=stable_negative)
                 else:
                     r_traj = nonparametrics.npneq(self.r_traj, fk, self.i_traj, _gamma, stable, train_mask=train_mask,
-                                                  w_traj=_transition_w)
+                                                  w_traj=_transition_w, gamma_all_frames=gamma_all_frames,
+                                                  stable_negative=stable_negative)
 
                 fk = None  # release before the next iteration rebuilds it
 
@@ -381,6 +396,9 @@ class CommittorNE:
         else:
             it=cp.asarray(self.i_traj[1:] == self.i_traj[:-1], dtype=self.r_traj.dtype)
         for i in range(max_iter):
+            # POSSIBLE_BUG: an unconditional update kept from the original, so with
+            # cupy_type=1 every iteration updates w_traj twice (cupy_type=2: once plus once)
+            self.w_traj = nonparametrics.npnew(self.w_traj, basis_poly_ry(self.w_traj, self.r_traj, ny), it)
             if cupy_type==1:
                 self.w_traj = nonparametrics.npnew(self.w_traj, basis_poly_ry(self.w_traj, self.r_traj, ny), it)
             if cupy_type==2:
@@ -433,7 +451,8 @@ class MFPTNE(CommittorNE):
                       max_iter=100000, min_delta_x=None,
                       print_step=1000, metrics_print=None, stable=False,
                       history_delta_t=None, history_type=None, history_shift_type=None,
-                      save_min_delta_zt=True, train_mask=None, cupy_type=1, mfpt_max=None):
+                      save_min_delta_zt=True, train_mask=None, cupy_type=1, mfpt_max=None, lazy_basis=False):
+        # lazy_basis: opt-in, see CommittorNE.fit_transform (only used with cupy_type=1).
         self.r_traj_old = self.r_traj
         self.time_start = time.time()
         if metrics_print is None:
@@ -444,19 +463,20 @@ class MFPTNE(CommittorNE):
             _gamma = gamma
         for self.iter in range(max_iter + 1):
 
+            # compute next CV y, and cast it to the required accuracy
+            # (before the envelope: both may draw from np.random, keep the original order)
+            y = cp.asarray(comp_y(), dtype=self.prec)
+
             # compute envelope, modulating the basis functions
             if self.iter % 10 == 0 and callable(envelope):
                 _envelope = envelope(self.r_traj, self.iter, max_iter) * (1 - self.b_traj)
-
-            # compute next CV y, and cast it to the required accuracy
-            y = cp.asarray(comp_y(), dtype=self.prec)
 
             # compute the basis functions
             if history_delta_t is None:
                 y1, y2 = self.r_traj, y
             else:
                 y1, y2 = self.history_select_y1y2(y, history_delta_t, history_type, history_shift_type)
-            if basis_functions is basis_poly_ry and cupy_type == 1:
+            if lazy_basis and basis_functions is basis_poly_ry and cupy_type == 1:
                 fk = lazy_basis_poly_ry(y1, y2, ny, _envelope)
             else:
                 fk = basis_functions(y1, y2, ny, _envelope)
@@ -483,7 +503,9 @@ class MFPTNE(CommittorNE):
                 if self.iter > 0:
                     if save_min_delta_zt:
                         if self.metrics_history['max_sd_zt'][-1] < min_delta_zt:
-                            min_delta_zt = self.metrics_history['max_sd_zt'][-1]
+                            # POSSIBLE_BUG: original typo, min_delta_zt is never lowered, so
+                            # r_traj_min_sd_zt is the last RC with max_sd_zt < 1000, not the best one
+                            min_delta_t = self.metrics_history['max_sd_zt'][-1]
                             self.r_traj_min_sd_zt = self.r_traj
                     if min_delta_x is not None and self.metrics_history['delta_x'][-1] < min_delta_x:
                         break

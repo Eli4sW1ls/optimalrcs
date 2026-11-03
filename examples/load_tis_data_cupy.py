@@ -68,8 +68,14 @@ def parse_args():
     parser.add_argument("--min-delta-x", type=float, default=1e-6,
                         help="stop when the RC changes less than this between print steps")
     parser.add_argument("--chunk", type=int, metavar="FRAMES",
-                        help="frames per block when building the basis "
+                        help="transitions per block when accumulating the NPNEq moments "
                              f"(default: {nonparametrics.npneq_chunk}); lower it to save GPU memory")
+    parser.add_argument("--lazy-basis", action="store_true",
+                        help="evaluate the basis in fused GPU kernels instead of building it "
+                             "(much less GPU memory; equal to the default up to rounding)")
+    parser.add_argument("--gamma-all-frames", action="store_true",
+                        help="apply the gamma regularization to every transition, also across "
+                             "path ends, as the TensorFlow version does (see nonparametrics.npneq)")
     parser.add_argument("--gpu-mem-limit", type=float, metavar="GIB",
                         help="cap CuPy's GPU memory pool at this many GiB (default: no cap)")
     tis_data.add_plot_arguments(
@@ -125,6 +131,8 @@ def main():
         metrics_print=('iter', 'delta_r2', 'max_z_zq_stopped', 'max_sd_zq_stopped',
                        'delta_x', 'time_elapsed'),
         save_min_metric='max_z_zq_stopped',
+        lazy_basis=args.lazy_basis,
+        gamma_all_frames=args.gamma_all_frames,
     )
     print("CommittorNE training complete.")
     del X_gpu

@@ -4,7 +4,8 @@ The NPNEq/NPNEt iterations only need two things from the basis f_k, k < M:
 
     akj = sum_t fa_k(t) g_j(t),   b_k = sum_t fa_k(t) v(t),   delta_r = sum_k al_k f_k
 
-with fa = f(t), fb = f(t+1) and g = fb*w - fa*(w+gamma). Holding f as an
+with fa = f(t), fb = f(t+1) and g = (fb - fa*(1+gamma))*w (or fb*w - fa*(w+gamma),
+see `transition_moments`). Holding f as an
 (M, N) array costs M*8 bytes per frame and makes the akj product a skinny GEMM
 that runs far below the GPU's FP64 peak. Instead, `_MOMENTS_SRC` evaluates the
 monomials of each frame in shared memory and accumulates akj and b directly,
@@ -41,9 +42,11 @@ extern "C" __global__ void npneq_moments(
                     for (int ir = 0; ir <= NDEG - iy; ++ir) {
                         sfa[k * LDS + j] = fa;
 #if STABLE
-                        sg[k * LDS + j] = -(fa * wt);
-#else
+                        sg[k * LDS + j] = STABLE_SIGN * (fa * wt);
+#elif GAMMA_ALL
                         sg[k * LDS + j] = fb * wt - fa * (wt + gamma);
+#else
+                        sg[k * LDS + j] = (fb - fa * (1.0 + gamma)) * wt;
 #endif
                         fa *= ra; fb *= rb; ++k;
                     }
@@ -95,15 +98,17 @@ _update_kernel = cp.ElementwiseKernel(
     "float64 rn", _UPDATE_SRC, "polybasis_update")
 
 
-def _moments_kernel(ndeg, stable):
-    key = (ndeg, bool(stable))
+def _moments_kernel(ndeg, stable, gamma_all_frames, stable_negative):
+    key = (ndeg, bool(stable), bool(gamma_all_frames), bool(stable_negative))
     if key not in _moment_kernels:
         m = (ndeg + 1) * (ndeg + 2) // 2
         # largest tile of frames whose basis values fit in 46 KB of shared memory
         tile = next(t for t in (128, 64, 32, 16, 8) if (2 * m + 1) * (t + 1) * 8 <= 46 * 1024)
         nacc = -(-m * (m + 1) // _BLOCK)
         opts = (f"-DM={m}", f"-DNDEG={ndeg}", f"-DTILE={tile}", f"-DLDS={tile + 1}",
-                f"-DNACC={nacc}", f"-DBLOCK={_BLOCK}", f"-DSTABLE={int(bool(stable))}")
+                f"-DNACC={nacc}", f"-DBLOCK={_BLOCK}", f"-DSTABLE={int(bool(stable))}",
+                f"-DGAMMA_ALL={int(bool(gamma_all_frames))}",
+                f"-DSTABLE_SIGN={'-1.0' if stable_negative else '1.0'}")
         _moment_kernels[key] = (cp.RawKernel(_MOMENTS_SRC, "npneq_moments", options=opts), tile)
     return _moment_kernels[key]
 
@@ -136,11 +141,13 @@ class PolyBasisRY:
                 f = f * yh
         return fk
 
-    def transition_moments(self, w, v, gamma=0.0, stable=False):
-        """akj = sum_t fa_k (fb_j w - fa_j (w + gamma)) and b_k = sum_t fa_k v, over
+    def transition_moments(self, w, v, gamma=0.0, stable=False, gamma_all_frames=False, stable_negative=False):
+        """akj = sum_t fa_k (fb_j - fa_j (1 + gamma)) w and b_k = sum_t fa_k v, over
         the transitions t -> t+1 (w and v have length N-1).
-        With stable=True, akj = -sum_t fa_k fa_j w instead."""
-        kernel, tile = _moments_kernel(self.n, stable)
+        With gamma_all_frames=True, akj = sum_t fa_k (fb_j w - fa_j (w + gamma)).
+        With stable=True, akj = sum_t fa_k fa_j w, negated if stable_negative.
+        See nonparametrics.npneq for these conventions (POSSIBLE_BUG)."""
+        kernel, tile = _moments_kernel(self.n, stable, gamma_all_frames, stable_negative)
         n_trans = self.r_hat.shape[0] - 1
         n_sm = cp.cuda.Device().attributes["MultiProcessorCount"]
         blocks = max(1, min(-(-n_trans // tile), 8 * n_sm))
