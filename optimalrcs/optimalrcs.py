@@ -258,6 +258,26 @@ class CommittorNE:
         """
         self.future_boundary.set_distance_to_end_fixed_traj_length_trap(self.i_traj, trap_boundary, traj_length)
 
+    def set_boundary_traps(self, trap_boundary=None):
+        """
+        Treat segments that end or start in a boundary state as continuing there indefinitely.
+
+        For data cut into excursions between the boundaries (e.g. a long MD with only the frames
+        outside A and B kept, plus the boundary frame before and after each excursion), the cut
+        profiles then equal those of the continuous trajectory: frames dwelling inside A or B
+        contribute nothing, and without traps the boundary terms of frames within dt of a segment
+        edge are dropped, which makes Z_q fall at large lags.
+
+        Parameters
+        ----------
+        trap_boundary : array of bool, optional
+            Frames that count as trap states. Defaults to all boundary frames (A and B).
+        """
+        if trap_boundary is None:
+            trap_boundary = self.b_traj
+        self.future_boundary.set_distance_to_end_trap(self.i_traj, trap_boundary)
+        self.past_boundary.set_distance_from_start_trap(self.i_traj, trap_boundary)
+
     def set_poisson_traj_length_trap(self, trap_boundary, traj_length=None):
         """
         Set a Poisson-distributed trajectory length for segments ending in a trap (absorbing) boundary state.
