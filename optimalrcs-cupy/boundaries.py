@@ -147,6 +147,19 @@ class FutureBoundary(_Boundary):
                 delta_i_to_end[i_start:i_end+1] += traj_length
         self.delta_i_to_end = cp.asarray(delta_i_to_end)
 
+    def set_distance_to_end_trap(self, i_traj, trap_boundary, extra=10 ** 9):
+        """Segments whose last frame lies in trap_boundary continue there indefinitely: the segment
+        end is not treated as a cut (as in a continuous run, where frames dwelling inside A or B
+        contribute nothing). Used for data cut into excursions between the boundaries."""
+        _trap = cp.asnumpy(trap_boundary) > 0
+        _i_traj = None if i_traj is None else cp.asnumpy(i_traj)
+        starts, ends = _segment_bounds(len(_trap), _i_traj)
+        delta_i_to_end = np.empty(len(_trap), dtype='int32')
+        for s, e in zip(starts, ends):
+            delta_i_to_end[s:e] = np.arange(e - s - 1, -1, -1) + (extra if _trap[e - 1] else 0)
+        self.delta_i_to_end = cp.asarray(delta_i_to_end)
+
+
 class PastBoundary(_Boundary):
     def __init__(self, r_traj: np.ndarray, b_traj: np.ndarray, t_traj: np.ndarray = None, i_traj: np.ndarray = None) -> None:
         n = len(r_traj)
@@ -178,3 +191,15 @@ class PastBoundary(_Boundary):
         self.r = cp.where(self.index > -1, r_traj[self.index], 0)
         self.r2 = cp.where(self.index2 > -1, r_traj[self.index2], 0)
         self._t_traj = None if t_traj is None else cp.asarray(t_traj)
+
+    def set_distance_from_start_trap(self, i_traj, trap_boundary, extra=10 ** 9):
+        """Segments whose first frame lies in trap_boundary continue there indefinitely: the segment
+        start is not treated as a cut (as in a continuous run, where frames dwelling inside A or B
+        contribute nothing). Used for data cut into excursions between the boundaries."""
+        _trap = cp.asnumpy(trap_boundary) > 0
+        _i_traj = None if i_traj is None else cp.asnumpy(i_traj)
+        starts, ends = _segment_bounds(len(_trap), _i_traj)
+        delta_i_from_start = np.empty(len(_trap), dtype='int32')
+        for s, e in zip(starts, ends):
+            delta_i_from_start[s:e] = np.arange(e - s) + (extra if _trap[s] else 0)
+        self.delta_i_from_start = cp.asarray(delta_i_from_start)
