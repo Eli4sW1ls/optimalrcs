@@ -18,6 +18,7 @@ sampling breaks that in two ways, and the standard validation metrics break in a
 | Accepted paths are not a fair sample until rejections are counted | Monte Carlo path weights (repeat counts) in the fit and the metrics | [4](#4-monte-carlo-path-weights) |
 | Segments end where the sampler stops them (L/R exit, staple turn, A/B), so Z_q and obs-vs-pred silently drop or select frames by their future | **Stopped** Z_q and stopped obs-vs-pred, with a standard error | [5](#5-stopped-z_q), [6](#6-standard-error-and-the-convergence-criterion), [7](#7-stopped-observed-vs-predicted) |
 | The library's Z_q drops windows that run into A/B at a segment end | Treat A/B ends as traps (the library's existing padding) | [8](#8-ab-ends-as-traps-padding-and-the-original-z_q-at-short-lags) |
+| Which value Z_q should converge to: N_AB for MD, 0 for paths cut at t\* | The level is set by the A→B departures in the data | [8.1](#81-which-value-z_q-converges-to-n_ab-0-or-something-else) |
 | The cut throws away ~40% of the frames | Optional: reuse them read backwards (time reversal) | [9](#9-optional-time-reversed-pieces) |
 | Underdamped (low-friction) dynamics: the committor depends on the velocity, which `order.txt` may not contain | Record velocities (`v_ord`); otherwise `--fd-velocity` and a fit at lag ~4 | [10](#10-underdamped-low-friction-dynamics) |
 
@@ -227,6 +228,69 @@ one, each lag labelled with the share of windows it drops (`dropped_fraction`). 
 `sim_istar0br10intf` it is usable up to Δt ≈ 2; beyond that the L/R/turn-end bias appears
 (−5 at Δt = 4, −18 at Δt = 8).
 
+### 8.1 Which value Z_q converges to: N_AB, 0, or something else
+
+The criterion is always the same: for the committor, Z_q is **flat in q and the same at every
+lag**. The *level* it is flat at is not a property of the method (NPq or NPNEq) but of the
+data: which boundary departures the segments contain.
+
+**Why.** Z_q(x, Δt) adds up the forward change of q over windows of length Δt, from all
+frames at or below the level x (windows that reach A or B stop there). For the committor:
+
+- A window that starts **outside A and B** has zero expected change (fair bet). Over many
+  windows these frames add only noise, whatever their distribution.
+- A window that starts **inside A** (q = 0) and runs into an excursion has a nonzero change:
+  summed over the windows of one departure, an excursion that reaches B adds **1**, one that
+  falls back into A adds 0. These frames are at q = 0, so they count for every level x > 0.
+- Frames inside B have q = 1 and only enter at x = 1, so B→A departures do not count.
+
+So the converged value is the **(weighted) number of A→B departures whose last A frame is
+in the data**, at every q and lag:
+
+| Data | Converged Z_q of the committor | Why |
+|---|---|---|
+| Long equilibrium MD, one or several seeds | **N_AB**, the number of A→B transitions (summed over seeds) | every A→B transition starts from an A frame in the data |
+| MD cut into excursions (frames outside A/B plus the A/B frame before and after each), with `set_boundary_traps()` | **N_AB**, identical to the continuous run | frames dwelling inside A/B contribute exactly 0, so removing them changes nothing |
+| Same, **without** traps | falls below N_AB at large lags (artifact) | the boundary terms of frames within Δt of a segment edge are dropped (§8) |
+| TIS / REPPTIS / staple paths cut at t\* | **0** | no segment starts inside A, so only zero-mean terms remain. The stopped Z_q (§5) leaves A/B frames out by construction and is 0 too |
+| Uncut paths (`--no-cut`) | some positive value, not a valid test | segments do start at A, but the frames before the M crossing are conditioned on crossing M (§3), so the departures are not a fair sample |
+| Short trajectories started from arbitrary points (shooting, swarms) | number of segments that start in A and reach B, usually ≈ 0 | same rule |
+
+With path weights every count is weighted.
+
+**Noise.** The level is a count, so at short lags it fluctuates by roughly its own square
+root. With N_AB = 37 the exact committor's Z_q ranged over 25–42 at Δt = 1–256. With a
+target of 0, the spread is all there is to judge, which is why path data use the z-score
+(§6) and not the raw value.
+
+**Telling a real failure from an artifact.**
+
+- *Converged:* flat in q, all lags at the same level (N_AB, 0, …) within the noise.
+- *Truncation artifact:* curves fall towards 0 as Δt grows, more strongly near q = 1 or
+  near segment ends, also for the exact committor. Check `dropped_fraction` (path data) or
+  use traps (MD excursions, A/B ends of paths).
+- *Not the committor:* a slope in q, or lags that disagree beyond the noise, after the
+  artifacts above are removed. Examples: `zqs_z` ≈ 10 for q², ≈ 18 for positions-only
+  underdamped fits (§10).
+
+**Evidence** (2D Brownian Z potential, 16-seed long MD, A: y ≤ 0.1, B: y ≥ 0.85, 37 A→B and
+37 B→A transitions, 4.6M rows in 205k excursions;
+`examples/figures/z_brownian/npq_md/zq_traps.png`):
+
+- Without traps the plotted Z_q sat at 9–36 depending on Δt and dropped towards 0 above
+  q ≈ 0.7 for Δt = 4–256.
+- With `set_boundary_traps()`: NPq Z_q flat in q, ≈ 30 at Δt = 1 rising to 36.9 at
+  Δt = 32768. The exact committor gives 36.8–37.15 at Δt = 32768.
+- Excursions with traps reproduce the continuous trajectory's Z_q to every printed digit
+  (seed 1, all lags; `tests/test_boundary_traps.py` checks it to 1e-6 in both backends).
+
+**Code.** `CommittorNE.set_boundary_traps(trap_boundary=None)` (both backends) treats every
+segment that starts or ends in A/B as continuing there indefinitely
+(`FutureBoundary.set_distance_to_end_trap`, `PastBoundary.set_distance_from_start_trap`).
+It changes the Z_q-based metrics and plots, not the fit. `set_fixed_traj_length_trap`
+(above) pads only the end side, which is enough for paths cut at t\* (they never start in
+A/B), but not for MD excursions.
+
 ---
 
 ## 9. Optional: time-reversed pieces
@@ -348,7 +412,8 @@ the short-lag test resolves q on scales finer than the grid. Judge references at
 | `metrics_tis.py` | `stop_index`, `comp_zq_stopped`, `comp_zq_stopped_zscore`, `comp_obs_pred_stopped`, `dropped_fraction`, metrics `max_z_zq_stopped` / `max_sd_zq_stopped` |
 | `plots_tis.py` | `plot_zq_stopped`, `plot_zq_short_lags`, `plot_obs_pred_stopped` |
 | `nonparametrics.py` | `npneq(..., w_traj=)` per-step weights |
-| `optimalrcs.py` | `CommittorNE(..., path_weights=, group_traj=)`, `fit_transform(save_min_metric=)`, `plots_tis()`, metric registry includes `metrics_tis` |
+| `optimalrcs.py` | `CommittorNE(..., path_weights=, group_traj=)`, `fit_transform(save_min_metric=)`, `plots_tis()`, `set_boundary_traps()` (§8.1), metric registry includes `metrics_tis` |
+| `boundaries.py` | `FutureBoundary.set_distance_to_end_trap`, `PastBoundary.set_distance_from_start_trap` |
 
 **Examples (`examples/`)**
 
@@ -357,7 +422,7 @@ the short-lag test resolves q on scales finer than the grid. Judge references at
 | `tis_data.py` | shared loader: interfaces, run settings (`dim`, `v_ord`), weights, cut at M (`first_frame_past_m`), reversed pieces (`last_frame_before_m`), data preparation, figures |
 | `load_tis_data.py` / `load_tis_data_cupy.py` | fit scripts (TF / CuPy) |
 
-**Tests:** `tests/test_metrics_tis.py`, plus CuPy-vs-TF checks in `tests/test_cupy.py`.
+**Tests:** `tests/test_metrics_tis.py`, `tests/test_boundary_traps.py`, plus CuPy-vs-TF checks in `tests/test_cupy.py`.
 
 **Command-line options added**
 
