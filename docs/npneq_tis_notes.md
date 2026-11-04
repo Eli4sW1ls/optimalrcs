@@ -20,7 +20,8 @@ sampling breaks that in two ways, and the standard validation metrics break in a
 | The library's Z_q drops windows that run into A/B at a segment end | Treat A/B ends as traps (the library's existing padding) | [8](#8-ab-ends-as-traps-padding-and-the-original-z_q-at-short-lags) |
 | Which value Z_q should converge to: N_AB for MD, 0 for paths cut at t\* | The level is set by the A→B departures in the data | [8.1](#81-which-value-z_q-converges-to-n_ab-0-or-something-else) |
 | The cut throws away ~40% of the frames | Optional: reuse them read backwards (time reversal) | [9](#9-optional-time-reversed-pieces) |
-| Underdamped (low-friction) dynamics: the committor depends on the velocity, which `order.txt` may not contain | Record velocities (`v_ord`); otherwise `--fd-velocity` and a fit at lag ~4 | [10](#10-underdamped-low-friction-dynamics) |
+| Underdamped (low-friction) dynamics: the committor depends on the velocity, which `order.txt` may not contain | Record velocities (`v_ord`); otherwise `--fd-velocity` | [10](#10-underdamped-low-friction-dynamics) |
+| Even with the full state (x, v), a lag-1 fit converges extremely slowly at low friction (energy is nearly conserved per step) | Fit at lag Δ with stopped windows, γ·Δ·Δt ≈ 0.05–0.1 | [10.1](#101-full-state-x-v-why-lag-1-converges-so-slowly-and-the-lag-δ-fit) |
 
 **Convergence criterion for path data:** `zqs_z` (worst |stopped Z_q / standard error|
 over q and all lag times) ≲ 2, together with a levelled-off `dr2` and a small `|dx|`.
@@ -372,16 +373,118 @@ even with the exact velocity (well run: \|z\| 12 at lag 1, while the fit passes)
 the short-lag test resolves q on scales finer than the grid. Judge references at lags
 ≥ 4–16 only.
 
+### 10.1 Full state (x, v): why lag 1 converges so slowly, and the lag-Δ fit
+
+**Test** (`examples/figures/well_md_fit/`): long equilibrium MD of the cosine well
+(`md_istarwell2_100M`, γ = 1, kT = m = 1, Δt = 0.005, one frame per step, recorded
+velocities), first 6M frames (5007 A→B transitions), A: x ≤ −0.35, B: x ≥ 0.35. CVs (x, v),
+`CommittorNE`, ny 6, envelope 0.001, lazy basis. Compared per (x, v) bin with the
+brute-force reference q(x, v) (§13) and with the MD-outcome committor (fraction of frames
+that reach B first, no fit). The two references differ by RMS 0.012 per bin: the noise
+floor of the comparison.
+
+| Fit | Iterations | Cross-entropy | AUC | RMS − exact (bin / frame) | On the band \|E − 0.15\| < 0.05 | Largest bin error |
+|---|---|---|---|---|---|---|
+| exact reference | | 0.3948 | 0.8735 | | | |
+| history `[0, 1]`, CV x only, γ_reg 0.2 | 3000 | 0.3972 | 0.8731 | | | |
+| (x, v), lag 1, γ_reg 0.2 | 10000 | 0.3963 | 0.8717 | 0.034 / 0.038 | 0.080 | 0.20 |
+| (x, v, E), lag 1, γ_reg 0.2, then 0.05 | 10000 + 5000 | 0.3952 | 0.8730 | 0.020 / 0.024 | 0.045 | |
+| (x, v), lag 1, γ_reg 0.1 (stopped by its own criterion) | 95000 | 0.3955 | 0.8727 | 0.022 / 0.027 | 0.064 | 0.17 |
+| **(x, v), lag 16, γ_reg 0.1** | **3000** | **0.3951** | **0.8734** | **0.014 / 0.022** | **0.037** | **0.09** |
+| **(x, v), lag 16, γ_reg 0.1** | **12000** | **0.3947** | **0.8737** | **0.011 / 0.018** | **0.027** | **0.06** |
+
+(γ_reg is the `gamma` regularization of the fit, not the friction.) The lag-16 fit reaches
+the noise floor of the comparison; its cross-entropy and AUC are slightly better than the
+grid-interpolated reference's. The lag-1 fits keep their error in two thin bands along the
+energy contour E = ½v² + V(x) ≈ 0.15 through the bump tops (the energy a particle needs to
+cross a bump), with sharp vertical edges at x ≈ ±0.29 in the (x, v) map that the data do
+not have (the MD-outcome committor is smooth there). The lag-1 run's cross-entropy kept
+creeping down (2.7·10⁻⁵ per 15000 iterations at the end), so its own metrics cannot tell
+this from convergence. (On the iSTAR path data of the same well, a lag-1 fit with recorded v
+gave a per-frame RMS of 0.019, §10 table. That number is averaged over path frames, which
+weight the region near the bump tops differently, and was not broken down by energy; it is
+not directly comparable and should be rechecked with a lag-Δ fit.)
+
+**Why lag 1 is slow even with the full state.** NPNEq solves "q one step later equals q now,
+on average". Over one step, low-friction Langevin dynamics is almost Newtonian: the energy
+E changes only by about γ·Δt (0.5% here) through friction and noise. An error in q that
+depends only on E is therefore nearly invisible to the one-step equations: it is only seen
+through the small friction/noise part. In the eigenmodes of the lag-Δ transition operator
+P_Δ, such a slowly relaxing error has weight |1 − e^{−μΔ}| ≈ μΔ in (P_Δ − I)q = 0, while
+fast modes saturate near 1. The equations are badly conditioned at Δ = 1, and the slowly
+relaxing directions are exactly where this committor changes fastest (crossing a bump or
+bouncing back at the bump-top energy).
+
+**Why the lag-Δ fit works.** With the full state the dynamics is Markov, so the committor
+is a fair bet over any stretch of time: E[q(x_{min(t+Δ, τ_t)}) | x_t, v_t] = q(x_t, v_t),
+with τ_t the first A/B frame at or after t (windows must be stopped there, not dropped).
+The answer is the same at every lag, but the slow directions become ~Δ times more visible
+while the fast ones do not grow, so the conditioning improves by roughly a factor Δ.
+Choose γ·Δ·Δt ≈ 0.05–0.1 (here Δ = 16: 0.08), well below the velocity memory
+1/(γ·Δt) = 200 frames and the typical time to reach A or B. From a cold start the first
+~2000 lag-16 iterations overshoot (error 0.34, then 0.20 per bin) before converging.
+
+**Diagnostics of a lag-Δ fit.** It only enforces the Δ-step condition, so q can carry
+small wiggles that cancel over Δ steps. Z_q (target N_AB = 5007) was flat at 5005–5020 for
+all lags ≥ 16, but overshot at lags 1–8 around q ≈ 0.3–0.6 (up to ~6100 at lag 1), and
+`max_sd_zq` rose to ~340 (lag-1 fit: ~50) although q became more accurate. Judge a lag-Δ
+fit by Z_q and `zqs_z` at lags ≥ Δ, by cross-entropy, and by obs-vs-pred (on the diagonal,
+AUC 87.37 %). A grid reference has the same short-lag artifact (§10, test caveat).
+
+**What did not cure it (lag 1).**
+- `gamma` (regularization): only scales the step. At the fixed point the Galerkin condition
+  holds whatever its value, so it does not bias the result. γ_reg = 0 diverged from a cold
+  start; 0.1–0.2 are stable; lowering it later (two stages) gained little.
+- Envelope 0.01 instead of 0.001: same speed early, then stalled at a worse point
+  (`sdzq` ~72 vs ~47 at 10000 iterations).
+- An extra CV aligned with the slow directions (E = ½v² + V(x)) roughly halved the error in
+  the same number of iterations, but did not remove the bands.
+- NPq (`Committor`): not valid for (x, v). It minimizes Σ (q(t+1) − q(t))², which gives the
+  committor only for dynamics that is reversible in the CVs; under time reversal v → −v and
+  q(x, v) ≠ q(x, −v). A larger lag does not change that. NPq at any lag is fine for
+  positions-only RCs of reversible (e.g. Brownian) dynamics.
+
+**Histories.** A history pair (x(t−d), x(t)) supplies velocity *information* when v is not
+recorded, in a worse form than v itself (a difference of nearly equal numbers, half a step
+or more stale); it does not touch the conditioning. The cure for the slow convergence is
+the lag of the *fit*, not the lag of the *features*. Coarser histories (d = 4, 8, 16, or
+0 1 4 16) on the 2D Langevin Z staple run did not help either: `zqs_z` 30–37 vs 33 for
+`[0, 1]` (`examples/figures/zlgv_history/`).
+
+### 10.2 2D Langevin Z potential, staple paths, positions only
+
+`sim_istarz_2603` (γ = 2, kT = 0.05, Δt = 0.002, no velocities in `order.txt`), 1000 paths per
+ensemble (8M frames), no mirrored pieces, `examples/figures/zlgv_fd/`:
+
+| CVs | Fit lag | `zqs_z` (max over lags) | Worst \|z\| at lags 1, 2, 4, 8, 16, 64, 256, 1024 |
+|---|---|---|---|
+| y, x with history `[0, 1]` | 1 | 33 | (lag 1 fine, lags ≥ 2 fail) |
+| y, x, Δy, Δx (finite differences) | 1 | 29 | 4.3 6.1 11.8 17.2 21.6 21.8 16.9 28.9 |
+| y, x, Δy, Δx | 4 | 30 | 3.4 5.2 6.4 7.5 8.6 11.7 23.7 30.2 |
+| y, x, Δy, Δx, **y + x, Δy + Δx** | 4 | **14** | 2.3 1.3 2.1 3.7 6.8 14.1 10.7 8.2 |
+
+The one-frame change of a position is ~4·10⁻⁴ of its range here (1D well: 2·10⁻³), so a
+history basis barely reaches the velocity. The 45° ridge needs y and x combined: with
+the ridge-normal coordinate and velocity as CVs the stopped Z_q stays within ±2.5 except
+at the plateau level (q ≈ 0.73, up to +14 at lags 16–1024). Not converged at 3000
+iterations; no exact reference for this run.
+
 **Recommendations**
 
-1. **Record velocities** (`v_ord = True`) and train on (x, v) with the standard lag-1 fit.
-   Accurate, and `zqs_z` can be trusted at all lags.
-2. **Positions only:** `--fd-velocity` (default D = 1), fit at **lag ~4**, read `zqs_z`
-   only at lags ≥ 4. The lag-Δ fit (stopped windows, Σ f_k(t)[q(min(t+Δ, τ_t)) − q(t)] = 0)
-   is not in the library yet: it exists only in the test scripts
-   (`examples/figures/lgv_check/lag4_stats.py`, `examples/figures/well_check/well_test.py`).
-3. Not helpful (tested): smaller γ, higher basis degree, a joint (r, x, v) basis, extra CVs
-   (x + v/γ, arrival time at A).
+1. **Record velocities** (`v_ord = True`) and train `CommittorNE` on the full state (x, v)
+   (no history). Not NPq.
+2. **Fit at lag Δ with stopped windows**, γ·Δ·Δt ≈ 0.05–0.1 (§10.1); judge `zqs_z` / Z_q at
+   lags ≥ Δ. A lag-1 fit has the right answer but converges impractically slowly at low
+   friction. `lazy_basis=True` (much faster and less GPU memory on millions of frames).
+3. **Positions only:** finite-difference velocities as explicit CVs (`--fd-velocity`, which
+   now adds one per position column), with a lag-Δ fit; no histories. In 2D, add CVs aligned
+   with sharp features (ridge-normal coordinate and velocity).
+4. The lag-Δ fit (Σ f_k(t)[q(min(t+Δ, τ_t)) − q(t)] = 0) is not in the library yet: it
+   exists only in test scripts (`examples/figures/well_md_fit/lag_xv.py`,
+   `examples/figures/zlgv_fd/fd_test.py`, `examples/figures/well_check/well_test.py`).
+5. Not helpful (tested): smaller friction γ, higher basis degree, a joint (r, x, v) basis,
+   extra CVs (x + v/γ, arrival time at A), coarser histories, envelope 0.01, lowering the
+   `gamma` regularization (§10.1).
 
 ---
 
@@ -398,8 +501,8 @@ the short-lag test resolves q on scales finer than the grid. Judge references at
   the reversal asymmetry, depend on the staple move details.
 - Validated on 1D toy systems with a known committor: flat overdamped, flat underdamped,
   and an underdamped cosine well.
-- **Lag-Δ fit and `zqs_z` from lag Δ on:** needed for positions-only underdamped data
-  (§10), not yet in the library.
+- **Lag-Δ fit (`fit_lag`) and `zqs_z` from lag Δ on:** needed for every low-friction system,
+  also with the full state (x, v) (§10.1); only in test scripts, not yet in the library.
 
 ---
 

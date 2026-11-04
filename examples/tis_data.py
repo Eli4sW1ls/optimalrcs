@@ -146,7 +146,7 @@ def last_frame_before_m(order, core_start, core_end, lambda_m):
 
 
 def load_order_file(order_file, path_info, lambda_m=None, burn_in=0, max_paths=None, rng=None,
-                    reversed_pieces=False, odd_columns=(), fd_velocity=False):
+                    reversed_pieces=False, odd_columns=(), fd_velocity=False, fd_columns=(1,)):
     """Load accepted paths and their Monte Carlo weights from one ensemble's `order.txt`.
 
     An `order.txt` file holds one or more paths, each introduced by a
@@ -220,12 +220,14 @@ def load_order_file(order_file, path_info, lambda_m=None, burn_in=0, max_paths=N
             # Change of the order parameter over the last d = fd_velocity frames, per frame,
             # on the whole path so that frames after the cut keep their true previous frames.
             # A longer d averages out the random position kick of single steps.
+            # One velocity per position column in `fd_columns` (the order parameter, and the
+            # other positions of a multi-dimensional run), appended in that order.
             idx = np.arange(len(block))
             prev = np.maximum(idx - int(fd_velocity), 0)
-            v = (block[:, 1] - block[prev, 1]) / np.maximum(idx - prev, 1)
+            vs = (block[:, fd_columns] - block[prev][:, fd_columns]) / np.maximum(idx - prev, 1)[:, None]
             if len(block) > 1:
-                v[0] = v[1]
-            block = np.column_stack([block, v])
+                vs[0] = vs[1]
+            block = np.column_stack([block, vs])
         pieces = [block]
         if lambda_m is not None:
             t_star = first_frame_past_m(block[:, 1], core_start, lambda_m)
@@ -244,8 +246,9 @@ def load_order_file(order_file, path_info, lambda_m=None, burn_in=0, max_paths=N
                         # the change over d frames is x[i] - x[i + d] (fewer at the path end).
                         idx = np.arange(t_last + 1)
                         nxt = np.minimum(idx + int(fd_velocity), len(block) - 1)
-                        vrev = (block[idx, 1] - block[nxt, 1]) / np.maximum(nxt - idx, 1)
-                        backwards[:, -1] = vrev[::-1]
+                        vrev = ((block[idx][:, fd_columns] - block[nxt][:, fd_columns])
+                                / np.maximum(nxt - idx, 1)[:, None])
+                        backwards[:, -len(fd_columns):] = vrev[::-1]
                     pieces.append(backwards)
         for piece in pieces:
             if len(piece) < 2:
@@ -262,7 +265,7 @@ def load_order_file(order_file, path_info, lambda_m=None, burn_in=0, max_paths=N
 
 def load_tis_data(tis_dir, interfaces, ensemble_glob="0[0-9][0-9]", include_zero_minus=False,
                   weighting="rejections", cut_at_m=True, burn_in=0, paths_per_ensemble=None,
-                  seed=None, reversed_pieces=False, odd_columns=(), fd_velocity=False):
+                  seed=None, reversed_pieces=False, odd_columns=(), fd_velocity=False, fd_columns=(1,)):
     """Load per-path time/order/CV arrays and MC weights from all ensemble folders in `tis_dir`.
 
     Ensemble folders are expected at `tis_dir/<ensemble_glob>/`, each with an
@@ -298,7 +301,7 @@ def load_tis_data(tis_dir, interfaces, ensemble_glob="0[0-9][0-9]", include_zero
         c, o, t, w, pth, n_no_crossing = load_order_file(
             order_file, path_info, lambda_m=lambda_m, burn_in=burn_in,
             max_paths=paths_per_ensemble, rng=rng, reversed_pieces=reversed_pieces,
-            odd_columns=odd_columns, fd_velocity=fd_velocity)
+            odd_columns=odd_columns, fd_velocity=fd_velocity, fd_columns=fd_columns)
         offset = paths[-1] + 1 if paths else 0
         cvs += c
         order += o
@@ -318,26 +321,8 @@ def load_tis_data(tis_dir, interfaces, ensemble_glob="0[0-9][0-9]", include_zero
     return cvs, order, time, weights, paths
 
 
-def load_engine_potential(sim_dir, engine_class):
-    """Build the potential that `engine_class` in `<sim_dir>/engine.py` runs with.
-
-    engine.py imports every available potential module, some of which need
-    packages that may not be installed, so it is not imported. Instead its
-    source is parsed for the active (last uncommented) `self.potential = ...`
-    in `engine_class`, and only that potential's module is loaded.
-    """
-    with open(os.path.join(sim_dir, "engine.py")) as f:
-        tree = ast.parse(f.read())
-    modules = {alias.asname or alias.name: node.module
-               for node in ast.walk(tree) if isinstance(node, ast.ImportFrom)
-               for alias in node.names}
-    engine = next(n for n in tree.body if isinstance(n, ast.ClassDef) and n.name == engine_class)
-    calls = [n.value for n in ast.walk(engine)
-             if isinstance(n, ast.Assign) and isinstance(n.value, ast.Call)
-             and any(isinstance(t, ast.Attribute) and t.attr == "potential" for t in n.targets)]
-    call = max(calls, key=lambda c: c.lineno)
-    name = call.func.id
-
+def _import_sim_module(sim_dir, module_name):
+    """Import `module_name` (e.g. potentials.sjoelbak_angle) from the run directory."""
     try:
         importlib.import_module("pyretis.forcefield.potential")
     except ImportError:
@@ -348,12 +333,48 @@ def load_engine_potential(sim_dir, engine_class):
         sys.modules.update({"pyretis": types.ModuleType("pyretis"),
                             "pyretis.forcefield": types.ModuleType("pyretis.forcefield"),
                             "pyretis.forcefield.potential": stub})
-
     sys.path.insert(0, sim_dir)
     try:
-        module = importlib.import_module(modules[name])
+        return importlib.import_module(module_name)
     finally:
         sys.path.remove(sim_dir)
+
+
+def load_named_potential(sim_dir, spec, kwargs):
+    """Build the potential `module:Class` from `<sim_dir>/potentials` with constructor `kwargs`."""
+    module_name, _, class_name = spec.partition(":")
+    if not class_name:
+        raise ValueError(f"--potential must be module:Class, got {spec!r}")
+    module = _import_sim_module(sim_dir, "potentials." + module_name)
+    print(f"Potential from --potential: {spec}({', '.join(f'{k}={v!r}' for k, v in kwargs.items())})")
+    return getattr(module, class_name)(**kwargs)
+
+
+def load_engine_potential(sim_dir, engine_class):
+    """Build the potential that `engine_class` in `<sim_dir>/engine.py` runs with.
+
+    engine.py imports every available potential module, some of which need
+    packages that may not be installed, so it is not imported. Instead its
+    source is parsed for the active (last uncommented) `self.potential = ...`
+    in `engine_class`, and only that potential's module is loaded. Returns None
+    if the engine does not set its potential itself (it then comes from the
+    run's settings).
+    """
+    with open(os.path.join(sim_dir, "engine.py")) as f:
+        tree = ast.parse(f.read())
+    modules = {alias.asname or alias.name: node.module
+               for node in ast.walk(tree) if isinstance(node, ast.ImportFrom)
+               for alias in node.names}
+    engine = next(n for n in tree.body if isinstance(n, ast.ClassDef) and n.name == engine_class)
+    calls = [n.value for n in ast.walk(engine)
+             if isinstance(n, ast.Assign) and isinstance(n.value, ast.Call)
+             and any(isinstance(t, ast.Attribute) and t.attr == "potential" for t in n.targets)]
+    if not calls:
+        return None
+    call = max(calls, key=lambda c: c.lineno)
+    name = call.func.id
+
+    module = _import_sim_module(sim_dir, modules[name])
     print(f"Potential from {engine_class} in engine.py: {ast.unparse(call)}")
     return eval(compile(ast.Expression(call), "engine.py", "eval"),
                 {"np": np, name: getattr(module, name)})
@@ -429,8 +450,9 @@ def add_data_arguments(parser):
                              "bias in the stopped Z_q of the exact committor, so check before "
                              "using it with staple paths")
     parser.add_argument("--fd-velocity", type=int, nargs="?", const=1, default=0, metavar="D",
-                        help="add the change of the order parameter over the last D frames (per "
-                             "frame; D = 1 if not given) as an extra (last) CV: a velocity estimate "
+                        help="add the change of each position (the order parameter, and for a "
+                             "multi-dimensional run every position column) over the last D frames "
+                             "(per frame; D = 1 if not given) as extra (last) CVs: a velocity estimate "
                              "from positions only, for underdamped dynamics when order.txt has no "
                              "velocities. Computed before the cut at M. A larger D averages out the "
                              "random position kick of single steps, which otherwise looks like extra "
@@ -456,6 +478,14 @@ def add_plot_arguments(parser, default_figure_dir):
                              "(default: LangevinEngine for 1 CV, ndLangevinEngine otherwise)")
     parser.add_argument("--no-potential", action="store_true",
                         help="skip the committor-on-potential plot")
+    parser.add_argument("--potential", metavar="MODULE:CLASS",
+                        help="potential to plot instead of the one in <tis_dir>/engine.py, as "
+                             "module:Class from <tis_dir>/potentials, e.g. "
+                             "sjoelbak_angle:RectangularGridWithAngledBarrierPotential (for runs that "
+                             "pass the potential in their settings, which logging.log does not record "
+                             "with its arguments)")
+    parser.add_argument("--pot-kwargs", nargs="+", default=[], metavar="KEY=VALUE",
+                        help="constructor arguments of --potential (Python literals), e.g. Lx=0.3 angle=45")
     parser.add_argument("--figure-dir", default=default_figure_dir)
 
 
@@ -490,7 +520,8 @@ def prepare_data(args):
         args.tis_dir, interfaces, include_zero_minus=args.include_zero_minus,
         weighting=args.weights, cut_at_m=not args.no_cut, burn_in=args.burn_in,
         paths_per_ensemble=args.paths_per_ensemble, seed=args.seed,
-        reversed_pieces=args.reversed, odd_columns=odd_columns, fd_velocity=args.fd_velocity)
+        reversed_pieces=args.reversed, odd_columns=odd_columns, fd_velocity=args.fd_velocity,
+        fd_columns=list(range(1, 1 + dim)) if dim else [1])
 
     path_weights = np.concatenate([np.full(len(path), w, dtype=float)
                                    for path, w in zip(order, weights)])
@@ -555,6 +586,11 @@ def plot_committor(data, r_traj, args):
     """Save the committor against the order parameter and, if `<tis_dir>/engine.py`
     exists, on the potential that engine was run with."""
     lam, X_all = data.lam, data.X_all
+    os.makedirs(args.figure_dir, exist_ok=True)
+    np.savez(os.path.join(args.figure_dir, "committor.npz"), r=r_traj, lam=lam, X_all=X_all,
+             i_traj=data.i_traj, t_traj=data.t_traj, path_weights=data.path_weights,
+             boundary0=data.boundary0, boundary1=data.boundary1)
+    print(f"  saved {os.path.join(args.figure_dir, 'committor.npz')}")
     fig, ax = plt.subplots()
     ax.scatter(lam, r_traj, s=1, alpha=0.2, edgecolors="none")
     for lam_boundary in (args.lambda_a, args.lambda_b):
@@ -565,13 +601,28 @@ def plot_committor(data, r_traj, args):
 
     if args.no_potential:
         return
-    if not os.path.isfile(os.path.join(args.tis_dir, "engine.py")):
-        print("No engine.py in tis_dir, skipping the potential plot.")
-        return
     # The number of CV columns is not the dimension: order.txt can also hold velocities.
     dim = data.dim if data.dim is not None else (1 if X_all.shape[1] == 1 else 2)
-    engine_class = args.engine_class or ("LangevinEngine" if dim == 1 else "ndLangevinEngine")
-    potential = load_engine_potential(args.tis_dir, engine_class)
+    if getattr(args, "potential", None):
+        kwargs = {}
+        for pair in args.pot_kwargs:
+            key, _, value = pair.partition("=")
+            try:
+                kwargs[key] = ast.literal_eval(value)
+            except (ValueError, SyntaxError):
+                kwargs[key] = value
+        potential = load_named_potential(args.tis_dir, args.potential, kwargs)
+    else:
+        if not os.path.isfile(os.path.join(args.tis_dir, "engine.py")):
+            print("No engine.py in tis_dir, skipping the potential plot.")
+            return
+        engine_class = args.engine_class or ("LangevinEngine" if dim == 1 else "ndLangevinEngine")
+        potential = load_engine_potential(args.tis_dir, engine_class)
+        if potential is None:
+            print(f"{engine_class} in engine.py does not set its potential (it comes from the run "
+                  "settings); give it with --potential module:Class --pot-kwargs ... to plot it. "
+                  "Skipping the potential plot.")
+            return
 
     fig, ax = plt.subplots()
     if dim == 1:
