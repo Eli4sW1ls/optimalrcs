@@ -1,0 +1,5 @@
+fit                                   RMS per bin  plateau (fit - exact)  q at the shooting points 0.639 0.664 0.698 0.747
+staple, forward pieces only            0.0572       +0.0614                0.707 0.738 0.754 0.799
+staple, forward + mirrored (continued) 0.0293       +0.0313                0.674 0.708 0.723 0.773
+long MD NPq (16 seeds)                 0.0482       +0.0600                0.703 0.725 0.742 0.783
+saved compare_staple_md_map.png, compare_staple_md_rows.png

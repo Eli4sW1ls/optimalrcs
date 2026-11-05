@@ -1,0 +1,6 @@
+band (0.55, 0.7): 10359 pieces; weighted fraction reaching A or B 0.029 (B 0.026)
+   exact committor     : E[D] = +0.0015 +- 0.0012  (mean q at entry 0.668)
+   fitted q (+0.031)   : E[D] = +0.0001 +- 0.0012  (mean q at entry 0.701)
+band (0.7, 0.85): 9092 pieces; weighted fraction reaching A or B 0.193 (B 0.192)
+   exact committor     : E[D] = +0.0010 +- 0.0018  (mean q at entry 0.762)
+   fitted q (+0.031)   : E[D] = +0.0005 +- 0.0016  (mean q at entry 0.786)

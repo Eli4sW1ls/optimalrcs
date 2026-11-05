@@ -1,0 +1,7 @@
+q 0.15: Z all    -2.238 (even+odd    -2.238) | sigma all    2.839 (sqrt(e^2+o^2)    2.839) | even   +1.954/2.728 odd   -4.192/0.787
+q 0.3: Z all    -2.249 (even+odd    -2.249) | sigma all    2.916 (sqrt(e^2+o^2)    2.916) | even   +2.119/2.797 odd   -4.367/0.825
+q 0.5: Z all    -2.305 (even+odd    -2.305) | sigma all    3.035 (sqrt(e^2+o^2)    3.035) | even   +2.172/2.896 odd   -4.477/0.909
+q 0.65: Z all    +2.871 (even+odd    +2.871) | sigma all    7.993 (sqrt(e^2+o^2)    7.993) | even   +3.976/6.040 odd   -1.105/5.236
+q 0.75: Z all    +3.649 (even+odd    +3.649) | sigma all   10.987 (sqrt(e^2+o^2)   10.987) | even   +2.873/7.982 odd   +0.776/7.550
+paths with frames below q 0.65: 12893; sum of S_g^2 60.211; top 5 |S_g| [-2.489, -2.465, -2.44, 2.021, -1.608] carry 0.41 of the variance
+their weights [3.88, 3.88, 3.88, 3.32, 2.77] frames [2815, 1927, 3448, 1867, 1780]

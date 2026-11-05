@@ -1,0 +1,7 @@
+scratch: 5177825 frames, 30000 walkers, 18955 in A, 11045 in B
+#=2500, zqs_z=2.14114, |dx|=0.237009
+scratch 2500 it. (506 s, zqs_z 2.14, |dx| 2.4e-01): RMS per bin 0.0083 | plateau (fit - exact) -0.0067 | at the points 0.631 0.668 0.687 0.742 (exact 0.638 0.674 0.692 0.747)
+#=2500, zqs_z=2.10217, |dx|=0.000262248
+scratch 5000 it. (1002 s, zqs_z 2.10, |dx| 2.6e-04): RMS per bin 0.0078 | plateau (fit - exact) -0.0065 | at the points 0.631 0.668 0.687 0.742 (exact 0.638 0.674 0.692 0.747)
+#=2500, zqs_z=1.93281, |dx|=0.000415901
+scratch 7500 it. (1507 s, zqs_z 1.93, |dx| 4.2e-04): RMS per bin 0.0077 | plateau (fit - exact) -0.0065 | at the points 0.631 0.668 0.687 0.742 (exact 0.638 0.674 0.692 0.747)

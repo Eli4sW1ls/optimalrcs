@@ -1,0 +1,11 @@
+/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/optimalrcs-cupy/optimalrcs.py:390: UserWarning: Creating legend with loc="best" can be slow with large amounts of data.
+  fig.tight_layout()
+/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures/z_brownian/case_plots.py:29: UserWarning: Creating legend with loc="best" can be slow with large amounts of data.
+  plt.gcf().savefig(path, dpi=95); plt.close('all')
+synth_full               RMS 0.0083  plateau -0.0067
+synth_cut_all            RMS 0.0151  plateau -0.0149
+synth_cut_even           RMS 0.0365  plateau -0.0400
+synth_cut_odd            RMS 0.0082  plateau +0.0088
+synth_cut_even_lag10     RMS 0.0287  plateau -0.0311
+synth_cut_odd_lag10      RMS 0.0277  plateau +0.0314
+done synth

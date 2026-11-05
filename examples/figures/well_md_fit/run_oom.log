@@ -1,0 +1,25 @@
+Traceback (most recent call last):
+  File "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures/well_md_fit/energy_cv.py", line 38, in <module>
+    q.fit_transform(lambda: Y[:, np.random.randint(3)], gamma=0.2, ny=6, max_iter=MAX_ITER, print_step=250,
+  File "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/optimalrcs-cupy/optimalrcs.py", line 212, in fit_transform
+    fk = basis_functions(y1, y2, ny, _envelope)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/optimalrcs-cupy/optimalrcs.py", line 41, in basis_poly_ry
+    return _poly_ry(r, y, n, fenv)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/optimalrcs-cupy/optimalrcs.py", line 50, in _poly_ry
+    fk = cp.empty(((n + 1) * (n + 2) // 2, r.shape[0]), dtype=r.dtype)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/elias/anaconda3/envs/test/lib/python3.12/site-packages/cupy/_creation/basic.py", line 32, in empty
+    return cupy.ndarray(shape, dtype, order=order)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "cupy/_core/core.pyx", line 167, in cupy._core.core.ndarray.__new__
+  File "cupy/_core/core.pyx", line 254, in cupy._core.core._ndarray_base._init
+  File "cupy/cuda/memory.pyx", line 875, in cupy.cuda.memory.alloc
+  File "cupy/cuda/memory.pyx", line 1579, in cupy.cuda.memory.MemoryPool.malloc
+  File "cupy/cuda/memory.pyx", line 1600, in cupy.cuda.memory.MemoryPool.malloc
+  File "cupy/cuda/memory.pyx", line 1271, in cupy.cuda.memory.SingleDeviceMemoryPool.malloc
+  File "cupy/cuda/memory.pyx", line 1292, in cupy.cuda.memory.SingleDeviceMemoryPool._malloc
+  File "cupy/cuda/memory.pyx", line 1537, in cupy.cuda.memory.SingleDeviceMemoryPool._try_malloc
+  File "cupy/cuda/memory.pyx", line 1540, in cupy.cuda.memory.SingleDeviceMemoryPool._try_malloc
+cupy.cuda.memory.OutOfMemoryError: Out of memory allocating 1,344,000,000 bytes (allocated so far: 852,000,256 bytes).

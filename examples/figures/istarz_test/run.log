@@ -1,0 +1,37 @@
+Interfaces from figures/istarz_test/sim_istarz_subset/logging.log: [0.05, 0.13, 0.21, 0.29, 0.37, 0.45, 0.53, 0.61, 0.69, 0.77, 0.85]
+State A: order <= 0.05, state B: order >= 0.85
+Found 11 ensemble folders in figures/istarz_test/sim_istarz_subset
+  figures/istarz_test/sim_istarz_subset/001: loaded 9008 paths, 385750 frames, total weight 13760, cut at M = 0.05 (1 paths dropped: core never crosses M)
+  figures/istarz_test/sim_istarz_subset/002: loaded 1515 paths, 426598 frames, total weight 3075, cut at M = 0.13
+  figures/istarz_test/sim_istarz_subset/003: loaded 1189 paths, 450719 frames, total weight 2226, cut at M = 0.21
+  figures/istarz_test/sim_istarz_subset/004: loaded 1019 paths, 423956 frames, total weight 1949, cut at M = 0.29
+  figures/istarz_test/sim_istarz_subset/005: loaded 892 paths, 410149 frames, total weight 1848, cut at M = 0.37
+  figures/istarz_test/sim_istarz_subset/006: loaded 873 paths, 426748 frames, total weight 1680, cut at M = 0.45
+  figures/istarz_test/sim_istarz_subset/007: loaded 863 paths, 420734 frames, total weight 1648, cut at M = 0.53
+  figures/istarz_test/sim_istarz_subset/008: loaded 908 paths, 427014 frames, total weight 1679, cut at M = 0.61
+  figures/istarz_test/sim_istarz_subset/009: loaded 995 paths, 434636 frames, total weight 1823, cut at M = 0.69
+  figures/istarz_test/sim_istarz_subset/010: loaded 1146 paths, 418028 frames, total weight 2185, cut at M = 0.77
+Loaded 18408 paths, 4224332 frames total
+Using 2 of 2 CV(s)
+Frames in A: 10750, in B: 1051
+Starting CommittorNE training for 3000 iterations...
+#=250, dr2=76.2378, zqs_z=26.3603, sdzqs=202.836, |dx|=0.277643, time=15.4424
+#=500, dr2=42.9562, zqs_z=25.5495, sdzqs=97.2116, |dx|=0.150223, time=30.4225
+#=750, dr2=44.1245, zqs_z=18.3236, sdzqs=100.915, |dx|=0.111435, time=45.503
+#=1000, dr2=42.8269, zqs_z=21.4437, sdzqs=124.832, |dx|=0.0382237, time=60.5591
+#=1250, dr2=41.9062, zqs_z=21.4098, sdzqs=134.339, |dx|=0.0100546, time=75.6891
+#=1500, dr2=42.1401, zqs_z=22.3772, sdzqs=144.809, |dx|=0.00870209, time=91.0172
+#=1750, dr2=42.1411, zqs_z=22.711, sdzqs=148.381, |dx|=0.00504346, time=106.427
+#=2000, dr2=42.3202, zqs_z=22.7131, sdzqs=151.098, |dx|=0.00600622, time=121.965
+#=2250, dr2=42.3876, zqs_z=22.4359, sdzqs=154.036, |dx|=0.00492659, time=137.337
+#=2500, dr2=42.6635, zqs_z=22.6943, sdzqs=157.05, |dx|=0.00736616, time=152.745
+#=2750, dr2=42.8523, zqs_z=22.137, sdzqs=161.661, |dx|=0.00624588, time=168.494
+#=3000, dr2=43.1258, zqs_z=22.4099, sdzqs=165.337, |dx|=0.00601539, time=184.26
+CommittorNE training complete.
+  saved figures/istarz_test/figs/feps.png
+  saved figures/istarz_test/figs/tis_diagnostics.png
+  saved figures/istarz_test/figs/metrics.png
+  saved figures/istarz_test/figs/committor_vs_order.png
+Potential from ndLangevinEngine in engine.py: RectangularGridWithBarrierPotential()
+  saved figures/istarz_test/figs/committor_on_potential.png
+Figures written to figures/istarz_test/figs

@@ -1,0 +1,3 @@
+ny= 8: 633 s, |dx| 0.0035 | RMS all 0.061 | near A slow: RMS 0.133 bias +0.124 | max|z| at lags 1,4,16,64,256,1024: 0.4 4.7 5.7 7.0 5.7 3.2
+ny=10: 1306 s, |dx| 0.0023 | RMS all 0.066 | near A slow: RMS 0.139 bias +0.131 | max|z| at lags 1,4,16,64,256,1024: 0.5 4.9 6.2 7.2 5.8 3.3
+ALL DONE

@@ -19,7 +19,7 @@ sampling breaks that in two ways, and the standard validation metrics break in a
 | Segments end where the sampler stops them (L/R exit, staple turn, A/B), so Z_q and obs-vs-pred silently drop or select frames by their future | **Stopped** Z_q and stopped obs-vs-pred, with a standard error | [5](#5-stopped-z_q), [6](#6-standard-error-and-the-convergence-criterion), [7](#7-stopped-observed-vs-predicted) |
 | The library's Z_q drops windows that run into A/B at a segment end | Treat A/B ends as traps (the library's existing padding) | [8](#8-ab-ends-as-traps-padding-and-the-original-z_q-at-short-lags) |
 | Which value Z_q should converge to: N_AB for MD, 0 for paths cut at t\* | The level is set by the A→B departures in the data | [8.1](#81-which-value-z_q-converges-to-n_ab-0-or-something-else) |
-| The cut throws away ~40% of the frames | Optional: reuse them read backwards (time reversal) | [9](#9-optional-time-reversed-pieces) |
+| The cut throws away ~40% of the frames, and for staple paths that biases the sample | Add the mirrored pieces (`--reversed`), with rejection weights; required for the 2D staple run | [9](#9-optional-time-reversed-pieces), [9.1](#91-staple-paths-need-both-pieces-2d-brownian-z-sim_istarz_br_g10) |
 | Underdamped (low-friction) dynamics: the committor depends on the velocity, which `order.txt` may not contain | Record velocities (`v_ord`); otherwise `--fd-velocity` | [10](#10-underdamped-low-friction-dynamics) |
 | Even with the full state (x, v), a lag-1 fit converges extremely slowly at low friction (energy is nearly conserved per step) | Fit at lag Δ with stopped windows, γ·Δ·Δt ≈ 0.05–0.1 | [10.1](#101-full-state-x-v-why-lag-1-converges-so-slowly-and-the-lag-δ-fit) |
 
@@ -113,8 +113,10 @@ Weights that do **not** matter for the committor (NPNEq tolerates them): per-ens
 normalization, crossing probabilities, equilibrium reweighting, random subsampling of paths.
 
 **Staple high-acceptance factor:** tistools `get_weights_staple` additionally doubles shot
-LML/RMR paths. Tested as a per-path weight it **fails** (below), so the default is
-rejection counts only (`--weights rejections`).
+LML/RMR paths. Tested as a per-path weight it **fails** (below, and in both staple systems
+of §9.1), so the default is rejection counts only (`--weights rejections`). For staple
+paths, use them **with the mirrored pieces** (`--reversed`, §9.1): with forward pieces
+only the shot LML/RMR paths are under-represented.
 
 **Evidence** (exact committor, stopped Z_q z-score, same path subset):
 
@@ -320,9 +322,142 @@ reversed: [start → last M crossing of the core]     read backwards
 | REPPTIS `sim_repptis0br_ys` | no worse (fwd 1.7–3.5, rev 1.6–2.5) | 0.0128 → **0.0064** |
 | staple `sim_istar0br10intf` | 2.1 → 2.9 (size-matched forward-only control: 2.1) | 0.0086 → 0.0066 (mixed) |
 
-So: **use `--reversed` for REPPTIS; keep it off for staple** until understood. A likely
-cause is that the staple ensemble is not symmetric under time reversal (LML/RMR are
-extended only at their start), so reversed pieces may be mis-weighted.
+The staple row above was on a small subset and is within noise. Larger tests (§9.1)
+reverse that conclusion: **use `--reversed` with rejection weights for staple paths as
+well**. On the 2D Brownian Z run it is required; on the 1D flat run it is harmless.
+
+### 9.1 Staple paths: forward vs both pieces (2D Brownian Z, `sim_istarz_br_g10`)
+
+> **Revised by §9.2.** The z-score evidence below is weaker than it looks: the test's error
+> is dominated by a few heavy paths, and on clean data the exact committor already reaches
+> |z| ≈ 3. What holds: adding the mirrored pieces with rejection weights improves the fit,
+> and the `staple` weighting is wrong. What changed: the remaining plateau offset is mostly
+> statistical (§9.2).
+
+**Symptom.** The staple NPNEq fit (forward pieces only, rejection weights, 3000 paths per
+ensemble) put the plateau behind the 45° ridge 0.05–0.07 too high. Shooting with the toytis
+engine confirmed the reference committor (1200 trajectories per point, ±0.014). The fit's
+stopped Z_q sat at ≈ −3 at the longest lags for every q below the plateau.
+
+**Diagnosis: test the data with the exact committor.** Put the exact committor into the
+stopped Z_q z-score of the *data*. If the exact committor fails, the data (weights, cut,
+pieces) are biased and no fit can be right. This takes about a minute and needs no fit
+(`examples/figures/z_brownian/staple_check.py`, `staple_split.py`, `staple_wscan.py`,
+`staple_reversed.py`).
+
+| Exact committor on the staple data | Worst z, plateau (lags 1, 16, 256, 4096) | Worst z, next to A/B |
+|---|---|---|
+| rejection weights, forward only (as fitted) | +3.0 +2.8 +3.3 +2.6 | +2.1 +1.9 +1.8 +2.4 |
+| **rejection weights, forward + mirrored** | **+1.6 +1.2 +0.7 +1.4** | **−0.9 −1.2 −0.8 +1.3** |
+| staple weights, forward only | −2.1 −2.2 +2.3 +1.5 | −3.2 −3.2 −2.6 −1.6 |
+| staple weights, forward + mirrored | −3.9 −4.1 −3.9 −1.9 | −5.6 −5.6 −5.0 −2.0 |
+| all weights 1, forward only | about +6 | |
+
+(1500 paths per ensemble, seed 0, for the four main rows.)
+- Forward pieces only: the excess on the plateau comes from the ensembles past the ridge
+  (006–009, M = 0.45–0.69). It is present in both halves of the paths, so it is systematic.
+- A high-acceptance factor f on shot LML/RMR paths (about half of the paths in ensembles
+  003–009), applied to forward pieces only, moves the result steadily from +3 (f = 1) to −3
+  (f = 2); f ≈ 1.25–1.5 nearly passes. Rejection weights with both pieces pass without a
+  tuned factor. Reading: each accepted path must contribute both halves around its M
+  crossings, and the factor 2 of `get_weights_staple` is the whole-path counterpart of the
+  same correction. This reading is not yet derived from the staple move rules.
+- 1D flat staple run (`sim_istar0br10intf`, 6000 paths per ensemble, exact linear committor):
+  rejection weights pass with and without mirrored pieces (within ±2 at lags ≥ 16; both
+  +3.7 at lag 1 right next to A). Staple weights fail either way (+6 to +9).
+
+**Refit** with `--reversed`, rejection weights, 1500 paths per ensemble (20.9M frames),
+otherwise the same settings (`examples/figures/istarz_br_g10_reversed/`):
+
+| | Forward only (3000 paths/ens.) | **Forward + mirrored (1500 paths/ens.)** |
+|---|---|---|
+| `zqs_z` after 10000 iterations | 3.23 | **1.36** |
+| RMS − exact per bin | 0.058 | **0.025** |
+| mean (fit − exact) on the plateau | +0.061 | **+0.023** |
+| q at the shooting points (0.639, 0.664, 0.698, 0.747) | 0.707 0.738 0.754 0.799 | 0.665 0.700 0.715 0.767 |
+
+Continued to 25000 iterations the fit converged at +0.031 (RMS 0.029, `zqs_z` 1.36): §9.2.
+
+**The long MD of the same system** also overshot the plateau (+0.05–0.07 with NPq). There
+the cause is the data: 32768 independent GPU walkers give 4.30·10⁷ ± 4% steps per A→B
+transition, matching the reference (4.4·10⁷), while the 16-seed MD had 37 A→B transitions
+where ~25 were expected (+2.5σ). Fits on the two halves of the MD give +0.031 and +0.079,
+independent of the fit lag (1, 10, 50 rows) and of the envelope schedule
+(`examples/figures/z_brownian/lag_md.py`, `rate_walkers.py`). With 37 transitions the
+plateau level is uncertain by several hundredths.
+
+### 9.2 How well do cut path pieces determine the committor? (2D Brownian Z)
+
+Overnight tests (`examples/figures/z_brownian/synth*`, `martingale_*.py`,
+`istarz_br_g10_reversed/half_fits.py`, `lag_halves.py`). Summary first:
+
+- **The method works:** on clean synthetic data (30000 GPU walkers started uniformly between A
+  and B, run until absorbed, saved every 50 steps; exact committor known), NPNEq with the
+  staple settings converges within 2500 iterations to the exact committor (plateau −0.007,
+  the reference's own interpolation error).
+- **Pieces that end at interfaces fix the plateau level only weakly.** The plateau is set
+  by the pieces that reach A or B, and few do: of the staple pieces entering the plateau,
+  3% (q 0.55–0.7) and 19% (q 0.7–0.85) reach A or B. A uniform shift of q on the plateau
+  hardly changes the one-step increments of the other pieces.
+- **Consequence:** fits of the staple data scatter by about ±0.02–0.03 in the plateau
+  level between independent halves of 7500 paths; this is statistical, not a bias of
+  the method, and a longer fit lag does not reduce it.
+
+| Plateau (fit − exact) | lag 1 | longer lag |
+|---|---|---|
+| synthetic walkers, run until absorbed (5.2M frames) | −0.007 | |
+| synthetic walkers **cut at interfaces** like path pieces (all, 30000 pieces) | −0.015 | |
+| — even half / odd half | −0.040 / +0.009 | −0.031 / +0.031 (lag 10 rows = 500 steps) |
+| staple, forward + mirrored, 1500 paths/ens. | +0.031 | |
+| — even half / odd half (7500 paths each) | +0.049 / +0.014 | +0.034 / +0.016 (lag 50) |
+| staple, forward + mirrored, 2250 paths/ens. (31.5M frames) | | +0.022 (lag 50) |
+| staple, forward pieces only, 3000 paths/ens. | +0.061 | |
+
+The cut synthetic pieces have no weights, no staple moves and no mirrored pieces, so the
+spread there comes from "pieces end at interfaces" alone. (They also have only 10% of the
+frames of the uncut walkers; less data adds to the spread.)
+
+**Calibrating the tests.**
+- Stopped Z_q z-score of the exact committor on the clean synthetic data: worst |z| 2.8–2.9
+  (at q ≈ 0.61, the ridge edge). |z| ≈ 3 is therefore normal here, and the forward-only
+  staple value of +3 (§9.1) is not significant on its own.
+- On the staple data the z-score's variance is dominated by a few long, heavily weighted
+  paths (5 of 12893 carry 41% of it below q = 0.65; each ridge crossing contributes about
+  ±0.6 × weight). Subsets (single ensembles, halves) then give heavy-tailed z values (±10).
+- **Martingale test at the first entry into a q band**: per piece,
+  D = q_exact(stop) − q_exact(first frame in the band), stop = first A/B frame or the end of
+  the piece; E[D] = 0 for unbiased data (optional stopping), one value per piece, standard
+  error over paths. On the synthetic walkers |E[D]| ≤ 0.010 ± 0.007 in every band. On the staple data
+  with rejection weights and both pieces: +0.0015 ± 0.0012 (q 0.55–0.7), +0.0010 ± 0.0018
+  (q 0.7–0.85); forward pieces alone +0.004 ± 0.002, mirrored −0.001 ± 0.002; early and late
+  halves of the run agree (no equilibration problem). The `staple` weighting gives
+  −0.011 ± 0.002 (−6σ): wrong. But the fitted q (+0.031) passes this test just as well
+  (E[D] = +0.0001 ± 0.0012), because so few pieces reach A or B: the test cannot measure
+  the plateau level either.
+
+**The long MD** of the same system (§I.2 of the results overview) behaves the same way: the
+16-seed MD had 2.5σ more transitions than average (GPU walkers: 4.30·10⁷ ± 4% steps per A→B
+transition, reference 4.4·10⁷), and its two halves gave +0.031 and +0.079 at every fit lag
+and envelope setting.
+
+**Overall estimate.** The fits with both pieces give +0.031 (1500 paths/ens., lag 1),
++0.025 (mean of the two halves at lag 50) and +0.022 (2250 paths/ens., lag 50), against an
+expected statistical uncertainty of about ±0.015–0.02. So the remaining offset is about
++0.02 ± 0.015: mostly statistical, but all estimates are positive, so a small residual
+bias of order +0.01 (for instance the slight lean of the forward pieces in the martingale
+test, +0.004 ± 0.002) cannot be excluded at this sample size.
+
+Figures of all these fits and tests: `examples/figures/z_brownian/summary_*.png`, per-case
+plots in `cases/` (results overview, II.3 "The plateau investigation in figures").
+
+**What to do with path data:**
+- Use rejection weights with both pieces (`--reversed`), not the `staple` weighting.
+- Expect the level of flat regions far from A and B (plateaus) to be uncertain by a few
+  hundredths unless many pieces reach A or B; estimate it from independent halves of the
+  paths. More paths reduce it as 1/√N.
+- The z-score and the obs-vs-pred plot do not detect this uncertainty.
+- Open: information that pins the plateau level directly, e.g. the crossing probabilities
+  between interfaces that TIS itself provides.
 
 ---
 
@@ -344,6 +479,17 @@ lag dependence.
 | `sim_istarwell2rv` (cosine well, γ = 1, Δt = 0.005, paths ≈ 220 frames, `v_ord`) | recorded velocity, lag-1 fit | **RMS 0.019, no near-A/B bias, passes every lag** |
 | same | `--fd-velocity`, lag-1 fit | RMS 0.032, no near-A bias, but fails lags 2–256 (\|z\| 6–10) |
 | same | `--fd-velocity`, lag-4 fit | RMS 0.021, lags ≥ 4 pass |
+| same, **+ mirrored pieces** (`--reversed`) | recorded velocity, lag-1 fit | RMS 0.030, fails lags 4–256 (\|z\| 3.4–4.7): worse than forward only |
+| same, + mirrored pieces | recorded velocity, lag-4 fit | RMS 0.017 (forward only 0.015), lags ≥ 4 within 2.4 |
+| same, + mirrored pieces | `--fd-velocity`, lag 1 and 4 | not run yet (`examples/base_documented_1d_langevin_staple.ipynb`) |
+
+**Mirrored pieces on the well** (`figures/well_check/run_rev_recorded.log`). Unlike on the 2D
+Brownian Z (§9.1), they do not help here. The data test with the exact committor shows no
+bias of the forward pieces to remove: it fails at short lags with and without them
+(lags 1, 2, 4, 16, 64, 256: 12.0 11.1 9.6 3.5 2.5 2.1 forward only; 15.4 14.2 12.2 5.2 2.4
+2.2 with mirrored pieces). That failure grows by about √2 with twice the frames, as a fixed
+error does: most likely the interpolation error of the coarse 29 × 29 reference grid,
+which short lags see most. At lags ≥ 64 both pass.
 
 **Why histories fail.** The history basis is a polynomial in (x(t), x(t−d)), each scaled to
 its range. At low friction and small Δt, x(t) − x(t−d) is ~10⁻⁴ of that range, so the
@@ -469,6 +615,11 @@ the ridge-normal coordinate and velocity as CVs the stopped Z_q stays within ±2
 at the plateau level (q ≈ 0.73, up to +14 at lags 16–1024). Not converged at 3000
 iterations; no exact reference for this run.
 
+**Mirrored pieces with the best setup** (finite-difference velocities, y + x, lag 4): not run
+yet. `examples/base_documented_2d_langevin.ipynb` now runs exactly this setup with
+`REVERSED = True` (switches `FD_VELOCITY`, `ADD_DIAG`, `FIT_LAG`); compare its worst |z| per
+lag with the last row of the table.
+
 **Recommendations**
 
 1. **Record velocities** (`v_ord = True`) and train `CommittorNE` on the full state (x, v)
@@ -497,8 +648,10 @@ iterations; no exact reference for this run.
   memory-loss assumption.
 - **`feps.png`:** F(q) reflects path-sampling density, not equilibrium; its Z_q panel is
   the old all-lag version. Use `tis_diagnostics.png` instead.
-- **Staple weights:** whether the high-acceptance factor has a correct per-path form, and
-  the reversal asymmetry, depend on the staple move details.
+- **Staple weights:** rejection weights with both pieces pass on the 2D Brownian Z and 1D
+  flat staple runs (§9.1). Why (the relation to the high-acceptance factor) is not yet
+  derived from the staple move rules. Check other staple systems with the exact-committor
+  test before relying on it.
 - Validated on 1D toy systems with a known committor: flat overdamped, flat underdamped,
   and an underdamped cosine well.
 - **Lag-Δ fit (`fit_lag`) and `zqs_z` from lag Δ on:** needed for every low-friction system,
@@ -533,7 +686,7 @@ iterations; no exact reference for this run.
 |---|---|---|
 | `--weights rejections\|staple\|none` | rejections | MC path weights |
 | `--no-cut` | off | keep whole paths (comparison only, biased) |
-| `--reversed` | off | add time-reversed pieces (REPPTIS) |
+| `--reversed` | off | add the mirrored pieces; recommended for REPPTIS and staple (§9, §9.1) |
 | `--fd-velocity [D]` | off (D = 1 if given) | add the change of the order parameter over D frames as a velocity CV (§10) |
 | `--burn-in N` | 0 | skip the first N cycles per ensemble |
 | `--paths-per-ensemble N --seed S` | all | random subset, weights kept |
@@ -566,3 +719,30 @@ python load_tis_data_cupy.py /path/to/sim --paths-per-ensemble 2000 --seed 0 \
 - Each variant on several independent random path subsets, to separate effects from noise;
   size-matched controls where a difference could be due to data size.
 - A metric is trusted only if the **exact** committor passes it and a wrong RC fails it.
+
+## 14. Fit settings of the runs
+
+All path fits: `CommittorNE`, CVs drawn at random each iteration, A/B ends as traps for the
+metrics (`set_fixed_traj_length_trap`), `ny = 6`. "Envelope" is `optimalrcs.envelope_scale`
+(library default 0.01); `gamma` is the regularization of the update (library default 0;
+it scales the step, not the fixed point). Lag Δ > 1 means the stopped-window lag-Δ update
+(§10.1), with the basis evaluated per chunk; lag 1 is the library update with
+`lazy_basis=True` unless noted.
+
+| Run | Data | CVs | Estimator, lag | gamma | Envelope | Iterations | Script / notebook |
+|---|---|---|---|---|---|---|---|
+| 1D overdamped long MD (flat, two bumps) | 5M-frame blocks | λ | NPq, 1 | 0 | 0.01 | 1500 per block | `figures/longmd_npq/npq_longmd.py` |
+| 1D flat staple `sim_istar0br10intf` | 12000 paths/ens., cut at M, rejection w. | λ | NPNEq, 1 | 0.1 | 0.01 | 3000 | `figures/overview_plots/regen_all.py flat` |
+| 1D well MD | 6M frames | (x, v) | NPNEq, **16** | 0.1 | 0.001 | 12000 | `figures/well_md_fit/lag_xv.py` |
+| 1D well MD, history | 6M frames | x, history [0, 1] | NPNEq, 1 | 0.2 | 0.001 | 1500 | `base_documented_1d_langevin.ipynb` |
+| 1D well staple `sim_istarwell2rv` | 2000 paths/ens., rejection w., ± mirrored | (x, v) recorded or fd | NPNEq, 1 or 4 (non-lazy basis) | 0.1 | 0.01 | 4000 | `figures/well_check/well_test.py`, `base_documented_1d_langevin_staple.ipynb` |
+| 2D Brownian Z MD | 16 seeds, excursions out of A/B (4.6M rows) | (y, x) | NPq, 1 | 0 | 0.01 | 8000 | `figures/z_brownian/npq_md.py` |
+| 2D Brownian Z MD, lag fits | seeds 1–8 or 9–16 | (y, x) | NPNEq, 1 / 10 / 50 rows | 0.1 | 0.01 (schedule 1 → 0.001 in one run) | 2000–5000 | `figures/z_brownian/lag_md.py` |
+| 2D Brownian Z staple, forward only | 3000 paths/ens., rejection w. | (y, x) | NPNEq, 1 | 0.1 | 0.01 | 10000 | `load_tis_data_cupy.py` defaults |
+| 2D Brownian Z staple, y + x | same | (y, x, y + x) | NPNEq, 1 | 0.1 | **1** | 22752 | `base_documented_2d_brownian_staple_diag.ipynb` |
+| **2D Brownian Z staple, both pieces** | 1500 paths/ens., `--reversed`, rejection w. | (y, x) | NPNEq, 1 | 0.1 | 0.01 | 10000 + 15000 | `figures/istarz_br_g10_reversed/continue_fit.py` |
+| same, halves / 2250 paths/ens. | even/odd paths; 2250 paths/ens. | (y, x) | NPNEq, 1 or 50 | 0.1 | 0.01 | 15000 (lag 1), 3000 (lag 50) | `half_fits.py`, `lag_halves.py` |
+| Synthetic walkers (§9.2) | 30000 walkers, whole or cut at interfaces | (y, x) | NPNEq, 1 or 10 rows | 0.1 | 0.01 | 2500–10000 | `figures/z_brownian/synth_fit.py` |
+| 2D underdamped Z staple, history | 1000 paths/ens. | y, x, history [0, 1] | NPNEq, 1 | 0.2 | 0.001 | 10000 | `base_documented_2d_langevin.ipynb` (`FD_VELOCITY = False`) |
+| 2D underdamped Z staple, fd | 1000 paths/ens., forward only | y, x, Δy, Δx (+ y + x, Δy + Δx) | NPNEq, 1 or 4 | 0.2 | 0.001 | 3000 | `figures/zlgv_fd/fd_test.py`, `base_documented_2d_langevin.ipynb` (with mirrored pieces) |
+

@@ -1,0 +1,11 @@
+even paths: 10436207 frames, 7500 paths
+  even 2500 it. (505 s, zqs_z 2.83, |dx| 3.6e-01): RMS per bin 0.0475 | plateau (fit - exact) -0.0521 | at the points 0.579 0.620 0.640 0.705 (shooting 0.639 0.664 0.698 0.747)
+  even 5000 it. (1013 s, zqs_z 1.49, |dx| 3.8e-02): RMS per bin 0.0187 | plateau (fit - exact) -0.0005 | at the points 0.638 0.674 0.691 0.748 (shooting 0.639 0.664 0.698 0.747)
+  even 7500 it. (1520 s, zqs_z 1.20, |dx| 1.7e-02): RMS per bin 0.0293 | plateau (fit - exact) +0.0234 | at the points 0.665 0.699 0.716 0.768 (shooting 0.639 0.664 0.698 0.747)
+  even 10000 it. (2028 s, zqs_z 1.21, |dx| 1.0e-02): RMS per bin 0.0394 | plateau (fit - exact) +0.0372 | at the points 0.680 0.714 0.729 0.779 (shooting 0.639 0.664 0.698 0.747)
+odd paths: 10484745 frames, 7500 paths
+  odd 2500 it. (507 s, zqs_z 5.06, |dx| 3.6e-01): RMS per bin 0.0586 | plateau (fit - exact) -0.0607 | at the points 0.572 0.610 0.630 0.694 (shooting 0.639 0.664 0.698 0.747)
+  odd 5000 it. (1015 s, zqs_z 4.41, |dx| 3.1e-02): RMS per bin 0.0280 | plateau (fit - exact) -0.0182 | at the points 0.619 0.653 0.673 0.730 (shooting 0.639 0.664 0.698 0.747)
+  odd 7500 it. (1522 s, zqs_z 4.19, |dx| 1.3e-02): RMS per bin 0.0223 | plateau (fit - exact) -0.0003 | at the points 0.639 0.672 0.691 0.745 (shooting 0.639 0.664 0.698 0.747)
+  odd 10000 it. (2032 s, zqs_z 4.07, |dx| 6.3e-03): RMS per bin 0.0229 | plateau (fit - exact) +0.0083 | at the points 0.649 0.681 0.700 0.753 (shooting 0.639 0.664 0.698 0.747)
+ALL DONE

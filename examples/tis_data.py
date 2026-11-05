@@ -445,10 +445,10 @@ def add_data_arguments(parser):
                              "start, which recovers the frames the cut drops; needs time-reversible "
                              "dynamics at equilibrium. Velocity columns written with v_ord are "
                              "negated in the reversed pieces; other CVs must be even under time "
-                             "reversal. On a flat 1D REPPTIS test it halved the committor "
-                             "error; on a flat 1D staple test the reversed pieces showed a small "
-                             "bias in the stopped Z_q of the exact committor, so check before "
-                             "using it with staple paths")
+                             "reversal. Recommended for REPPTIS (halved the committor error on a "
+                             "flat 1D test) and for staple paths with rejection weights (on the 2D "
+                             "Brownian Z run the forward pieces alone are biased; see "
+                             "docs/npneq_tis_notes.md section 9.1)")
     parser.add_argument("--fd-velocity", type=int, nargs="?", const=1, default=0, metavar="D",
                         help="add the change of each position (the order parameter, and for a "
                              "multi-dimensional run every position column) over the last D frames "

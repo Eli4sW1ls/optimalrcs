@@ -1,0 +1,8 @@
+force checked at 400 random points
+150000 steps/walker, 4.92e+09 walker-steps: 104 A->B, 68 B->A -> 4.726e+07 steps per A->B (170 s)
+350000 steps/walker, 1.15e+10 walker-steps: 251 A->B, 202 B->A -> 4.569e+07 steps per A->B (354 s)
+550000 steps/walker, 1.80e+10 walker-steps: 404 A->B, 359 B->A -> 4.461e+07 steps per A->B (539 s)
+750000 steps/walker, 2.46e+10 walker-steps: 563 A->B, 521 B->A -> 4.365e+07 steps per A->B (723 s)
+950000 steps/walker, 3.11e+10 walker-steps: 732 A->B, 677 B->A -> 4.253e+07 steps per A->B (909 s)
+FINAL: 3.277e+10 walker-steps, 762 A->B (+- 28), 711 B->A: 4.300e+07 steps per A->B transition (reference ~4.4e7, long MD ~2.9e7)
+ALLDONE

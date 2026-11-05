@@ -1,0 +1,7 @@
+#=500, xent=0.16907, mse=0.0565801, sdzq=6.8916, dzq=16.9799, dr2=789.755, auc=0.980276, |dx|=0.184623, time=168.686
+after 500 iterations: RMS vs exact 0.0013, q at lambda = 0, 0.1, 0.2: 0.261 0.501 0.753 (exact 0.261 0.503 0.754)
+#=1000, xent=0.16907, mse=0.0565799, sdzq=6.87407, dzq=16.9548, dr2=789.751, auc=0.980276, |dx|=2.82091e-05, time=168.146
+after 1000 iterations: RMS vs exact 0.0013, q at lambda = 0, 0.1, 0.2: 0.261 0.501 0.753 (exact 0.261 0.503 0.754)
+#=1500, xent=0.16907, mse=0.0565801, sdzq=6.89339, dzq=16.9774, dr2=789.746, auc=0.980276, |dx|=2.8335e-05, time=168.739
+after 1500 iterations: RMS vs exact 0.0013, q at lambda = 0, 0.1, 0.2: 0.261 0.501 0.753 (exact 0.261 0.503 0.754)
+CHECK DONE
