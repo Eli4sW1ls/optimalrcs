@@ -26,19 +26,22 @@ Settings that work:
 | Overdamped paths | positions | NPNEq; cut at M, rejection weights, mirrored pieces | 1 | `zqs_z` ≲ 2 |
 | Underdamped, v recorded | (x, v) | NPNEq | Δ with γ·Δ·dt ≈ 0.05–0.1 | Z_q at lags ≥ Δ |
 
-Fit settings of the cases shown (all: `ny` = 6; envelope = `optimalrcs.envelope_scale`,
-library default 0.01; `gamma` = regularization, library default 0, it scales the step and
-not the result). Every run is listed in notes §14.
+Fit settings of the cases shown. All: `ny` = 6. Envelope = `optimalrcs.envelope_scale`
+(library default 0.01). `gamma` = regularization of the update (library default 0; it
+scales the step, not the result; NPq ignores it). "Library" = the library's lag-1 update;
+"stopped Δ" = the hand-written lag-Δ update with windows stopped at A/B or the piece end.
+Traps (A/B ends treated as absorbing) change only the metrics. Path subsets drawn with
+seed 0, rejection weights. Every run, with its script: notes §14.
 
-| Case | CVs | Estimator, fit lag | gamma | Envelope | Iterations |
-|---|---|---|---|---|---|
-| 1D overdamped MD | λ | NPq, 1 | 0 | 0.01 | 1500 per 5M-frame block |
-| 1D flat staple | λ | NPNEq, 1 | 0.1 | 0.01 | 3000 |
-| 1D well MD | (x, v) | NPNEq, 16 | 0.1 | 0.001 | 12000 |
-| 1D well staple | (x, v recorded) | NPNEq, 1 | 0.1 | 0.01 | 4000 |
-| 2D Brownian Z MD | (y, x) | NPq, 1 | 0 | 0.01 | 8000 |
-| 2D Brownian Z staple, both pieces | (y, x) | NPNEq, 1 | 0.1 | 0.01 | 25000 |
-| 2D underdamped Z staple | y, x, Δy, Δx, y + x, Δy + Δx | NPNEq, 4 | 0.2 | 0.001 | 3000 |
+| Case | Data | CVs | Update, lag | gamma | Envelope | Iterations | Basis, traps |
+|---|---|---|---|---|---|---|---|
+| 1D overdamped MD | 5M-frame blocks of 50M | λ | NPq, library 1 | – | 0.01 | 1500 per block | full, none |
+| 1D flat staple | 12000 paths/ens., forward pieces | λ | NPNEq, library 1 | 0.1 | 0.01 | 3000 | lazy, A/B traps |
+| 1D well MD | first 6M frames | (x, v) | NPNEq, stopped Δ = 16 frames | 0.1 | 0.001 | 12000 | chunked, none |
+| 1D well staple | 2000 paths/ens., forward (± mirrored) | (x, v recorded) | NPNEq, stopped Δ = 1 or 4 (RMS 0.019 / 0.015); library 1 (RMS 0.031) | 0.1 | 0.01 | 4000 | full, none; library refit: lazy, A/B traps |
+| 2D Brownian Z MD | 16 seeds, 1 row per 20 steps, 4.6M rows | (y, x) | NPq, library 1 row | – | 0.01 | 8000 | full, A/B traps |
+| 2D Brownian Z staple | 1500 paths/ens., forward + mirrored | (y, x) | NPNEq, library 1 | 0.1 | 0.01 | 10000 + 15000 | lazy, A/B traps |
+| 2D underdamped Z staple | 1000 paths/ens., forward pieces | y, x, Δy, Δx, y + x, Δy + Δx | NPNEq, stopped Δ = 4 frames | 0.2 | 0.001 | 3000 | chunked, A/B traps |
 
 ## How to read the plots
 

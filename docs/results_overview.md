@@ -103,6 +103,10 @@ frames outside A and B add zero on average. Each departure from A that reaches B
 Long overdamped MD (50M frames, γ = 5); NPq on ten 5M-frame blocks. A: λ ≤ −0.1, B: λ ≥ 0.3.
 Error against the exact committor: **RMS 0.0022 (flat), 0.0054 (two bumps)**.
 
+**Settings:** `Committor` (NPq), CV λ, lag 1 frame, ny 6, envelope 0.01 (library default;
+NPq has no gamma), 1500 iterations per block, no traps, seed = block number
+(`figures/longmd_npq/npq_longmd.py`).
+
 ![NPq on the long 1D MD vs exact](../examples/figures/longmd_npq/npq_longmd.png)
 
 Original plots, two bumps (one 5M-frame block):
@@ -128,6 +132,16 @@ Z potential (`sjoelbak_angle`, Lx = 0.3): a 6 kT barrier along a 45° line, and 
 force along y. Overdamped, γ = 10, kT = 0.05, dt = 0.002. A: y ≤ 0.1, B: y ≥ 0.85.
 16 seeds, 53M saved rows (every 20 steps), 37 A→B transitions. Only the excursions out of
 A/B are kept (4.6M rows), which is exact for NPq. 8000 iterations.
+
+**Settings:**
+- NPq: CVs (y, x), lag 1 saved row (20 steps), ny 6, envelope 0.01, 8000 iterations, A/B as
+  traps (`set_boundary_traps`), seed 0 (halves of the seeds: 1, 2); `figures/z_brownian/npq_md.py`.
+- NPNEq lag fits on seeds 1–8 (2.4M rows): stopped-window update at lag 1, 10 and 50 rows
+  (custom, also at lag 1), gamma 0.1, envelope 0.01, ny 6, 5000 iterations in 1000-iteration
+  chunks, no traps; `figures/z_brownian/lag_md.py`, `lag_md.log`. Seeds 9–16 at lag 10: same
+  settings; its iteration count was not logged.
+- Envelope schedule: envelope 1 → 0.1 → 0.01 → 0.001 for 1000 + 1000 + 1000 + 2000
+  iterations, otherwise as the lag fits (`env_sched.log`; its fit lag was not logged).
 
 Exact committor (finite-volume solution of the backward equation): ≈ 0 up to the ridge,
 a jump to ≈ 0.64 across it, then a rise to 1.
@@ -174,6 +188,16 @@ position and velocity, q(x, v). NPq does not apply: under time reversal v → �
 The fits are compared with a brute-force q(x, v) and with a model-free committor taken
 directly from the MD outcomes (which boundary each frame reaches next). The two
 references agree to RMS **0.012**, which is the noise floor.
+
+**Settings** (first 6M frames, one trajectory, no traps, ny 6; `figures/well_md_fit/`):
+
+| Fit | Update, lag | gamma | Envelope | Iterations | Basis | Script |
+|---|---|---|---|---|---|---|
+| x, history `[0, 1]` (`y(t-d),y(t)`) | library, 1 | 0.2 | 0.001 | 1500 | lazy | `overview_plots/regen_all.py hist01` |
+| (x, v) | library, 1 | 0.2 | 0.001 | 10000 | not recorded | an earlier version of `base_documented_1d_langevin.ipynb` |
+| (x, v, E) | library, 1 | 0.2, then 0.05 | 0.001 | 10000 + 5000 | lazy | `energy_cv.py` |
+| (x, v), stopped by its own criterion | library, 1 | 0.1 | 0.001 | 95000 (5000-it. chunks; stop when the cross-entropy gains < 3·10⁻⁵ over 3 chunks) | lazy | `long_xv.py` |
+| **(x, v)** | **stopped windows, 16** | **0.1** | **0.001** | **12000** (1000-it. chunks) | chunked | `lag_xv.py` |
 
 | Fit | Iterations | Cross-entropy | AUC | RMS − exact (bin / frame) | Error on the E ≈ 0.15 band |
 |---|---|---|---|---|---|
@@ -263,10 +287,14 @@ exact committor (9–13).
 ## II.1 1D overdamped flat, staple (`sim_istar0br10intf`) *(regenerated)*
 
 Flat potential, overdamped, γ = 1, kT = 1, dt = 2·10⁻⁴; A: λ ≤ −0.1, B: λ ≥ 0.8. Refitted
-with the defaults of `load_tis_data_cupy.py` (cut at M, rejection weights, gamma 0.1,
+with the settings of `load_tis_data_cupy.py` (cut at M, rejection weights, gamma 0.1,
 3000 iterations). 12000 paths per ensemble (7.6M frames): all 33M frames do not fit the
 GPU for the stopped-Z_q metric. The exact committor is linear, with the usual
 boundary shift.
+
+**Settings:** `CommittorNE`, CV λ, library lag-1 update, gamma 0.1, envelope 0.01, ny 6,
+3000 iterations, lazy basis, A/B traps (`set_fixed_traj_length_trap`), forward pieces,
+paths subset seed 0, fit seed 0 (`figures/overview_plots/regen_all.py flat`).
 
 ![metrics, original](../examples/figures/overview_plots/flat_staple_metrics_original.png)
 ![metrics, convergence](../examples/figures/overview_plots/flat_staple_metrics_convergence.png)
@@ -292,6 +320,13 @@ boundary shift.
 
 Same well and dynamics as I.3. 2000 paths per ensemble; CVs (x, v); lag-1 fit.
 
+**Settings** (both: 2000 paths per ensemble, subset seed 0, rejection weights, forward
+pieces, gamma 0.1, envelope 0.01, ny 6, 4000 iterations, fit seed 0):
+- Table below (`figures/well_check/well_test.py`): hand-written stopped-window update at
+  lag 1 or 4, full (non-lazy) basis, no traps.
+- Refit (`figures/overview_plots/regen_all.py wellpath`): library lag-1 update, lazy basis,
+  A/B traps.
+
 | Setup (notes §10) | RMS vs exact |
 |---|---|
 | recorded v, lag 1 | 0.019, passes every lag |
@@ -316,13 +351,20 @@ Refit with the library (recorded v, lag 1, gamma 0.1, 4000 iterations) *(regener
   through the bump tops as the lag-1 MD fit** (I.3): the same slow lag-1 convergence, now
   in path data.
 - This refit (library update step, A/B traps) gives RMS 0.031. The earlier test with a
-  hand-written lag-1 update gave 0.019 (table above). Both are lag-1 fits; the difference
-  is not explained yet.
+  hand-written lag-1 update gave 0.019 (table above). Both are lag-1 fits with the same
+  gamma, envelope and iterations; they differ only in the update code and the basis
+  evaluation (the traps affect only the metrics). The difference is not explained yet.
 
 ## II.3 2D Brownian Z potential, staple (`sim_istarz_br_g10`)
 
 Same system as I.2, but A: y ≤ 0.05. 3000 paths per ensemble, cut at M (20.8M frames), rejection
-weights, 10000 iterations, `zqs_z` 3.2 at the end.
+weights, 10000 iterations.
+
+**Settings:** `load_tis_data_cupy.py` with its defaults: `CommittorNE`, CVs (y, x), library
+lag-1 update, gamma 0.1, envelope 0.01, ny 6, 10000 iterations, A/B traps, forward pieces,
+no random seed. It ran twice: the first run (`run_first.log`, `zqs_z` 3.23 at the end) lost
+its q in a plotting crash; the rerun (`run.log`, `zqs_z` 3.05) gave the q used for all plots
+and comparisons below.
 
 Original plots (obs vs pred on every second path):
 
@@ -358,7 +400,7 @@ Shooting with the toytis engine itself (1200 trajectories per point):
 | (0.70, 0.15) | 0.747 ± 0.013 | 0.748 | 0.799 | 0.783 |
 
 **Observations.**
-- `zqs_z` was still falling at the end (3.68 → 3.23 over the last 6000 iterations).
+- `zqs_z` was still falling at the end (first run: 3.68 → 3.23 over the last 6000 iterations).
 - The original Z_q is flat around 0 up to the plateau (q ≈ 0.7) and swings ±20 above it.
   Obs vs pred is on the diagonal (AUC 99.9%), noisy where few frames lie.
 - The stopped Z_q is within ±2 up to lags of ~10³, but **≈ −3 at the longest lags for every q
@@ -372,7 +414,8 @@ Shooting with the toytis engine itself (1200 trajectories per point):
 ### With the ridge-normal coordinate y + x as a CV (`base_documented_2d_brownian_staple_diag.ipynb`)
 
 Same data. CVs (y, x, y + x), fit from scratch, gamma 0.1, **envelope 1** (the original fit
-used the default 0.01), stopped by hand at iteration 22752.
+used the default 0.01), stopped by hand at iteration 22752. ny 6, lazy basis, A/B traps,
+seed 0 (`examples/base_documented_2d_brownian_staple_diag.ipynb`).
 
 ![metrics](../examples/figures/istarz_br_g10_diag/metrics.png)
 ![feps](../examples/figures/istarz_br_g10_diag/feps.png)
@@ -434,6 +477,11 @@ no fit.
 
 Same data and settings, plus `--reversed`; 1500 paths per ensemble (20.9M frames).
 
+**Settings:** paths subset seed 0, rejection weights, forward + mirrored pieces; library
+lag-1 update, gamma 0.1, envelope 0.01, ny 6, A/B traps. First 10000 iterations with
+`load_tis_data_cupy.py` (no seed, `run.log`), then 15000 more from that q in 5000-iteration
+chunks, lazy basis, seed 100 + chunk (`continue_fit.py`, `continue.log`).
+
 ![metrics](../examples/figures/istarz_br_g10_reversed/metrics.png)
 ![feps](../examples/figures/istarz_br_g10_reversed/feps.png)
 ![TIS diagnostics](../examples/figures/istarz_br_g10_reversed/tis_diagnostics.png)
@@ -442,7 +490,7 @@ Same data and settings, plus `--reversed`; 1500 paths per ensemble (20.9M frames
 
 | | Forward only (3000 paths/ens.) | **Forward + mirrored (1500 paths/ens.)** |
 |---|---|---|
-| `zqs_z` after 10000 iterations | 3.23 | **1.36** |
+| `zqs_z` after 10000 iterations | 3.23 (first run; rerun 3.05) | **1.36** |
 | stopped Z_q at the longest lags, q below the plateau | ≈ −3 | **≈ −0.5** |
 | RMS − exact per bin | 0.058 | **0.025** |
 | mean (fit − exact) on the plateau | +0.061 | **+0.023** |
@@ -455,6 +503,16 @@ fit converged at **+0.031** (RMS 0.029).
 ![continued fit: TIS diagnostics](../examples/figures/istarz_br_g10_reversed/continued/tis_diagnostics.png)
 
 ### Is the remaining +0.03 noise or bias?
+
+**Settings** (all: CVs (y, x), gamma 0.1, envelope 0.01, ny 6):
+- Staple halves at lag 1 (`half_fits.py`): library update, lazy basis, A/B traps, 2500-
+  iteration chunks, seed = chunk number, stopped when the plateau changed by < 0.001 and
+  |dx| < 2·10⁻⁴: even half 25000, odd half 22500 iterations.
+- Staple halves and 2250 paths/ens. at lag 50 (`lag_halves.py`): stopped-window update,
+  chunked basis, no traps, 3000 iterations in 1000-iteration chunks.
+- Synthetic walkers (`z_brownian/synth_fit.py`): no weights, library lag-1 update with lazy
+  basis and A/B traps (uncut: 2500 iterations; cut at interfaces: 10000), or the
+  stopped-window update at lag 10 rows (7500 iterations).
 
 | Plateau (fit − exact) | lag 1 | longer lag |
 |---|---|---|
@@ -680,6 +738,16 @@ The convergence plot covers the continued run (10000 → 25000 iterations); the 
 ## II.4 2D underdamped Z potential, staple, positions only (`sim_istarz_2603`)
 
 γ = 2, kT = 0.05, dt = 0.002, no velocities recorded. 1000 paths per ensemble (8M frames).
+
+**Settings** (all: paths subset seed 0, rejection weights, forward pieces, gamma 0.2,
+envelope 0.001, ny 6, A/B traps, fit seed 0):
+- History `[0, 1]`: library lag-1 update, `y(t-d),y(t)`, shift `r(t)`, lazy basis, 10000
+  iterations (`base_documented_2d_langevin.ipynb`; the committed version has `REVERSED = True`,
+  so this row may have included the mirrored pieces).
+- Coarser histories: same, 2000 iterations (`figures/zlgv_history/history_test.py`).
+- Finite-difference velocities (± ridge-normal CVs): 3000 iterations; lag 1 with the library
+  update and lazy basis, lag 4 with the stopped-window update and chunked basis
+  (`figures/zlgv_fd/fd_test.py`).
 The one-frame change of a position is only ~4·10⁻⁴ of its range (1D well: 2·10⁻³), so a
 history basis barely reaches the velocity.
 

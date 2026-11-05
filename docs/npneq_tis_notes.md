@@ -367,11 +367,15 @@ pieces) are biased and no fit can be right. This takes about a minute and needs 
   +3.7 at lag 1 right next to A). Staple weights fail either way (+6 to +9).
 
 **Refit** with `--reversed`, rejection weights, 1500 paths per ensemble (20.9M frames),
-otherwise the same settings (`examples/figures/istarz_br_g10_reversed/`):
+otherwise the same settings (`examples/figures/istarz_br_g10_reversed/`). Settings of both
+fits: CVs (y, x), library lag-1 update, gamma 0.1, envelope 0.01, ny 6, A/B traps;
+`load_tis_data_cupy.py`, no random seed (forward only: 3000 paths/ens.; mirrored: subset
+seed 0). The forward-only fit ran twice; 3.23 is the first run, whose q was lost; the q
+used for every comparison is the rerun's (`zqs_z` 3.05).
 
 | | Forward only (3000 paths/ens.) | **Forward + mirrored (1500 paths/ens.)** |
 |---|---|---|
-| `zqs_z` after 10000 iterations | 3.23 | **1.36** |
+| `zqs_z` after 10000 iterations | 3.23 (first run; rerun 3.05) | **1.36** |
 | RMS − exact per bin | 0.058 | **0.025** |
 | mean (fit − exact) on the plateau | +0.061 | **+0.023** |
 | q at the shooting points (0.639, 0.664, 0.698, 0.747) | 0.707 0.738 0.754 0.799 | 0.665 0.700 0.715 0.767 |
@@ -412,6 +416,12 @@ Overnight tests (`examples/figures/z_brownian/synth*`, `martingale_*.py`,
 | — even half / odd half (7500 paths each) | +0.049 / +0.014 | +0.034 / +0.016 (lag 50) |
 | staple, forward + mirrored, 2250 paths/ens. (31.5M frames) | | +0.022 (lag 50) |
 | staple, forward pieces only, 3000 paths/ens. | +0.061 | |
+
+Settings (all: CVs (y, x), gamma 0.1, envelope 0.01, ny 6; §14): lag-1 fits use the library
+update with lazy basis and A/B traps (synthetic uncut 2500, cut 10000 iterations; staple
+1500 paths/ens. 25000; staple halves 25000 / 22500, stopped when the plateau changed by
+< 0.001); longer lags use the stopped-window update without traps (synthetic lag 10:
+7500 iterations; staple lag 50: 3000).
 
 The cut synthetic pieces have no weights, no staple moves and no mirrored pieces, so the
 spread there comes from "pieces end at interfaces" alone. (They also have only 10% of the
@@ -469,7 +479,13 @@ position-only RC is at best an average over velocities, and the stopped Z_q show
 lag dependence.
 
 **Checks** (brute-force reference q(x, v) from shooting with the engine's own integrator,
-600 trajectories per grid point; fits compared frame by frame):
+600 trajectories per grid point; fits compared frame by frame). Settings of all fits in this
+table: `CommittorNE`, gamma 0.1, envelope 0.01, ny 6, 4000 iterations, fit seed 0, paths
+subset seed 0, rejection weights. `sim_istar0lgv15intf`: CVs x and Δx; the lag-1 row is the
+library update (non-lazy basis, A/B traps, 100 paths/ens.), the lag-4 rows the stopped-window
+update (no traps; 100 or 30 paths/ens.); the history rows' settings were not recorded.
+`sim_istarwell2rv` (`figures/well_check/well_test.py`): 2000 paths/ens., stopped-window update
+also at lag 1, full basis, no traps.
 
 | Run | Setup | Result |
 |---|---|---|
@@ -600,7 +616,11 @@ the lag of the *fit*, not the lag of the *features*. Coarser histories (d = 4, 8
 ### 10.2 2D Langevin Z potential, staple paths, positions only
 
 `sim_istarz_2603` (γ = 2, kT = 0.05, Δt = 0.002, no velocities in `order.txt`), 1000 paths per
-ensemble (8M frames), no mirrored pieces, `examples/figures/zlgv_fd/`:
+ensemble (8M frames), no mirrored pieces, `examples/figures/zlgv_fd/`. Settings: gamma 0.2,
+envelope 0.001, ny 6, A/B traps, seed 0; history rows: library update, lazy, 10000
+(`[0, 1]`, notebook) or 2000 iterations (coarser, `figures/zlgv_history/history_test.py`);
+finite-difference rows: 3000 iterations, lag 1 library update, lag 4 stopped-window update
+(`fd_test.py`):
 
 | CVs | Fit lag | `zqs_z` (max over lags) | Worst \|z\| at lags 1, 2, 4, 8, 16, 64, 256, 1024 |
 |---|---|---|---|
@@ -722,27 +742,43 @@ python load_tis_data_cupy.py /path/to/sim --paths-per-ensemble 2000 --seed 0 \
 
 ## 14. Fit settings of the runs
 
-All path fits: `CommittorNE`, CVs drawn at random each iteration, A/B ends as traps for the
-metrics (`set_fixed_traj_length_trap`), `ny = 6`. "Envelope" is `optimalrcs.envelope_scale`
-(library default 0.01); `gamma` is the regularization of the update (library default 0;
-it scales the step, not the fixed point). Lag Δ > 1 means the stopped-window lag-Δ update
-(§10.1), with the basis evaluated per chunk; lag 1 is the library update with
-`lazy_basis=True` unless noted.
+**Defaults** (checked in `optimalrcs-cupy/optimalrcs.py`): `envelope_scale` 0.01 (module
+global); `CommittorNE.fit_transform`: `gamma` 0, `ny` 6, `lazy_basis` False,
+`gamma_all_frames` False. NPq (`Committor`) ignores `gamma`. `save_min_metric` only stores an
+extra copy of q that no script reads: every reported q is the last iterate.
+`load_tis_data_cupy.py` defaults: gamma 0.1, ny 6, 10000 iterations, `min_delta_x` 1e-6, no
+history, envelope 0.01, A/B traps, rejection weights, cut at M, forward pieces, no seed.
 
-| Run | Data | CVs | Estimator, lag | gamma | Envelope | Iterations | Script / notebook |
-|---|---|---|---|---|---|---|---|
-| 1D overdamped long MD (flat, two bumps) | 5M-frame blocks | λ | NPq, 1 | 0 | 0.01 | 1500 per block | `figures/longmd_npq/npq_longmd.py` |
-| 1D flat staple `sim_istar0br10intf` | 12000 paths/ens., cut at M, rejection w. | λ | NPNEq, 1 | 0.1 | 0.01 | 3000 | `figures/overview_plots/regen_all.py flat` |
-| 1D well MD | 6M frames | (x, v) | NPNEq, **16** | 0.1 | 0.001 | 12000 | `figures/well_md_fit/lag_xv.py` |
-| 1D well MD, history | 6M frames | x, history [0, 1] | NPNEq, 1 | 0.2 | 0.001 | 1500 | `base_documented_1d_langevin.ipynb` |
-| 1D well staple `sim_istarwell2rv` | 2000 paths/ens., rejection w., ± mirrored | (x, v) recorded or fd | NPNEq, 1 or 4 (non-lazy basis) | 0.1 | 0.01 | 4000 | `figures/well_check/well_test.py`, `base_documented_1d_langevin_staple.ipynb` |
-| 2D Brownian Z MD | 16 seeds, excursions out of A/B (4.6M rows) | (y, x) | NPq, 1 | 0 | 0.01 | 8000 | `figures/z_brownian/npq_md.py` |
-| 2D Brownian Z MD, lag fits | seeds 1–8 or 9–16 | (y, x) | NPNEq, 1 / 10 / 50 rows | 0.1 | 0.01 (schedule 1 → 0.001 in one run) | 2000–5000 | `figures/z_brownian/lag_md.py` |
-| 2D Brownian Z staple, forward only | 3000 paths/ens., rejection w. | (y, x) | NPNEq, 1 | 0.1 | 0.01 | 10000 | `load_tis_data_cupy.py` defaults |
-| 2D Brownian Z staple, y + x | same | (y, x, y + x) | NPNEq, 1 | 0.1 | **1** | 22752 | `base_documented_2d_brownian_staple_diag.ipynb` |
-| **2D Brownian Z staple, both pieces** | 1500 paths/ens., `--reversed`, rejection w. | (y, x) | NPNEq, 1 | 0.1 | 0.01 | 10000 + 15000 | `figures/istarz_br_g10_reversed/continue_fit.py` |
-| same, halves / 2250 paths/ens. | even/odd paths; 2250 paths/ens. | (y, x) | NPNEq, 1 or 50 | 0.1 | 0.01 | 15000 (lag 1), 3000 (lag 50) | `half_fits.py`, `lag_halves.py` |
-| Synthetic walkers (§9.2) | 30000 walkers, whole or cut at interfaces | (y, x) | NPNEq, 1 or 10 rows | 0.1 | 0.01 | 2500–10000 | `figures/z_brownian/synth_fit.py` |
-| 2D underdamped Z staple, history | 1000 paths/ens. | y, x, history [0, 1] | NPNEq, 1 | 0.2 | 0.001 | 10000 | `base_documented_2d_langevin.ipynb` (`FD_VELOCITY = False`) |
-| 2D underdamped Z staple, fd | 1000 paths/ens., forward only | y, x, Δy, Δx (+ y + x, Δy + Δx) | NPNEq, 1 or 4 | 0.2 | 0.001 | 3000 | `figures/zlgv_fd/fd_test.py`, `base_documented_2d_langevin.ipynb` (with mirrored pieces) |
+**Terms.** *Update*: "library" = the library's lag-1 NPNEq/NPq step; "stopped Δ" = the
+hand-written stopped-window update Σ_t w_t f_k(t)[q(min(t+Δ, τ_t)) − q(t)] = 0 (§10.1), also
+used at Δ = 1 in some scripts. *Basis*: lazy = `lazy_basis=True`; chunked = the scripts'
+`LazyRY`; full = `basis_poly_ry` (same numbers, more memory). *Traps*: FTL =
+`set_fixed_traj_length_trap(A|B)`, BT = `set_boundary_traps`; both change only the metrics.
+"fwd" = forward pieces only, "+mir" = with mirrored pieces (`--reversed`). Paths are subsets
+of each ensemble drawn with seed 0 unless noted.
 
+| Run (section) | Data | CVs | Update, lag | gamma | Envelope | ny | Iterations | Basis | Traps | Seed | Source |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| 1D overdamped MD, flat / two bumps (overview I.1) | 50M frames, 5M-frame blocks | λ | NPq library, 1 | – | 0.01 | 6 | 1500 per block | full | – | block | `figures/longmd_npq/npq_longmd.py` |
+| 1D flat staple `sim_istar0br10intf` (II.1) | 12000 paths/ens., rej., fwd | λ | library, 1 | 0.1 | 0.01 | 6 | 3000 | lazy | FTL | 0 | `figures/overview_plots/regen_all.py flat` |
+| 1D flat staple, §3/§4 fits; REPPTIS and small staple subsets (§9 table) | not recorded | | | | | | | | | | no script found |
+| 1D well MD, x + history `[0, 1]` (§10.1) | 6M frames | x, `y(t-d),y(t)` | library, 1 | 0.2 | 0.001 | 6 | 1500 (overview) / 3000 (§10.1, not recorded) | lazy | – | 0 | `regen_all.py hist01` |
+| 1D well MD, (x, v) (§10.1) | 6M frames | (x, v) | library, 1 | 0.2 | 0.001 | not recorded | 10000 | not recorded | – | not recorded | earlier `base_documented_1d_langevin.ipynb` |
+| 1D well MD, (x, v, E) (§10.1) | 6M frames | (x, v, E) | library, 1 | 0.2, then 0.05 | 0.001 | 6 | 10000 + 5000 | lazy | – | 0 per stage | `figures/well_md_fit/energy_cv.py` |
+| 1D well MD, (x, v), long (§10.1) | 6M frames | (x, v) | library, 1 | 0.1 | 0.001 | 6 | 95000 (stop: cross-entropy gain < 3e-5 over 3 × 5000) | lazy | – | chunk | `long_xv.py` |
+| **1D well MD, (x, v), lag 16** (§10.1) | 6M frames | (x, v) | stopped Δ = 16 frames | 0.1 | 0.001 | 6 | 12000 | chunked | – | chunk | `lag_xv.py` |
+| Flat low-friction staple `sim_istar0lgv15intf` (§10 table) | 100 or 30 paths/ens., rej., fwd | x, Δx | library, 1 / stopped Δ = 4 | 0.1 | 0.01 | 6 | 4000 | full | FTL / – | 0 | `figures/lgv_check/fit_and_test.py`, `lag_fit.py`, `lag4_stats.py` |
+| 1D well staple `sim_istarwell2rv` (§10 table) | 2000 paths/ens., rej., fwd or +mir | (x, v) recorded or fd | stopped Δ = 1 or 4 | 0.1 | 0.01 | 6 | 4000 | full | – | 0 | `figures/well_check/well_test.py` |
+| 1D well staple, library refit (overview II.2) | 2000 paths/ens., rej., fwd | (x, v) recorded | library, 1 | 0.1 | 0.01 | 6 | 4000 | lazy | FTL | 0 | `regen_all.py wellpath` |
+| 2D Brownian Z MD, NPq (overview I.2) | 16 seeds, rows every 20 steps, excursions (4.6M rows) | (y, x) | NPq library, 1 row | – | 0.01 | 6 | 8000 | full | BT | 0 (halves 1, 2) | `figures/z_brownian/npq_md.py` |
+| 2D Brownian Z MD, NPNEq lag fits (I.2) | seeds 1–8 (2.4M rows) or 9–16 | (y, x) | stopped Δ = 1, 10, 50 rows | 0.1 | 0.01 | 6 | 5000 (seeds 9–16: not logged) | chunked | – | chunk | `lag_md.py` |
+| 2D Brownian Z MD, envelope schedule (I.2) | seeds 1–8 | (y, x) | stopped Δ, value not logged | 0.1 | 1 → 0.1 → 0.01 → 0.001 | 6 | 1000 + 1000 + 1000 + 2000 | chunked | – | stage | `lag_md.py`, `env_sched.log` |
+| 2D Brownian Z staple, fwd (§9.1, II.3) | 3000 paths/ens. (subset seed not recorded), rej., fwd, 20.8M frames | (y, x) | library, 1 | 0.1 | 0.01 | 6 | 10000 | not recorded | FTL | none | `load_tis_data_cupy.py`, `istarz_br_g10/run.log` |
+| 2D Brownian Z staple, y + x (II.3) | the fwd fit's frames | (y, x, y + x) | library, 1 | 0.1 | **1** | 6 | 22752 (stopped by hand) | lazy | FTL | 0 | `base_documented_2d_brownian_staple_diag.ipynb` |
+| **2D Brownian Z staple, +mir** (§9.1, §9.2, II.3) | 1500 paths/ens., rej., +mir, 20.9M frames | (y, x) | library, 1 | 0.1 | 0.01 | 6 | 10000 + 15000 | not recorded, then lazy | FTL | none, then 100 + chunk | `load_tis_data_cupy.py`, `istarz_br_g10_reversed/continue_fit.py` |
+| 2D Brownian Z staple halves, lag 1 (§9.2) | even / odd paths of the +mir data | (y, x) | library, 1 | 0.1 | 0.01 | 6 | 25000 / 22500 (stop: plateau change < 0.001 and \|dx\| < 2e-4) | lazy | FTL | chunk | `half_fits.py` |
+| 2D Brownian Z staple, lag 50 (§9.2) | halves of 1500 paths/ens., or 2250 paths/ens. (31.5M frames) | (y, x) | stopped Δ = 50 frames | 0.1 | 0.01 | 6 | 3000 | chunked | – | chunk | `lag_halves.py` |
+| Synthetic walkers (§9.2) | 30000 walkers, every 50 steps (5.2M frames), uncut or cut at interfaces (0.5M) | (y, x) | library, 1 / stopped Δ = 10 rows | 0.1 | 0.01 | 6 | uncut 2500, cut 10000, lag 10 7500 | lazy / chunked | FTL | chunk | `figures/z_brownian/synth_fit.py` |
+| 2D underdamped Z staple, history (§10.2) | 1000 paths/ens., rej. (`[0, 1]`: possibly +mir, see II.4) | y, x, history | library, 1 | 0.2 | 0.001 | 6 | 10000 (`[0, 1]`), 2000 (coarser) | lazy | FTL | 0 | `base_documented_2d_langevin.ipynb`, `figures/zlgv_history/history_test.py` |
+| 2D underdamped Z staple, fd (§10.2) | 1000 paths/ens., rej., fwd, 8M frames | y, x, Δy, Δx (+ y + x, Δy + Δx) | library, 1 / stopped Δ = 4 | 0.2 | 0.001 | 6 | 3000 | lazy / chunked | FTL | 0 | `figures/zlgv_fd/fd_test.py` |
+| Notebooks for the +mir tests (not run yet) | well: 2000 paths/ens.; 2D Z: 1000 paths/ens.; +mir | as above | stopped Δ = 4 (or library, 1) | 0.1 (well) / 0.2 (2D Z) | 0.01 / 0.001 | 6 | 4000 / 3000 | full / chunked | FTL | 0 | `base_documented_1d_langevin_staple.ipynb`, `base_documented_2d_langevin.ipynb` |
