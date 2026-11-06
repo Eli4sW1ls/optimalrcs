@@ -250,6 +250,13 @@ Z_q is flat at N_AB for lags ≥ 16, but overshoots at lags 1–8: small wiggles
 over 16 steps. `max_sd_zq` therefore rises (~340 against ~50), even though q is more accurate.
 **Judge a lag-Δ fit at lags ≥ Δ.**
 
+**Update (5 Nov): the lag-1 result depends on the start** (notes §10.3). With gamma 0.1,
+envelope 0.01 and 15000 iterations, lag-1 fits on (x, v) end at RMS 0.019–0.052 per frame
+depending on the seed; seed 1, which drew v first, reached 0.014 per bin (as good as
+lag 16), while λ-first seeds keep the edges at x ≈ ±0.29. A 1000-iteration warm-up along v
+only gives 0.020–0.026 for all seeds tried. A 10× smaller time step and an Euler–Maruyama
+run give the same MD committor (notes §10.4), so the integrator is not the cause.
+
 **Why lag 1 stalls, even with the full state.** Over one step, underdamped dynamics is
 almost Newtonian: the energy E = ½v² + V(x) changes by only ~γ·dt (0.5%). Errors in q that
 depend only on E are therefore almost invisible to the one-step equations. In this well
