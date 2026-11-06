@@ -1,9 +1,7 @@
 optimalrcs.egg-info/
 .vscode/
 */__pycache__/
-examples/figures/**/*csv
 examples/figures/**/*.np*
 examples/figures/**/*.pyc
 examples/figures/istarz_test/sim_istarz_subset/
 **/.ipynb_checkpoints
-examples/figures/z_brownian/staple_cycle_blocks.log
