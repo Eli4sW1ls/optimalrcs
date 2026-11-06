@@ -17,6 +17,14 @@ def npq(r_traj, fk, i_traj=None, w_traj=None):
     if w_traj is not None:
         itw = itw * w_traj
 
+    # A basis with transition_moments/apply (polybasis.PolyBasisRY, from
+    # lazy_basis_poly_ry) is never materialized: akj, b and the update are
+    # computed frame by frame in fused kernels, with the same sums as below.
+    if hasattr(fk, "transition_moments"):
+        akj, b = fk.transition_moments(itw, -(r_traj[1:] - r_traj[:-1]) * itw, equilibrium=True)
+        al_j = cp.linalg.lstsq(akj, cp.reshape(b, [b.shape[0], 1]), rcond=None)[0]
+        return fk.apply(r_traj, cp.reshape(al_j, [al_j.shape[0]]), 0, 1)
+
     dfk = fk[:, 1:] - fk[:, :-1]
     akj = cp.tensordot(dfk * itw, dfk, axes=[1, 1])
 

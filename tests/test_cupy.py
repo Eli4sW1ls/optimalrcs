@@ -317,6 +317,15 @@ class TestPolyBasis(unittest.TestCase):
                     npt.assert_allclose(a, c, rtol=0, atol=1e-8,
                                         err_msg=f"ny={ny} gamma={gamma} stable={stable} {flags}")
 
+    def test_npq(self):
+        for ny in (2, 6):
+            fused = C.orc.lazy_basis_poly_ry(self.r, self.y, ny, 1 - self.b)
+            full = C.orc.basis_poly_ry(self.r, self.y, ny, 1 - self.b)
+            for i_traj in (self.i, None):
+                a = np_(C.nonparametrics.npq(self.r, fused, i_traj))
+                c = np_(C.nonparametrics.npq(self.r, full, i_traj))
+                npt.assert_allclose(a, c, rtol=0, atol=1e-8, err_msg=f"ny={ny} i_traj={i_traj is not None}")
+
     def test_npneq_is_the_original(self):
         # The default path must reproduce the original cupy npneq bit for bit.
         full = C.orc.basis_poly_ry(self.r, self.y, 6, 1 - self.b)

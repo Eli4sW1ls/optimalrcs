@@ -40,8 +40,15 @@ extern "C" __global__ void npneq_moments(
                 for (int iy = 0; iy <= NDEG; ++iy) {
                     double fa = fya, fb = fyb;
                     for (int ir = 0; ir <= NDEG - iy; ++ir) {
+#if EQ
+                        // equilibrium NPq: akj = sum df_k df_j w, b = sum df_k v
+                        sfa[k * LDS + j] = fb - fa;
+                        sg[k * LDS + j] = (fb - fa) * wt;
+#else
                         sfa[k * LDS + j] = fa;
-#if STABLE
+#endif
+#if EQ
+#elif STABLE
                         sg[k * LDS + j] = STABLE_SIGN * (fa * wt);
 #elif GAMMA_ALL
                         sg[k * LDS + j] = fb * wt - fa * (wt + gamma);
@@ -98,8 +105,8 @@ _update_kernel = cp.ElementwiseKernel(
     "float64 rn", _UPDATE_SRC, "polybasis_update")
 
 
-def _moments_kernel(ndeg, stable, gamma_all_frames, stable_negative):
-    key = (ndeg, bool(stable), bool(gamma_all_frames), bool(stable_negative))
+def _moments_kernel(ndeg, stable, gamma_all_frames, stable_negative, equilibrium=False):
+    key = (ndeg, bool(stable), bool(gamma_all_frames), bool(stable_negative), bool(equilibrium))
     if key not in _moment_kernels:
         m = (ndeg + 1) * (ndeg + 2) // 2
         # largest tile of frames whose basis values fit in 46 KB of shared memory
@@ -108,7 +115,8 @@ def _moments_kernel(ndeg, stable, gamma_all_frames, stable_negative):
         opts = (f"-DM={m}", f"-DNDEG={ndeg}", f"-DTILE={tile}", f"-DLDS={tile + 1}",
                 f"-DNACC={nacc}", f"-DBLOCK={_BLOCK}", f"-DSTABLE={int(bool(stable))}",
                 f"-DGAMMA_ALL={int(bool(gamma_all_frames))}",
-                f"-DSTABLE_SIGN={'-1.0' if stable_negative else '1.0'}")
+                f"-DSTABLE_SIGN={'-1.0' if stable_negative else '1.0'}",
+                f"-DEQ={int(bool(equilibrium))}")
         _moment_kernels[key] = (cp.RawKernel(_MOMENTS_SRC, "npneq_moments", options=opts), tile)
     return _moment_kernels[key]
 
@@ -141,13 +149,16 @@ class PolyBasisRY:
                 f = f * yh
         return fk
 
-    def transition_moments(self, w, v, gamma=0.0, stable=False, gamma_all_frames=False, stable_negative=False):
+    def transition_moments(self, w, v, gamma=0.0, stable=False, gamma_all_frames=False, stable_negative=False,
+                           equilibrium=False):
         """akj = sum_t fa_k (fb_j - fa_j (1 + gamma)) w and b_k = sum_t fa_k v, over
         the transitions t -> t+1 (w and v have length N-1).
         With gamma_all_frames=True, akj = sum_t fa_k (fb_j w - fa_j (w + gamma)).
         With stable=True, akj = sum_t fa_k fa_j w, negated if stable_negative.
-        See nonparametrics.npneq for these conventions (POSSIBLE_BUG)."""
-        kernel, tile = _moments_kernel(self.n, stable, gamma_all_frames, stable_negative)
+        See nonparametrics.npneq for these conventions (POSSIBLE_BUG).
+        With equilibrium=True (NPq), akj = sum_t df_k df_j w and b_k = sum_t df_k v,
+        with df = fb - fa; gamma and the other flags are then ignored."""
+        kernel, tile = _moments_kernel(self.n, stable, gamma_all_frames, stable_negative, equilibrium)
         n_trans = self.r_hat.shape[0] - 1
         n_sm = cp.cuda.Device().attributes["MultiProcessorCount"]
         blocks = max(1, min(-(-n_trans // tile), 8 * n_sm))
