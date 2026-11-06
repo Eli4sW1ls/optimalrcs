@@ -108,6 +108,8 @@ seed 0, rejection weights. Every run, with its script: notes §14.
   depend only on energy are almost invisible to the lag-1 equations.
 - Histories, `gamma` and the envelope do not fix this; a lag Δ with γ·Δ·dt ≈ 0.05–0.1 does.
 - Judge a lag-Δ fit at lags ≥ Δ: Z_q is flat at N_AB there and wiggles at lags 1–8.
+- Lag 1 can also work, but depends on the random start: RMS 0.019–0.052 per frame over
+  seeds; a warm-up along v only gives 0.020–0.026 (notes §10.3).
 
 ![feps](../examples/figures/well_md_fit/lag_xv_plots/feps.png)
 ![obs_pred](../examples/figures/well_md_fit/lag_xv_plots/obs_pred.png)
