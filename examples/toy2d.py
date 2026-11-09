@@ -116,8 +116,12 @@ def force_function(pot, xp=np):
 
 
 def potential_grid(pot, ys, xs):
-    """V[iy, ix] on the grid ys x xs."""
+    """V[iy, ix] on the grid ys x xs: the potential whose gradient is the engine's force. Potentials
+    with a force term outside `potential` (the Z potential's gravity) provide `effective_potential`."""
     Y, X = np.meshgrid(ys, xs, indexing='ij')
+    if not hasattr(pot, 'potential_and_force_xy') and hasattr(pot, 'effective_potential'):
+        return np.array([pot.effective_potential((np.array([a, b]), np.zeros(2)))
+                         for a, b in zip(Y.ravel(), X.ravel())]).reshape(Y.shape)
     return force_function(pot)(Y, X)[0]
 
 

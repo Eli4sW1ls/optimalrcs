@@ -1149,8 +1149,8 @@ python load_tis_data_cupy.py /path/to/sim --paths-per-ensemble 2000 --seed 0 \
 | 1D overdamped, flat (`sim_istar0br10intf`, long MD) | analytic: linear in λ, with the boundaries shifted out by s = 0.5826 σ (σ = √(2 kT Δt/γ)), the mean overshoot of a discrete Brownian step when absorption is checked every step (Siegmund) | long-MD NPq agrees to RMS 0.002; staple fits to 0.002–0.005; the MSM level check to ≤ 0.005 (§6.5) |
 | 1D overdamped, two bumps (long MD) | the 1D formula q(λ) = ∫ e^{V/kT} / ∫ e^{V/kT} on a fine grid, same shift (`longmd_npq/npq_longmd.py`) | long-MD NPq per 5M-frame block: RMS 0.0015–0.013 (mean 0.0054), no shooting |
 | 1D underdamped, flat (`sim_istar0lgv15intf`) and cosine well (`sim_istarwell2rv`, well MD) | **shooting**: a grid in (x, v) (29 × 29, refined near A for the flat run), 600 trajectories per grid point with the engine's BBK integrator, each run until it reaches A or B (`lgv_check/reference_fine.py`, `well_check/reference_well.py`); interpolated to every frame | its own binomial error (≈ 0.02 per point); against the model-free MD-outcome committor of the well MD: RMS 0.012 per bin (= the noise floor). Caveat: the grid is coarse, so the interpolated reference fails the stopped Z_q at lags 1–4 (§10) |
-| 2D Brownian Z (`sim_istarz_br_g10`, MD) | finite-volume solution of the backward equation div(e^{−V/kT} ∇q) = 0 on a grid (h = 0.001–0.002), boundaries shifted as in 1D (`z_brownian/committor_reference.py`) | (a) GPU shooting with a vectorized copy of the force (checked against the potential class), 4000 trajectories at 6 points, run to absorption: agrees within 1σ at 5 points; at (0.45, 0.15), right on the ridge, PDE 0.273 vs shooting 0.317 ± 0.007 (the committor jumps across the ridge, so a point there is very sensitive to the grid; `z_brownian/run.log`); (b) shooting with the toytis engine itself, 1200 trajectories at 4 plateau points (`shoot_engine.py`): 0.639/0.664/0.698/0.747 vs PDE 0.638/0.671/0.693/0.748; (c) the TPT rate from the PDE (4.4·10⁷ steps per A→B) against 32768 independent GPU walkers (4.30·10⁷ ± 4%) |
-| 2D curved channel (`toy2d.py`) | same finite-volume solver (`exact_committor_brownian`, h = 0.004) | shooting at 5 points (4000 trajectories each): all within 1σ; MD rate / TPT rate = 0.96 ± 0.04 (494 transitions); shooting at 300 random MD frames × 200 trajectories in `toy2d_md.ipynb` |
+| 2D Brownian Z (`sim_istarz_br_g10`, MD) | finite-volume solution of the backward equation div(e^{−V/kT} ∇q) = 0 on a grid (h = 0.001–0.002), boundaries shifted as in 1D (`z_brownian/committor_reference.py`) | (a) GPU shooting with a vectorized copy of the force (checked against the potential class), 4000 trajectories at 6 points, run to absorption: agrees within 1σ at 5 points; at (0.45, 0.15), right on the ridge, the saved grids give 0.300 vs shooting 0.317 ± 0.007 (the log's 0.273 is from an earlier version; see below); (d) 200 path frames × 2000 trajectories over the whole q range: χ²/dof 0.92, RMS 0.008 = the shooting error (below); (b) shooting with the toytis engine itself, 1200 trajectories at 4 plateau points (`shoot_engine.py`): 0.639/0.664/0.698/0.747 vs PDE 0.638/0.671/0.693/0.748; (c) the TPT rate from the PDE (4.4·10⁷ steps per A→B) against 32768 independent GPU walkers (4.30·10⁷ ± 4%) |
+| 2D curved channel (`toy2d.py`) | same finite-volume solver (`exact_committor_brownian`, h = 0.004) | shooting at 5 points (4000 trajectories each): all within 1σ; MD rate / TPT rate = 0.96 ± 0.04 (494 transitions); shooting at 300 random MD frames × 200 trajectories in `toy2d_md.ipynb`; 200 path frames × 2000 trajectories: χ²/dof 0.84, RMS 0.008 = the shooting error (below) |
 | 2D underdamped Z (`sim_istarz_2603`) | none | – |
 
 So the references are of three kinds. Closed forms (1D overdamped) need no check
@@ -1160,6 +1160,73 @@ shooting on a grid. In every shooting run the trajectories were run **until they
 from chosen grid points or points of interest, with the run's own integrator. They were
 not started from random path frames, and not run for a fixed length. Fits were then
 compared with the reference by interpolating it to the frames.
+
+#### How the 2D overdamped reference is computed, and how exact it is
+
+**What the runs simulate.** The toytis engine with `high_friction` integrates the overdamped
+dynamics with the Euler–Maruyama step x_{n+1} = x_n + (Δt/γ) F(x_n) + σ ξ_n, σ = √(2 kT Δt/γ),
+ξ_n standard normal per coordinate (mass 1). A trajectory is absorbed at the first frame with
+y ≤ λ_A or y ≥ λ_B (checked every step). The true committor of the data is therefore the
+committor of this **discrete-time Markov chain**: q_Δt(x) = P(the chain started at x reaches
+y ≥ λ_B before y ≤ λ_A). It depends on the position only, so a committor in (y, x) is complete.
+
+**What the reference solves.** The committor of the continuous diffusion
+dx = (1/γ) F dt + √(2kT/γ) dW, F = −∇V: the backward equation div(e^{−V/kT} ∇q) = 0, with
+q = 0 for y ≤ λ_A − s and q = 1 for y ≥ λ_B + s, and no flux through the outer box (the walls
+make V large there anyway).
+- **Discretization:** finite volumes on a cell-centred grid of spacing h. Neighbouring cells
+  i, j are coupled with the weight e^{−(V_i + V_j)/2kT}, a discrete version of the flux
+  e^{−V/kT} ∂q at the face. The sparse linear system for the free cells is solved directly
+  (`scipy.sparse.linalg.spsolve`). The result is interpolated bilinearly to the frames.
+- **V must be the potential of the engine's force.** The Z potential class leaves its gravity
+  force (−0.2 along y) out of `potential()` and adds it only to the force. Its
+  `effective_potential` = potential + 0.2 y is the one consistent with the force.
+  `z_brownian/committor_reference.py` uses it. `toy2d.exact_committor_brownian` did **not**
+  (it took `potential_and_force`): for the Z potential its committor was off by up to 0.23 and
+  its rate 6 times too fast. Fixed on 2026-11-09 (`toy2d.potential_grid` uses
+  `effective_potential` when the class has one). It now agrees with the reference to 0.002, the
+  difference of the grids h = 0.004 and 0.002. No reported result used the unfixed version: the
+  `toy2d` notebooks were only run on the curved channel, whose class has no separate force term.
+- **Boundary shift s.** The chain jumps over λ_A/λ_B and is absorbed a little past them, which
+  the diffusion does not. To leading order this is the same as absorbing the diffusion at a
+  boundary moved outwards by s = −ζ(1/2)/√(2π) σ = 0.5826 σ (Siegmund's correction for a flat
+  boundary, one check per step; √stride σ for a check every `stride` steps). Z: σ = 0.0045,
+  s = 0.0026; curved channel (Δt = 0.005): σ = 0.0071, s = 0.0041. Without it the reference
+  would be off by about s |∇q| near the states.
+- **What is not modelled:** the O(Δt) bias of Euler–Maruyama in the interior, and the next
+  order of the boundary correction. On the Z potential, V has kinks (the ridge force jumps from
+  its maximum 9.4 to 0 at the ridge edge, and so do the well forces and the piecewise-constant
+  slope). A step (σ = 0.0045, drift ≤ 0.002) straddles a kink without seeing it exactly. The
+  PDE handles the kinks (V is continuous), but the chain feels them slightly differently. These
+  errors are not computed. They are measured below by shooting with the chain itself.
+- The TPT rate k_AB = (kT/γ) Σ e^{−V/kT} |∇q|² / Σ e^{−V/kT}(1 − q) comes from the same grid.
+
+**How exact it is: shooting with the engine's own update** (`examples/figures/reference_check/`,
+2026-11-09). 200 path frames, 20 in each of 10 bins of the PDE committor, 2000 trajectories
+each with the Euler–Maruyama step and the run's absorption, run until A or B (vectorized force,
+checked against the potential class). Grid convergence: the PDE committor at the path frames
+for two spacings.
+
+| System | grid h vs h/2 at the path frames | PDE − shooting at 200 frames | χ²/dof (p) | frames with \|z\| > 3 |
+|---|---|---|---|---|
+| 2D Brownian Z (h = 0.002 / 0.001) | RMS 0.0001, max 0.0005 | mean +0.001, RMS 0.008 (shooting s.e. 0.0085) | 0.92 (0.78) | 0 of 200 |
+| Curved channel (h = 0.004 / 0.002) | RMS 0.0005, max 0.004 | mean +0.000, RMS 0.008 (s.e. 0.0086) | 0.84 (0.95) | 1 of 200 (z = −3.2) |
+
+So on the frames the fits are judged on, the PDE committor equals the committor of the engine's
+dynamics within the shooting error: its systematic error is below about 0.002 on average (mean
+over 200 frames) and below 0.01 at any single frame. This is far smaller than the fit errors
+discussed in these notes (plateau offsets 0.02–0.07, RMS per bin 0.005–0.075).
+
+**The ridge of the Z potential.** The one place where the reference is less certain is the
+ridge top itself. At (0.45, 0.15), on the ridge line, the saved grids give q = 0.300 (both h),
+shooting 0.317 ± 0.007 (2.4σ; `z_brownian/run.log` reports 0.273 there, apparently from an
+earlier version of the script; the saved grids give 0.300). The committor changes by about
+0.013 per 0.001 in y across the ridge, so a difference of 0.017 is a shift of the isocommittor
+by about 0.0013, a third of a step. This is where the kinks and the step size matter most.
+Only 0.01% of the path frames lie within 0.005 of the ridge line, so it does not affect the
+comparisons. Together with the rate (TPT 4.43·10⁷ steps per A→B against 4.30·10⁷ ± 4% from
+32768 independent walkers, A: y ≤ 0.1), the 2D overdamped references can be taken as the true
+committor of the simulated dynamics to about 0.01.
 
 ### 13.2 Validating a fit with new trajectories from path frames
 
