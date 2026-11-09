@@ -635,9 +635,11 @@ class CommittorNE:
             plots.plot_zc1(ax3, r_traj, self.b_traj, self.i_traj, self.future_boundary, self.past_boundary, ldt=ldt,
                            w_traj=self.w_traj, dtmin=dtmin)
         else:
-            plots.plot_fep(ax1, r_traj, i_traj=self.i_traj, t_traj=self.t_traj)
-            plots.plot_fep(ax2, r_traj, i_traj=self.i_traj, t_traj=self.t_traj, natural=True, dt_sim=delta_t_sim)
-            plots.plot_zq(ax3, r_traj, self.b_traj, self.i_traj, self.future_boundary, self.past_boundary, ldt=ldt)
+            # path data: every frame carries its path's MC weight (None for MD)
+            w = getattr(self, 'path_weights', None)
+            plots.plot_fep(ax1, r_traj, i_traj=self.i_traj, t_traj=self.t_traj, w_traj=w)
+            plots.plot_fep(ax2, r_traj, i_traj=self.i_traj, t_traj=self.t_traj, w_traj=w, natural=True, dt_sim=delta_t_sim)
+            plots.plot_zq(ax3, r_traj, self.b_traj, self.i_traj, self.future_boundary, self.past_boundary, ldt=ldt, w_traj=w)
         fig.tight_layout()
         plt.show()
 
@@ -1174,9 +1176,11 @@ class Committor(CommittorNE):
         fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(18, 4))
         if r_traj is None:
             r_traj = self.r_traj
-        plots.plot_fep(ax1, r_traj, i_traj=self.i_traj, t_traj=self.t_traj)
-        plots.plot_fep(ax2, r_traj, i_traj=self.i_traj, t_traj=self.t_traj, natural=True, dt_sim=delta_t_sim)
-        plots.plot_zq(ax3, r_traj, self.b_traj, self.i_traj, self.future_boundary, self.past_boundary, ldt=ldt)
+        # path data: every frame carries its path's MC weight (None for MD)
+        w = getattr(self, 'path_weights', None)
+        plots.plot_fep(ax1, r_traj, i_traj=self.i_traj, t_traj=self.t_traj, w_traj=w)
+        plots.plot_fep(ax2, r_traj, i_traj=self.i_traj, t_traj=self.t_traj, w_traj=w, natural=True, dt_sim=delta_t_sim)
+        plots.plot_zq(ax3, r_traj, self.b_traj, self.i_traj, self.future_boundary, self.past_boundary, ldt=ldt, w_traj=w)
         fig.tight_layout()
         plt.show()
         

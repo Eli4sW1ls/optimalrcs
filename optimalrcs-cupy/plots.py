@@ -42,7 +42,7 @@ def plot_zq(ax, r_traj, b_traj, i_traj=None, future_boundary=None, past_boundary
         past_boundary = bd.PastBoundary(r_traj, b_traj, i_traj=i_traj)
 
     for dt in ldt:
-        lx, ly = cut_profiles.comp_zq(r_traj, b_traj, i_traj, future_boundary, past_boundary, dt=dt)
+        lx, ly = cut_profiles.comp_zq(r_traj, b_traj, i_traj, future_boundary, past_boundary, w_traj=w_traj, dt=dt)
         if force0: ly -= ly[0]
         if forcemean0 : ly-=cp.mean(ly[:-1])
         if ln:

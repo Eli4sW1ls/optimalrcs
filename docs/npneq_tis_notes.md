@@ -427,6 +427,21 @@ one, each lag labelled with the share of windows it drops (`dropped_fraction`). 
 `sim_istar0br10intf` it is usable up to Δt ≈ 2; beyond that the L/R/turn-end bias appears
 (−5 at Δt = 4, −18 at Δt = 8).
 
+**First TIS panel vs the `feps` Z_q.** Both use `cut_profiles.comp_zq` (windows past an
+interface end dropped, A/B ends kept through the traps; `comp_zq` takes `w_traj` and weights each
+window by its start frame). The TIS panel shows lags 1, 2, 4, 8 with the path weights and the
+dropped fraction; `feps` shows all lags 1..2^15. Until 2026-11-09 `plots_feps` passed no weights
+(and the cupy `plots.plot_zq` did not hand its `w_traj` on to `comp_zq`), so for path data the
+`feps` Z_q counted every accepted path once and differed from the TIS panel already at Δt = 1.
+Now both `plots_feps` versions pass `path_weights` (None for MD, so MD plots are unchanged), to
+the F(q) panels as well. Effect on the saved fits (`examples/feps_weighted.py`, figures
+`feps_weighted*.png` next to each `committor.npz`): on the 2D Z the short-lag bump of +50..+60 at
+q ≈ 0.85 disappears; on the curved channel the lag 1-8 hump of +80 (Brownian) / +100 (Langevin)
+drops to about 0 (±10 / ±25); F(q) hardly changes. With the exact q on the 2D Z data, max |Z| at
+Δt = 1 is 69 without and 21 with weights, and the weighted `comp_zq` equals the stopped Z_q at
+Δt = 1 (figure `examples/figures/zq_weights/zpot_exact_q.png`). The long lags (≳ 64) stay large
+with or without weights, because of the dropped windows: read those from the stopped Z_q.
+
 ### 8.1 Which value Z_q converges to: N_AB, 0, or something else
 
 The criterion is always the same: for the committor, Z_q is **flat in q and the same at every
@@ -1106,6 +1121,65 @@ python load_tis_data_cupy.py /path/to/sim --paths-per-ensemble 2000 --seed 0 \
 - A metric is trusted only if the **exact** committor passes it and a wrong RC fails it.
 - 1D overdamped MD: the engine has harmonic walls (k = 100) outside [−0.2, 0.4], so the FEP
   rises beyond them; this does not change the committor between A and B.
+
+### 13.1 The reference ("exact") committors: how they were obtained and checked
+
+| System | Reference | How it was checked |
+|---|---|---|
+| 1D overdamped, flat (`sim_istar0br10intf`, long MD) | analytic: linear in λ, with the boundaries shifted out by s = 0.5826 σ (σ = √(2 kT Δt/γ)), the mean overshoot of a discrete Brownian step when absorption is checked every step (Siegmund) | long-MD NPq agrees to RMS 0.002; staple fits to 0.002–0.005; the MSM level check to ≤ 0.005 (§6.5) |
+| 1D overdamped, two bumps (long MD) | the 1D formula q(λ) = ∫ e^{V/kT} / ∫ e^{V/kT} on a fine grid, same shift (`longmd_npq/npq_longmd.py`) | long-MD NPq per 5M-frame block: RMS 0.0015–0.013 (mean 0.0054), no shooting |
+| 1D underdamped, flat (`sim_istar0lgv15intf`) and cosine well (`sim_istarwell2rv`, well MD) | **shooting**: a grid in (x, v) (29 × 29, refined near A for the flat run), 600 trajectories per grid point with the engine's BBK integrator, each run until it reaches A or B (`lgv_check/reference_fine.py`, `well_check/reference_well.py`); interpolated to every frame | its own binomial error (≈ 0.02 per point); against the model-free MD-outcome committor of the well MD: RMS 0.012 per bin (= the noise floor). Caveat: the grid is coarse, so the interpolated reference fails the stopped Z_q at lags 1–4 (§10) |
+| 2D Brownian Z (`sim_istarz_br_g10`, MD) | finite-volume solution of the backward equation div(e^{−V/kT} ∇q) = 0 on a grid (h = 0.001–0.002), boundaries shifted as in 1D (`z_brownian/committor_reference.py`) | (a) GPU shooting with a vectorized copy of the force (checked against the potential class), 4000 trajectories at 6 points, run to absorption: agrees within 1σ at 5 points; at (0.45, 0.15), right on the ridge, PDE 0.273 vs shooting 0.317 ± 0.007 (the committor jumps across the ridge, so a point there is very sensitive to the grid; `z_brownian/run.log`); (b) shooting with the toytis engine itself, 1200 trajectories at 4 plateau points (`shoot_engine.py`): 0.639/0.664/0.698/0.747 vs PDE 0.638/0.671/0.693/0.748; (c) the TPT rate from the PDE (4.4·10⁷ steps per A→B) against 32768 independent GPU walkers (4.30·10⁷ ± 4%) |
+| 2D curved channel (`toy2d.py`) | same finite-volume solver (`exact_committor_brownian`, h = 0.004) | shooting at 5 points (4000 trajectories each): all within 1σ; MD rate / TPT rate = 0.96 ± 0.04 (494 transitions); shooting at 300 random MD frames × 200 trajectories in `toy2d_md.ipynb` |
+| 2D underdamped Z (`sim_istarz_2603`) | none | – |
+
+So the references are of three kinds. Closed forms (1D overdamped) need no check
+beyond the discretization shift. PDE solutions (2D overdamped) were checked by shooting
+to absorption at a few points and by the rate. Underdamped references are themselves
+shooting on a grid. In every shooting run the trajectories were run **until they reached A or B**,
+from chosen grid points or points of interest, with the run's own integrator. They were
+not started from random path frames, and not run for a fixed length. Fits were then
+compared with the reference by interpolating it to the frames.
+
+### 13.2 Validating a fit with new trajectories from path frames
+
+Proposed for systems without a reference: take random frames of the path data and run new
+trajectories from them. Two versions:
+
+**A. Run to absorption** (what the references above did, and `toy2d.shoot`). From each of
+M frames x_i run n trajectories until A or B; q̂_i = fraction ending in B, with
+s.e. √(q̂_i(1 − q̂_i)/n). Test: χ² = Σ_i (q_fit(x_i) − q̂_i)² / se_i² ≈ M, or the mean
+of (q_fit − q̂) per bin of q (a calibration curve with error bars). It is model-free and
+tests levels as well as shapes, but each trajectory runs for a full commitment time. That
+is long from a plateau or a metastable intermediate, which is exactly where the fit is
+uncertain. Precision: with n = 200, se ≈ 0.035 per frame. A level shift δ in a region with
+M_r frames has a standard error of about 0.035/√M_r: with 100 frames, shifts of about 0.007 are seen at 2σ.
+
+**B. Fixed length L** (the PI's suggestion). From each frame run n trajectories for at
+most L steps, stopped earlier at A or B. Score the end point with the fitted committor
+itself: 0 or 1 if absorbed, else q_fit(x_end), with the CVs computed for the end frame
+exactly as in the fit (positions, and velocities if q depends on them). For the committor,
+E[q(x_{min(L, τ)}) | x_0] = q(x_0) (optional stopping). So the residual per frame,
+r_i = mean over shots of q_fit(end) − q_fit(x_i), averages to 0. That is the stopped Z_q
+test (§5), but on **new, unbiased trajectories** started from frames chosen freely.
+- It catches what the stopped Z_q on the fit data cannot. The fit data may be biased
+  (wrong weights, forward pieces only, no cut at M, §6.1); new trajectories from any start
+  distribution are not, so a fit that has absorbed a bias in the data fails the test.
+  It also catches CVs that are not Markovian over L.
+- It does not fix levels better than the stopped Z_q: an end point that is not absorbed
+  is scored with the fit itself. A uniform shift of q in a region that trajectories do not
+  leave within L cancels exactly, as on the Z plateau. L must be comparable to the time to
+  reach A or B from the region tested. In that limit version B becomes version A.
+- It is much cheaper than A for short L, and less noisy, since q_fit(end) varies far less
+  than a 0/1 outcome (a control variate): fewer shots per frame are needed.
+- Choose the start frames spread over the q range (e.g. equal numbers per q bin), not
+  weighted by the path density, which crowds near the interfaces. For Langevin dynamics,
+  start with the frame's velocity. Redrawing velocities tests the velocity-averaged
+  committor instead, and the fit must then be averaged over Maxwell velocities too.
+
+Recommended combination: version B with L of the order of the typical piece length (data
+bias, Markovianity), plus a few frames of version A in the regions the data pin down
+worst (levels), or the MSM level check (§6.5) where its memory-loss assumption holds.
 
 ## 14. Fit settings of the runs
 
