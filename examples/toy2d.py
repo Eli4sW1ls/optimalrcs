@@ -26,7 +26,11 @@ import sys
 
 import numpy as np
 
-TOYTIS = '/home/staff7/fbsskr/Notebooks/Students/elias/toytis'
+# toytis location: $TOYTIS, else the first of the known checkouts that exists
+_TOYTIS_CANDIDATES = [os.environ.get('TOYTIS', ''),
+                      '/home/staff7/fbsskr/Notebooks/Students/elias/toytis',
+                      '/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/PyRETIS3/toytis']
+TOYTIS = next((p for p in _TOYTIS_CANDIDATES if p and os.path.isdir(p)), _TOYTIS_CANDIDATES[-1])
 
 
 # ----------------------------------------------------------------------------------------------

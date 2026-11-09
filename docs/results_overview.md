@@ -30,13 +30,23 @@ reference, checked by shooting with the engine's own integrator.
    crossing of the ensemble's interface M and weighted by its Monte Carlo repeat count.
    The original Z_q and observed-vs-predicted plots are biased for path data. Path data
    need the *stopped* versions (explained below); the convergence criterion is `zqs_z` ≲ 2.
+   **Caveat (6 Nov):** `zqs_z` only checks that the fit is consistent with the data it was
+   fitted to. It passes for biased data and for errors that the pieces cannot see
+   (plateau levels, truncated pieces), and it is not comparable between data sets: on the
+   2D Z run the best `zqs_z` (0.70) belongs to a fit with RMS 0.075, the most accurate fit
+   (RMS 0.005) has 2.73. Check it against the exact committor or shooting (notes §6.1).
 4. **Path sampling, 2D Brownian Z**: the staple fit with forward pieces only overshot the
    plateau by +0.06; with both pieces of every path (`--reversed`, rejection weights) it is
    +0.03. **Most of what is left is statistical:** path pieces end at interfaces, so only the
    few that reach A or B fix the plateau level. Independent halves of the paths scatter by
    ±0.02–0.03, on clean synthetic data cut the same way too, and a longer fit lag does not
    change that. The method itself recovers the exact committor on clean data (−0.007).
-5. **Path sampling, underdamped 2D Z, positions only**: histories fail. Finite-difference
+5. **Data preparation** (both systems with an exact committor, notes §9.3): both pieces of
+   every path with rejection weights is the best choice; staple weights, no weights,
+   forward pieces only and no cut at M are worse; truncating long pieces is harmless only
+   if it removes a small tail (1D: 2% of the frames; 2D Z at 200 frames: 75%, RMS 16×
+   worse); discarding them is biased.
+6. **Path sampling, underdamped 2D Z, positions only**: histories fail. Finite-difference
    velocities, a lag-4 fit and the ridge-normal coordinate y + x as a CV bring `zqs_z` from
    ~33 to 14.
 
@@ -178,6 +188,12 @@ Comparison with the exact committor:
   give plateau offsets of +0.031 and +0.079. They do not depend on the fit lag (1, 10 or 50
   saved rows) or on an envelope schedule (1 → 0.001): the fits follow the data, and 37
   transitions pin the plateau level down only to several hundredths.
+- **A second, independent MD run** (6 Nov, 1.06·10⁹ steps on the GPU, 16 A→B transitions,
+  `base_documented_2d_brownian_md.ipynb`; NPq with envelope 0.001, 1000 + 15000
+  iterations) comes out **below** the exact committor on the plateau (RMS 0.084; the
+  fraction of excursions reaching B is 0.54 ± 0.06 in the band where the exact q is
+  0.55–0.70). One sample overshoots, the other undershoots: the plateau error is the
+  statistics of a few tens of transitions (notes §9.1).
 
 ## I.3 1D underdamped cosine well (NPNEq)
 
@@ -549,6 +565,26 @@ fit converged at **+0.031** (RMS 0.029).
 The other two things tried did not help: the ridge-normal CV y + x (above), and, on the MD,
 longer fit lags and an envelope schedule (I.2).
 
+### Data preparations compared (notes §9.3)
+
+Same 1000 paths per ensemble (path seed 12), same fit (warm-up at a flat envelope, then
+envelope 0.01, gamma 0, 15000 iterations), only the preparation differs
+(`staple_data_choices.ipynb`, `figures/staple_compare/sim_istarz_br_g10_p1000_s12/`):
+
+| Preparation | Frames | `zqs_z` | RMS fit − exact |
+|---|---|---|---|
+| **both pieces, rejection weights** | 14.0M | 2.73 | **0.005** |
+| forward pieces, rejection weights | 7.0M | 1.76 | 0.045 |
+| both, no weights / forward, no weights | | 3.23 / 1.46 | 0.018 / 0.054 |
+| both, staple weights / forward, staple weights | | 2.81 / 1.25 | 0.093 / 0.055 |
+| no cut at M | 11.4M | 14.1 | 0.204 |
+| both, rejection, pieces truncated at 200 frames | 3.5M | **0.70** | 0.075 |
+| both, rejection, pieces > 200 frames discarded | 0.3M | 8.5 | 0.380 |
+
+The ranking by accuracy is the same as on the 1D flat run (both pieces with rejection
+weights best). The ranking by `zqs_z` is almost the reverse: it is computed on each fit's
+own data and is not a measure of correctness (notes §6.1).
+
 ### The plateau investigation in figures
 
 Every fit of this system, on one axis. "Plateau" is the mean of (fit − exact committor)
@@ -812,6 +848,14 @@ Path-data diagnostics for every setup in the table:
 | Sharp diagonal features (2D) | add the coordinate normal to the feature (e.g. y + x) | | | |
 
 Practical: `lazy_basis=True` (≈ 4× faster, far less GPU memory on millions of frames).
+Truncate pieces (`--max-length`) only in the far tail of the length distribution; never
+discard long pieces. Judge convergence by `zqs_z` *and* an external check (exact committor
+or shooting at a few hundred frames, independent halves).
+
+**New test system** (notes §10.5): a smooth curved-channel double well
+(`toytis/potentials/curved_channel.py`) with notebooks for MD (`toy2d_md.ipynb`) and staple
+runs (`toy2d_staple_analysis.ipynb`). MD: NPq (Brownian) RMS 0.007 vs exact; NPNEq on
+(y, x, v) (Langevin) RMS 0.014 vs shooting.
 
 ## Open items
 
@@ -821,7 +865,10 @@ Practical: `lazy_basis=True` (≈ 4× faster, far less GPU memory on millions of
   and derive the staple path weights from the move rules.
 - **2D underdamped Z:** record velocities and fit (y, x, v_y, v_x) at lag Δ.
 - **Staple well path data:** recheck the lag-1 result with a lag-Δ fit and an
-  energy-resolved error.
+  energy-resolved error. The 6 Nov notebook run (mirrored pieces, lag 1, gamma 0) gave
+  RMS 0.033 with `zqs_z` jumping between 1.2 and 20 from chunk to chunk.
+- **A convergence test that sees plateau levels** (notes §6.1).
+- **Curved-channel staple runs:** analyse the full Brownian and Langevin runs.
 
 ## Where things are
 

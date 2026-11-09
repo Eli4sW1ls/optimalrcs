@@ -211,6 +211,194 @@ standard drop-the-window Z_q on the **exact** q 9–13.
 
 ---
 
+### 6.1 What `zqs_z` can and cannot tell (passes while the committor is wrong)
+
+`zqs_z` tests whether the fitted q is a fair bet *on the data it was fitted to*: for every
+window (start t, stopped at A/B or at the end of the piece), q at the stop minus q at the
+start averages to zero, per q bin and lag. That is necessary for the committor, but on
+path pieces it is far from sufficient. Cases in this project where it passed and the
+committor was wrong, or the other way round:
+
+| Case | `zqs_z` (own data) | Error vs exact / shooting | Why the test misses it |
+|---|---|---|---|
+| 2D Z staple, both pieces truncated at 200 frames (§9.3) | **0.70** (best of all) | RMS 0.075 | 75% of the frames removed; few windows can reach A/B within 200 frames (not counted), so q is mostly compared with itself |
+| 2D Z staple, forward pieces, `staple` weights (§9.3) | 1.25 | RMS 0.055 | the data are biased; the fit is consistent with the biased data |
+| 2D Z staple, forward pieces, rejection weights (§9.3) | 1.76 | RMS 0.045 | same (the exact q fails its data test, §9.1) |
+| 2D Z staple, both pieces, rejection weights (§9.3) | **2.73** (fails) | **RMS 0.005** (best) | more data, smaller error bars: the same small residuals give larger z |
+| 1D flat staple, forward vs both pieces (§9.3) | 1.12 vs 1.42 | RMS 0.0068 vs 0.0022 | same as above, in reverse order |
+| 2D Z staple, both pieces, 1500 paths/ens. (§9.2) | 1.36 | plateau +0.031 | a uniform shift of q where few pieces reach A/B does not change the increments |
+| 2D Z long MD, NPq | Z_q flat at N_AB, `max_sd_zq` ≈ 1 | plateau +0.05 (16 seeds) / −0.09 (new run) | the data (37 or 16 transitions) fix the plateau level only to ±0.05–0.1 |
+| 1D well staple, mirrored, lag 1 (§10) | worst \|z\| 1.2–20 between chunks | RMS 0.030–0.052, not monotone | the test fluctuates with the fit; the exact q itself fails at short lags (grid) |
+
+**Why.**
+1. *Self-consistency only.* The test uses the same data as the fit. Biased data (wrong
+   weights, forward pieces only) give a biased fit that is consistent with them. Only a
+   test with an external reference, e.g. the **exact committor on the data** (§9.1), shows
+   that the data are off.
+2. *Power comes only from windows that reach A or B.* A window that ends inside the
+   interface range is compared with the fit's own value there. An error that the
+   increments do not see is invisible: a uniform shift of q in a region that pieces
+   rarely leave towards A/B (the Z plateau), errors along slow directions (energy at low
+   friction, §10.1), and everything beyond the longest piece (truncation). Truncating
+   pieces makes `zqs_z` *look better* while removing exactly the information that fixes
+   the levels.
+3. *It is a z-score.* Dividing by the standard error makes it depend on the data size and
+   on the spread of the weights. More frames → smaller error bars → larger z for the same
+   residual; heavy or uneven weights → larger error bars → smaller z. `zqs_z` is therefore
+   **not comparable between data sets** (data preparations, subsets, truncations), only
+   between fits of the same data.
+4. *It is the maximum over ~200 q bins × ~10 lags* of a heavy-tailed quantity (a few
+   heavy paths dominate the variance, §9.2): the exact committor reaches |z| ≈ 3 on clean
+   synthetic data, and a single chunk can jump (well staple). The threshold 2 is not
+   calibrated.
+
+**How to use it.** `zqs_z` ≫ 2 still flags a fit that is not converged or a CV set that is
+not Markovian; `zqs_z` ≲ 2–3 means "consistent with these data", not "correct". Add:
+- the exact committor (or shooting at a few hundred frames, `toy2d.shoot`) put through the
+  same test, as a calibration of the data and of the threshold;
+- independent halves of the paths, or several path seeds: their spread is the
+  uncertainty of the regions the test cannot see (plateaus);
+- an independent quantity that pins the levels, e.g. the TIS crossing probabilities
+  (open, §11);
+- never rank data preparations by their own `zqs_z`.
+
+### 6.2 How the stopped Z_q, its error and `zqs_z` are computed (`metrics_tis.py`)
+
+For a fitted q per frame, a lag Δt (frames) and 200 bins of q on [0, 1]:
+
+1. **Stop index.** τ_t = the first frame ≥ t of the same piece that is in A or B, or the
+   piece's last frame (`stop_index`, a reverse running minimum).
+2. **One contribution per frame outside A and B:**
+   c_t = w_t [q(min(t + Δt, τ_t)) − q(t)] / Δt, with w_t the path weight. It goes into the
+   bin of q(t).
+3. **Profile:** Z(x, Δt) = Σ_{t: q(t) ≤ x} c_t, the cumulative sum over the bins. For the
+   committor E[c_t | x_t] = 0 (optional stopping), so Z ≈ 0 at every x.
+4. **Standard error:** the frames are grouped into independent units g (`g_traj`: one
+   group per path, so a path's forward and mirrored pieces count as one unit; default one
+   per piece). With S_g(x) = Σ_{t ∈ g, q(t) ≤ x} c_t, the group's own part of Z,
+   σ²(x) = Σ_g S_g(x)². This is a cluster-robust variance: any correlation within a path
+   is included exactly; groups are assumed independent, and the mean is taken as 0 (the
+   null hypothesis), so a real bias also enlarges σ.
+5. **z(x, Δt) = Z/σ**, and **`zqs_z` = max |z|** over the bins (leaving out the 5 next to
+   A, q < 0.025) and over the lags 1, 2, 4, …, 2¹⁵. `sdzqs` (`max_sd_zq_stopped`) is the
+   largest standard deviation of the unnormalized Z over x.
+
+What the weights and groups imply:
+- A path that is repeated in the MC chain (rejections) enters once with its repeat count as
+  weight: correct for the mean, and its variance counts it as one unit, as it should.
+- Paths are **not** fully independent in an MC chain: consecutive paths share shooting
+  points and history, and the per-block z-scores in §9.2 move together from block to
+  block. σ is then too small and z too large. Using blocks of consecutive MC cycles as
+  groups (instead of single paths) would give an honest σ.
+- Even for the exact committor, the maximum of |z| over ~200 correlated bins × 16 lags is
+  expected around 3, not ≲ 2 (an estimate: for independent normals it would be about
+  √(2 ln N) ≈ 4 with N ≈ 3000; the correlations along x and between lags lower it). That
+  agrees with |z| ≈ 3 for the exact committor on clean synthetic data (§9.2). A calibrated threshold is about 3–3.5, or better the value of the exact
+  committor on the same data.
+
+### 6.3 The dropped-window Z_q, and Z without the standard error
+
+**Dropped windows (the original `comp_zq`).** It leaves out every window that runs past
+the end of its piece. Pieces end because of what they did (interface exit, turn, A/B), so
+the dropped windows are those of frames about to exit: the kept ones are selected on
+their future. It is biased **for the exact committor too**, and the bias grows with
+Δt / piece length: lattice test |z| 9–13 for the exact q (§6); `sim_istar0br10intf` −5 at
+Δt = 4 and −18 at Δt = 8 (§8). It is reliable only at lags where the dropped fraction
+(printed in the TIS plot legend) is a few percent, in practice Δt ≤ 2, and those short
+lags are the weakest test, since the fit itself enforces Δt = 1. With A/B traps the A/B
+ends are no longer dropped, but the interface ends still are. Use it only for the shortest
+lags, and never as a convergence criterion for path data.
+
+**Z without dividing by σ** (`sdzqs`, or max |Z|). Dividing by σ does not cause the blind
+spots of §6.1; they come from testing the fit on its own data. Without σ:
+- Z has no scale. It grows with the amount of data, the weights and the lag, so there is
+  no threshold for "too large".
+- It cannot tell noise from bias: in a sparsely sampled q range one heavy path makes Z
+  large although nothing is wrong.
+- It is fine for comparing **fits of the same data** (seeds, iterations, envelope): lower
+  is more consistent, and the noise level is the same for all of them.
+- A scale that is interpretable: divide Z by the weighted number of windows that end in B
+  (or A). Then Z ≈ the bias in q times the share of those windows that started in the
+  region. That is close to what the per-band martingale test of §9.2 measures.
+
+### 6.4 More rigorous checks for path data
+
+No test on the fitted data can detect what the data do not determine (a plateau level that
+few pieces fix, §9.2). A rigorous assessment therefore needs either an error bar on q, or
+information the fit did not use.
+
+1. **Shooting at sampled frames (the reference standard).** Choose a few hundred frames
+   between A and B, run 100–200 new trajectories from each with the engine, and compare:
+   χ² = Σ_i (q_fit,i − q_shoot,i)² / se_i², which should be about the number of frames.
+   Model-free, with exact error bars, and it checks levels as well as shapes. Cheap for
+   toy systems (`toy2d.shoot`: 300 frames × 200 shots in about 5 s); for real systems it
+   is a short extra simulation with the same engine.
+2. **Error bars by resampling.** Fit independent subsets of the paths (halves, path
+   seeds) or blocks of MC cycles (block bootstrap). The spread is the honest uncertainty,
+   including the plateau. Costs a few fits.
+3. **TIS crossing probabilities as a level check.** For trajectories leaving A, the
+   flux-weighted average of q over the points where they first cross λ_i equals
+   P_A(λ_B | λ_i), the TIS crossing probability from λ_i to B. TIS estimates it without
+   any committor fit, so it pins the levels exactly where the stopped Z_q is blind. The
+   first-crossing points from A are directly available in RETIS [i⁺] ensembles; for
+   staple data it is implemented with the tistools iSTAR MSM (§6.5), which relies on its
+   memory-loss assumption.
+4. **The stopped Z_q, improved:** groups = blocks of MC cycles (honest σ); a calibrated
+   threshold (the exact or a shooting-checked q on the same data, or about 3–3.5); and
+   report it per lag rather than only the maximum. It remains a necessary condition, not
+   a sufficient one.
+
+### 6.5 The level check with the iSTAR turn-to-turn MSM (`examples/crossing_check.py`)
+
+**Idea.** By the strong Markov property, the committor averaged over the phase points where
+trajectories cross an interface (in a given direction, coming from a given turn) is exactly
+the probability that, after such a crossing, B is reached before A. TIS estimates that
+probability from the path ensembles without any committor: the tistools iSTAR MSM
+(`istar_analysis`) has states "turned at λ_j, heading right/left", estimates from the turn
+interfaces of the staple paths
+q_t[j][k] = P(reach λ_k | last turn at λ_j, λ_{k∓1} reached), and solves for the
+committor z of each state. So a fitted q can be compared with numbers it was not fitted to.
+These numbers come from how far whole paths get, which is exactly what fixes the level of q
+on a plateau.
+
+**Computation.**
+1. *MSM*: `istar_msm`: tistools `compute_weight_matrices` → `get_transition_probs_weights`
+   (gives q_t) → `construct_M_istar` → `global_pcross_msm_star` (gives z). Use the tistools
+   default **staple** weights here. On the 1D test the rejection weights gave errors up to
+   0.015; the staple weights reproduce the exact values. For the frames of the fit it is the
+   other way round (§4, §9.3).
+2. *Crossings in the committor data*: every piece starts at a crossing of its ensemble's
+   middle interface λ_m. The direction is the side of λ_m the start frame lies on. The turn
+   the trajectory came from is the extremum of the partner piece (the same path read the
+   other way): j with min ∈ [λ_{j−1}, λ_j] for upward crossings, or max ∈ [λ_j, λ_{j+1}] for
+   downward ones (`crossings`).
+3. *MSM prediction per crossing* (`predicted_committor`), for an upward crossing coming
+   from turn j < m:
+   C = Σ_{k=m}^{N−2} Π_{l=m+1}^{k} q_t[j][l] · (1 − q_t[j][k+1]) · z[k, heading left]
+   + Π_{l=m+1}^{N−1} q_t[j][l]. Downward crossings are the mirror image, with reaching A
+   counting 0.
+4. *Comparison* (`compare`): per (interface, direction), the path-weighted mean of q over
+   the crossing frames against the mean of C. Errors: bootstrap over paths for the means;
+   for the MSM, 4 blocks of MC cycles. Summary: χ² of (mean q − MSM) over the cells.
+
+**Results** (`examples/figures/crossing_check/`):
+
+| Run | Exact committor − MSM | What the check can tell |
+|---|---|---|
+| 1D flat staple (`run_1d.py`), 1000 paths/ens. | ≤ 0.005 at all 15 (interface, direction) cells | memory loss is exact in 1D: the implementation is right, and levels are tested to ~0.005 |
+| curved channel, Brownian, 2000-cycle test run (`run_cc.py`) | RMS 0.020, χ² 27 for 17 cells; largest −0.05 at the two interfaces next to the saddle (MSM noise ±0.02 per cell) | the fit (RMS 0.015 vs exact): χ² 20. The exact committor shifted by +0.03 where 0.5 < q < 0.95: χ² 34.5 (not separable from the exact one); shifted by +0.06: χ² 79 (detected) |
+| 2D Brownian Z (`run_z.py`), all cycles | up to +0.43 (e.g. at λ = 0.61: exact 0.69, MSM 0.30) | nothing: y-interfaces cut across the 45° ridge, so where a trajectory crosses (x) matters and the turn-to-turn MSM loses it. The MSM, not the fit, is off |
+
+**Use and limits.** This is the only check found so far that tests the level of q from the
+path data alone, without extra simulation. Its resolution is the noise of the MSM (it
+shrinks with more cycles; ±0.02 per cell for 2000 cycles) plus its memory-loss error,
+which depends on how well the order parameter's interfaces separate the dynamics. Where
+the MSM is valid (1D, and roughly the curved channel away from the saddle), a fit that
+disagrees with it at many interfaces has a level error. Where the MSM is not valid (the Z
+potential), disagreement says nothing about the fit. On the Z run this also implies that
+the iSTAR crossing probability of that run is probably biased (not checked against the
+rate directly).
+
 ## 7. Stopped observed-vs-predicted
 
 The usual plot needs an A/B outcome per frame, which most path segments do not have. The
@@ -418,6 +606,23 @@ gamma). RMS(fit − exact) per row for 0.05 < q < 0.95: 0.053 after the warm-up,
 with envelope 0.01: a smaller envelope and more iterations do not remove it, consistent
 with a fluctuation of this data set (§9.2) rather than a fit problem.
 
+**A new MD run of the same system (6 Nov, same notebook):** 1.06·10⁹ steps generated on the
+GPU (one row per 20 steps, 4.46M kept rows), **16 A→B transitions**. NPq (envelope 0.001,
+1000 + 15000 iterations, seed 6) gives RMS 0.084 per row against the exact committor, and
+here the fit is **below** the exact committor on the plateau. The model-free fractions of
+excursions entering a band of exact q that reach B are below the exact values too:
+
+| Band of exact q | Excursions | Reach B (data) | NPq at entry | Exact at entry |
+|---|---|---|---|---|
+| 0.20–0.40 | 53 | 0.11 ± 0.04 | 0.21 | 0.30 |
+| 0.40–0.55 | 39 | 0.33 ± 0.08 | 0.38 | 0.50 |
+| 0.55–0.70 | 65 | 0.54 ± 0.06 | 0.56 | 0.65 |
+| 0.70–0.85 | 92 | 0.73 ± 0.05 | 0.76 | 0.80 |
+
+So one MD sample overshoots the plateau (+0.05, 37 transitions) and another undershoots it
+(−0.09, 16 transitions): the NPq fits follow their data, and a few tens of transitions
+pin the plateau level only to about ±0.05–0.1. This confirms the statistical reading of §9.2.
+
 ### 9.2 How well do cut path pieces determine the committor? (2D Brownian Z)
 
 Overnight tests (`examples/figures/z_brownian/synth*`, `martingale_*.py`,
@@ -511,6 +716,43 @@ chance) for a small systematic plateau effect. To settle it, repeat on the full 
 
 ---
 
+### 9.3 Data preparations compared (`examples/staple_data_choices.ipynb`)
+
+Same paths, same fit settings and seed for every preparation; only the weights, the
+mirrored pieces, the cut at M and a piece-length limit differ. Settings: `CommittorNE`,
+warm-up 1000 iterations at envelope 10⁶ (a flat envelope), then envelope 0.01, gamma 0, ny 6,
+lazy basis, A/B traps, fit seed 0. RMS of fit − exact over frames with 0.05 < q_exact <
+0.95 (path-weighted) and per bin. Results: `examples/figures/staple_compare/*/comparison.csv`.
+
+| Preparation | 1D flat `sim_istar0br10intf` (1000 paths/ens., seed 0, 4000 it.): `zqs_z` / RMS frames | 2D Z `sim_istarz_br_g10` (1000 paths/ens., seed 12, 15000 it.): `zqs_z` / RMS frames / RMS bins |
+|---|---|---|
+| forward, rejection weights | 1.12 / 0.0068 | 1.76 / 0.045 / 0.046 |
+| **both pieces, rejection weights** | **1.42 / 0.0022** | **2.73 / 0.0047 / 0.0135** |
+| forward, `staple` weights | 1.63 / 0.0149 | 1.25 / 0.055 / 0.053 |
+| both, `staple` weights | 1.37 / 0.0098 | 2.81 / 0.093 / 0.088 |
+| forward, no weights | 2.62 / 0.0176 | 1.46 / 0.054 / 0.049 |
+| both, no weights | 2.28 / 0.0113 | 3.23 / 0.018 / 0.016 |
+| no cut at M, rejection weights | 3.73 / 0.106 | 14.1 / 0.204 / 0.196 |
+| both, rejection, **truncated** at 200 frames | 1.46 / 0.0020 (1.24M of 1.27M frames) | **0.70 / 0.075 / 0.073** (3.5M of 14.0M frames) |
+| both, rejection, long pieces **discarded** (> 200 frames) | – | 8.5 / 0.380 / 0.381 (0.31M frames, 4172 pieces) |
+| both, no weights, truncated at 200 (1D only) | 2.31 / 0.0105 | – |
+
+- **Both pieces with rejection weights is the best preparation on both systems** (2D: 10×
+  better than forward-only). The `staple` weighting and no weights are worse; no cut at M
+  is wrong (§3).
+- **Truncation:** valid in principle (a stopping rule), and harmless on the 1D run, where
+  only 2% of the frames are in pieces longer than 200 frames. On the 2D Z run 200 frames
+  removes 75% of the frames (and with them, presumably, most of the windows long enough to
+  reach A or B; not counted): RMS 0.075, 16× worse,
+  while `zqs_z` (0.70) looks best of all (§6.1). Truncate only far in the tail of the
+  piece-length distribution, and check it with the exact committor or two limits.
+- **Discarding** long pieces selects pieces on their future: strongly biased (RMS 0.38).
+- On this subset (1000 paths/ens., path seed 12, gamma 0) the both-pieces fit has RMS 0.0047
+  per frame and 0.013 per bin, smaller than the 1500-path fits of §9.2 (0.03 per bin); the
+  plateau offset was not printed. It is one subset; the ±0.02 spread of §9.2 applies.
+- In the 2D notebook the configuration named `rev_rej_none200` uses rejection weights
+  (truncate); in the 1D one it uses no weights.
+
 ## 10. Underdamped (low-friction) dynamics
 
 With inertia the state is (position, **current** velocity) and the committor is q(x, v):
@@ -538,6 +780,7 @@ also at lag 1, full basis, no traps.
 | same, **+ mirrored pieces** (`--reversed`) | recorded velocity, lag-1 fit | RMS 0.030, fails lags 4–256 (\|z\| 3.4–4.7): worse than forward only |
 | same, + mirrored pieces | recorded velocity, lag-4 fit | RMS 0.017 (forward only 0.015), lags ≥ 4 within 2.4 |
 | same, + mirrored pieces | `--fd-velocity`, lag 1 and 4 | not run yet (`examples/base_documented_1d_langevin_staple.ipynb`) |
+| same, + mirrored pieces, notebook (6 Nov) | recorded velocity, library lag-1 update, gamma 0, envelope 0.01, warm-up 2000 at envelope 10⁶, 10000 it., seed 1 | RMS 0.033 (near A +0.009, near B +0.025); RMS 0.030–0.052 and worst \|z\| 1.2–20 from chunk to chunk, not monotone; the exact q on these data: 19.1 17.6 15.1 4.2 2.5 1.3 at lags 1–256 |
 
 **Mirrored pieces on the well** (`figures/well_check/run_rev_recorded.log`). Unlike on the 2D
 Brownian Z (§9.1), they do not help here. The data test with the exact committor shows no
@@ -673,6 +916,7 @@ against the brute-force reference:
 | dt 0.005, 6M frames | none | 0: 0.052; 1: 0.019; 2: 0.041; 3: 0.041 |
 | same | λ only | 4: 0.031; 5: 0.023 |
 | dt 0.0005 BBK, 1 row per 10 steps, 5–7M rows | v only | 4: 0.020; 8: 0.026; 9: 0.022; 10: 0.025 (at 11000 it.) |
+| dt 0.005, 6M frames, **gamma 0** in the main run | 1000 or 2000 it. | 99: 0.035 / 0.033 (RMS rises again after 6000 it. with the 1000-it. warm-up: 0.026 → 0.035) |
 
 - **The lag-1 result depends on the start.** Seed 1, whose first iterations drew v, reached
   RMS 0.014 per bin and 0.025 on the E ≈ 0.15 band (`examples/figures/well_md_fit/compare_seed.py`,
@@ -701,6 +945,27 @@ against the brute-force reference:
 - The harmonic walls of the engine outside the well do not affect the results: fit errors
   and MD-outcome − exact (±0.002) do not depend on whether a frame was bounced off a wall
   (chat analysis, no saved script).
+
+### 10.5 Curved-channel toy potential (MD, Brownian and Langevin)
+
+A smooth 2D test system made for checking the method without the Z potential's flat
+plateau and hard walls: `toytis/potentials/curved_channel.py`, `CurvedChannelDoubleWell`
+(4 kT barrier at kT 0.05; wells at y = 0.1 and 0.9; the channel runs diagonally and bows
+out, so the isocommittor lines are curved and tilted relative to y). Tools:
+`examples/toy2d.py` (toytis integrators for many walkers, exact overdamped committor,
+shooting, lag-Δ update); notebooks `toy2d_md.ipynb` (MD) and `toy2d_staple_analysis.ipynb`
+(staple runs). MD (6 Nov, `toy2d_md.ipynb`, `toy2d_md-lgv.ipynb`): 128 walkers × 10⁶ steps,
+dt 0.005, saved every 50 steps (2.56M frames), A: y ≤ 0.15, B: y ≥ 0.85.
+
+| Dynamics | Transitions | Fit | Result |
+|---|---|---|---|
+| Brownian, γ 10 | 494 A→B; MD/TPT rate 0.96 ± 0.04 | NPq on (y, x), envelope 0.01, gamma 0.1, 1000 + 6000 it. | RMS vs exact 0.0067 per bin, 0.0055 per frame; vs shooting 0.011 (shooting error 0.008) |
+| Langevin, γ 2 | 1607 A→B | NPNEq on (y, x, v_y, v_x), lag 1 saved frame (γ·dt_saved = 0.5), warm-up at envelope 10⁶ | vs shooting 0.014 (shooting error 0.008); vs MD outcome per bin 0.042, below its own noise (≥ 0.048) |
+
+The Brownian fit is converged after the warm-up; the Langevin fit after ~3000 iterations (vs shooting 0.070 after the warm-up, 0.016 at 3000). Staple runs of this potential (Brownian
+and Langevin, launch commands in the notebook header) have not been analysed yet; on
+2000-cycle test runs the staple notebook gave `zqs_z` 1.05 and RMS 0.015 vs exact
+(Brownian, 1200 iterations) and RMS 0.027 vs shooting (Langevin, lag 5).
 
 ### 10.2 2D Langevin Z potential, staple paths, positions only
 
@@ -772,6 +1037,10 @@ lag with the last row of the table.
   yet (notebooks `base_documented_1d_langevin_staple.ipynb`, `base_documented_2d_langevin.ipynb`).
 - **2D Brownian Z staple:** repeat the per-block z-score test on the full run (§9.2), and
   fit an independent subset (the path-seed-1 subset is not independent).
+- **A convergence test that sees levels** (§6.1): `zqs_z` only checks self-consistency;
+  combine it with shooting at a few hundred frames, independent halves, or the TIS
+  crossing probabilities.
+- **Curved-channel staple runs** (§10.5): analyse the full Brownian and Langevin runs.
 
 ---
 
@@ -882,4 +1151,7 @@ of each ensemble drawn with seed 0 unless noted.
 | 1D well MD, seed runs (§10.3) | 6M frames (dt 0.005) or 5–7M rows (dt 0.0005) | (λ, v) | library, 1 | 0.1 (warm-up 0.1) | 0.01 (warm-up 1) | 6 | 15000 (+ 1000 warm-up) | lazy | – | 0–10 | `base_documented_1d_langevin*.ipynb`, `seed_runs.py` |
 | 2D Brownian Z MD, NPq seed runs (§9.1) | as NPq above | (y, x) | NPq library, 1 row | – | 0.001 (warm-up 1) | 6 | 15000 + 1000 | full | BT | 3, 6 | `base_documented_2d_brownian_md.ipynb` |
 | 2D Brownian Z staple, notebook seed runs (§9.1) | fwd 3000 paths/ens., or +mir 2000 paths/ens. (path seed 1) | (y, x) | library, 1 | 0.1 | 0.01 (warm-up 1) | 6 | 15000 + 1000 | lazy | FTL | 0, 3 | `base_documented_2d_brownian_staple.ipynb` |
+| Data preparations (§9.3) | 1D flat 1000 paths/ens. (seed 0); 2D Z 1000 paths/ens. (seed 12) | λ / (y, x) | library, 1 | **0** | 10⁶ (warm-up 1000), then 0.01 | 6 | 1D 4000, 2D 15000 | lazy | FTL | 0 | `staple_data_choices.ipynb` |
+| 2D Z MD, new 1.06·10⁹-step run (§9.1) | 4.46M kept rows, 16 A→B | (y, x) | NPq library, 1 row | – | 0.001 (warm-up 1) | 6 | 1000 + 15000 | full | BT | 6 | `base_documented_2d_brownian_md.ipynb` |
+| Curved channel MD (§10.5) | 128 × 10⁶ steps, every 50 (2.56M frames) | (y, x) / (y, x, v_y, v_x) | NPq / NPNEq library, 1 | 0.1 | 1 or 10⁶ (warm-up 1000), then 0.01 | 6 | 1000 + 6000 | full / lazy | BT | 0 | `toy2d_md.ipynb`, `toy2d_md-lgv.ipynb` |
 | Notebooks for the +mir tests (not run yet) | well: 2000 paths/ens.; 2D Z: 1000 paths/ens.; +mir | as above | stopped Δ = 4 (or library, 1) | 0.1 (well) / 0.2 (2D Z) | 0.01 / 0.001 | 6 | 4000 / 3000 | full / chunked | FTL | 0 | `base_documented_1d_langevin_staple.ipynb`, `base_documented_2d_langevin.ipynb` |

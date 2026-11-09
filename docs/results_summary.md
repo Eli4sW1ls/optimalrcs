@@ -17,6 +17,7 @@ settings included, is in [`results_overview.md`](results_overview.md). Derivatio
 | 1D underdamped cosine well | ✅ NPNEq (x, v), **lag 16**: RMS 0.011 (noise floor) | ⚠️ NPNEq (x, v), lag 1: RMS 0.02–0.03, `zqs_z` ≈ 3 |
 | 2D overdamped (Brownian) Z | ✅ NPq; plateau +0.06 because this MD sample had extra transitions | ✅ NPNEq with **mirrored pieces**: plateau +0.02 ± 0.015 (statistical) |
 | 2D underdamped Z, positions only | — | ⚠️ finite-difference v, y + x, lag 4: `zqs_z` 14, still falling |
+| 2D curved channel (new, smooth) | ✅ Brownian NPq: RMS 0.007; Langevin NPNEq (y, x, v): RMS 0.014 vs shooting | test runs only (2000 cycles): RMS 0.015 (Brownian), 0.027 (Langevin) |
 
 Settings that work:
 
@@ -57,7 +58,11 @@ seed 0, rejection weights. Every run, with its script: notes §14.
   - Middle: the **stopped Z_q / standard error** at all lags (colour = lag). A window that
     reaches the end of its piece is stopped there. For the committor this is 0 ± 1 at
     every q and lag.
-  - **Converged when `zqs_z`, the largest |value|, is ≲ 2** (grey band).
+  - **Consistent with the data when `zqs_z`, the largest |value|, is ≲ 2** (grey band).
+    It is not a test of correctness: it passes for biased data and for errors the
+    pieces cannot see (plateau levels, truncated pieces), and it is not comparable between
+    data sets (2D Z: `zqs_z` 0.70 with RMS 0.075, and 2.73 with RMS 0.005). Check it
+    against the exact committor or shooting at a few hundred frames.
   - Right: the stopped obs vs pred.
 - **map**: the fit, the exact committor, and fit − exact on the potential.
 
@@ -151,6 +156,8 @@ seed 0, rejection weights. Every run, with its script: notes §14.
     should have had ~25 transitions, not 37 (+2.5σ).
   - Fits on the two halves of the seeds give +0.031 and +0.079, at every fit lag and
     envelope setting.
+  - A second, independent MD run (16 transitions) comes out *below* the exact committor
+    on the plateau (RMS 0.084): the sign of the error follows the sample.
 
 ![feps](../examples/figures/z_brownian/npq_md/feps.png)
 ![obs_pred](../examples/figures/z_brownian/npq_md/obs_pred.png)
@@ -200,6 +207,23 @@ Why the cut pieces scatter:
 
 **Result: plateau +0.02 ± 0.015, mostly statistical.** It shrinks as 1/√N with more paths.
 Estimate it from independent halves of the paths.
+
+**Key test 3: which data preparation?** Same 1000 paths per ensemble, same fit, only the
+preparation differs (notes §9.3):
+
+| Preparation | `zqs_z` | RMS fit − exact |
+|---|---|---|
+| **both pieces, rejection weights** | 2.73 | **0.005** |
+| forward pieces, rejection weights | 1.76 | 0.045 |
+| both pieces, no weights / staple weights | 3.23 / 2.81 | 0.018 / 0.093 |
+| no cut at M | 14.1 | 0.204 |
+| both, pieces truncated at 200 frames (75% of the frames removed) | **0.70** | 0.075 |
+| both, pieces longer than 200 frames discarded | 8.5 | 0.380 |
+
+Both pieces with rejection weights is again the best. Truncation is only harmless when it
+cuts a small tail (on the 1D flat run it removed 2% of the frames and changed nothing).
+The `zqs_z` column ranks the preparations almost in reverse: it is computed on each
+fit's own data.
 
 ---
 
