@@ -321,6 +321,26 @@ spots of §6.1; they come from testing the fit on its own data. Without σ:
   (or A). Then Z ≈ the bias in q times the share of those windows that started in the
   region. That is close to what the per-band martingale test of §9.2 measures.
 
+**Poisson length trap (`set_poisson_traj_length_trap`) does not help for path pieces.** For MD cut
+into pieces by a clock independent of the state, a window is kept iff the clock has not rung
+before t+Δt, which is independent of Δq, so E[Δq · 1{kept}] = 0. Pieces that end in A/B were not
+cut by the clock; the Poisson trap gives them a random exponential continuation so they are
+thinned at the same rate. For TIS pieces the other ends (69% of the pieces on the 2D Z) are
+stopping times of the dynamics (the M cut, the path end), so by optional stopping the windows
+dropped there carry E[(q(τ) − q(t)) 1{τ ≤ t+Δt, free end}] ≠ 0, and the trap only changes the A/B
+ends. Test with the exact committor on `istarz_br_g10_reversed` (`examples/figures/poisson_trap/`),
+max_q |Z(Δt) − Z(1)| at Δt = 4, 16, 64, 256, 1024, 4096:
+
+| | 4 | 16 | 64 | 256 | 1024 | 4096 |
+|---|---|---|---|---|---|---|
+| fixed trap 2^16 (current) | 8.8 | 15.9 | 34.2 | 72.5 | 35.2 | 24.9 |
+| Poisson trap (two draws) | 8.8 | 15.9 | 34.2 | 73 | 69 | 21 |
+| stopped Z_q | 4.2 | 7.1 | 10.6 | 18.7 | 12.0 | 17.6 |
+
+The Poisson trap equals the fixed trap up to Δt = 64 and is worse at 1024; at 4096 it is flat at 0
+only because nearly all windows are dropped (mean continuation 355 frames). The stopped Z_q stays
+within |Z/σ| ≤ 2.0 at every lag.
+
 ### 6.4 More rigorous checks for path data
 
 No test on the fitted data can detect what the data do not determine (a plateau level that
