@@ -1,0 +1,37 @@
+pool: 3000 paths per ensemble, 41,738,484 frames (18 s)
+10,002,044 starts (24.0% of 41,678,542 possible), 17,102,425 frames in 7,100,381 segments; probability per y bin: min 0.172, max 1.000
+starts in the ridge band: 3.60% (weighted 3.58%); weighted starts per bin of the exact q: 0.475 0.000 0.000 0.000 0.000 0.001 0.275 0.145 0.074 0.030
+#=500, dr2=330.462, |dx|=0.328017, time=155.729
+#=1000, dr2=307.17, |dx|=0.0285501, time=311.551
+--- /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures/selection_test/blind_flat_y_p3000_b1e7/seed0/it1000 ---
+seed 0, 1000 iterations (warm-up: envelope 1, gamma 0.1) | RMS(fit - exact) per bin 0.1319 | fit/shooting: 0.478/0.639 0.503/0.664 0.549/0.698 0.632/0.747
+#=1500, dr2=255.921, |dx|=0.0183321, time=155.439
+#=2000, dr2=233.165, |dx|=0.0152302, time=311.2
+#=2500, dr2=214.017, |dx|=0.0140234, time=467.349
+#=3000, dr2=195.748, |dx|=0.0138388, time=623.768
+#=3500, dr2=180.737, |dx|=0.0124912, time=779.998
+--- /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures/selection_test/blind_flat_y_p3000_b1e7/seed0/it3500 ---
+seed 0, 3500 iterations (main: envelope 0.01, gamma 0.1) | RMS(fit - exact) per bin 0.0433 | fit/shooting: 0.589/0.639 0.632/0.664 0.650/0.698 0.714/0.747
+#=4000, dr2=169.697, |dx|=0.00927918, time=155.566
+#=4500, dr2=159.084, |dx|=0.00954081, time=311.739
+#=5000, dr2=152.523, |dx|=0.00658447, time=468.445
+#=5500, dr2=145.166, |dx|=0.00733186, time=624.892
+#=6000, dr2=139.361, |dx|=0.0056591, time=780.988
+--- /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures/selection_test/blind_flat_y_p3000_b1e7/seed0/it6000 ---
+seed 0, 6000 iterations (main: envelope 0.01, gamma 0.1) | RMS(fit - exact) per bin 0.0294 | fit/shooting: 0.652/0.639 0.689/0.664 0.705/0.698 0.759/0.747
+#=6500, dr2=134.605, |dx|=0.00498742, time=155.93
+#=7000, dr2=129.457, |dx|=0.00537034, time=311.77
+#=7500, dr2=125.937, |dx|=0.00408722, time=468.079
+#=8000, dr2=122.967, |dx|=0.00333353, time=624.617
+#=8500, dr2=120.344, |dx|=0.00313605, time=781.576
+--- /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures/selection_test/blind_flat_y_p3000_b1e7/seed0/it8500 ---
+seed 0, 8500 iterations (main: envelope 0.01, gamma 0.1) | RMS(fit - exact) per bin 0.0473 | fit/shooting: 0.686/0.639 0.720/0.664 0.734/0.698 0.784/0.747
+#=9000, dr2=118.251, |dx|=0.0024345, time=154.875
+#=9500, dr2=116.399, |dx|=0.00221234, time=310.677
+#=10000, dr2=114.728, |dx|=0.00200219, time=467.045
+#=10500, dr2=113.337, |dx|=0.00175822, time=624.493
+#=11000, dr2=112.393, |dx|=0.00126688, time=781.005
+--- /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures/selection_test/blind_flat_y_p3000_b1e7/seed0/it11000 ---
+seed 0, 11000 iterations (main: envelope 0.01, gamma 0.1) | RMS(fit - exact) per bin 0.0573 | fit/shooting: 0.701/0.639 0.734/0.664 0.748/0.698 0.795/0.747
+seed 0: | RMS(fit - exact) per bin 0.0573 | fit/shooting: 0.701/0.639 0.734/0.664 0.748/0.698 0.795/0.747
+done blind_flat_y_p3000_b1e7 (3498 s)
