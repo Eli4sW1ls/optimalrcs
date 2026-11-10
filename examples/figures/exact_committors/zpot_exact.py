@@ -17,10 +17,8 @@ import exact_tools as E
 OUT = f'{HERE}/zpot/'; os.makedirs(OUT, exist_ok=True)
 FIG = os.path.dirname(HERE)
 KT, GAMMA, DT = 0.05, 10.0, 0.002
-DEFS = {'staple': dict(A=0.05, B=0.85, stride=1, levels=(0.004, 0.002, 0.001, 0.0005),
-                       old=FIG + '/z_brownian/committor_reference_h0.001.npz'),
-        'md': dict(A=0.10, B=0.85, stride=20, levels=(0.004, 0.002, 0.001),
-                   old=FIG + '/z_brownian/committor_reference_h0.001_A0.1_B0.85_s20.npz')}
+DEFS = {'staple': dict(A=0.05, B=0.85, stride=1, levels=(0.004, 0.002, 0.001),
+                       old=FIG + '/z_brownian/committor_reference_h0.001.npz')}
 POINTS = [(0.30, 0.15), (0.40, 0.05), (0.45, 0.15), (0.50, 0.25), (0.55, 0.10), (0.62, 0.15), (0.70, 0.15)]
 N_SHOOT = 1_000_000
 log = open(OUT + 'zpot_exact.log', 'w')
@@ -35,7 +33,14 @@ for name, d in DEFS.items():
     sols = {}
     for h in d['levels']:
         t0 = time.time()
-        sols[h], r = E.solve_brownian_2d(E.zpot_force, DT, GAMMA, KT, d['A'], d['B'], h, stride=d['stride'], verbose=False)
+        cache = OUT + f'q_exact_{name}_h{h}.npz'
+        if os.path.exists(cache):                          # solved before: reuse
+            c_ = np.load(cache)
+            sols[h] = {k: (c_[k] if c_[k].ndim else c_[k].item()) for k in ('ys', 'xs', 'w', 'A', 'B', 'mu', 'stride', 'h')}
+            say(f'  h {h}: loaded {cache}; q at POINTS ' + ' '.join(f'{v:.4f}' for v in ev(sols[h], *zip(*POINTS))))
+            continue
+        sols[h], r = E.solve_brownian_2d(E.zpot_force, DT, GAMMA, KT, d['A'], d['B'], h, stride=d['stride'], verbose=False,
+                                         y_jumps=E.ZPOT_Y_JUMPS, ridge_jumps=E.ZPOT_RIDGE_JUMPS)
         say(f'  h {h}: grid {sols[h]["w"].shape[0]} x {sols[h]["w"].shape[1]}, residual {r:.1e}, {time.time() - t0:.0f} s; '
             f'q at POINTS ' + ' '.join(f'{v:.4f}' for v in ev(sols[h], *zip(*POINTS))))
         np.savez(OUT + f'q_exact_{name}_h{h}.npz', **sols[h], kT=KT, gamma=GAMMA, dt=DT,
@@ -79,16 +84,6 @@ ys_, xs_ = np.array(d['X_all'][sub, 0]), np.array(d['X_all'][sub, 1]); r_ = np.a
 free_ = ~(np.array(d['boundary0'][sub]) | np.array(d['boundary1'][sub]))
 qe_ = ev(res['staple']['sol'], ys_, xs_)
 fits['staple NPNEq (10000 it.)'] = (bin_mean(ys_, xs_, r_, free_), bin_mean(ys_, xs_, qe_, free_), ys_, xs_, r_, qe_, free_)
-md = np.load(FIG + '/z_brownian/npq_md/npq_md.npz')
-ym, xm, it = md['y'], md['x'], md['i_traj']
-fm = (ym > 0.1) & (ym < 0.85)
-qem = ev(res['md']['sol'], ym, xm)
-fits['MD NPq (8000 it.)'] = (bin_mean(ym, xm, md['q_npq'], fm), bin_mean(ym, xm, qem, fm), ym, xm, md['q_npq'], qem, fm)
-last = np.r_[it[1:] != it[:-1], True]
-seg_out = np.full(it.max() + 1, np.nan)
-seg_out[it[last]] = np.where(ym[last] >= 0.85, 1.0, np.where(ym[last] <= 0.1, 0.0, np.nan))
-out = seg_out[it]; fo = fm & np.isfinite(out)
-fits['MD outcome (no fit)'] = (bin_mean(ym, xm, out, fo), bin_mean(ym, xm, qem, fo), ym, xm, out, qem, fo)
 SHOOT_PTS = [(0.50, 0.25), (0.55, 0.10), (0.62, 0.15), (0.70, 0.15)]
 for lab, (F, X, y_, x_, r__, qe__, m_) in fits.items():
     tr = (X > 0.05) & (X < 0.95)
@@ -115,8 +110,8 @@ axes[1].plot(vy, Fy - Fy.min(), 'k'); axes[1].set(xlabel='y', ylabel='F(y) / kT'
 for b in (0.05, 0.10, 0.85): axes[1].axvline(b, color='C3', ls='--', lw=0.8)
 fig.tight_layout(); fig.savefig(OUT + 'landscape.png', dpi=110); plt.close(fig)
 
-fig, axes = plt.subplots(2, 3, figsize=(21, 8.5))
-for row, name in zip(axes, ('staple', 'md')):
+fig, axes = plt.subplots(1, 3, figsize=(21, 4.5))
+for row, name in zip([axes], ('staple',)):
     r = res[name]
     im = row[0].pcolormesh(r['gy'], r['gx'], r['Q'].T, cmap='coolwarm', vmin=0, vmax=1, shading='auto'); fig.colorbar(im, ax=row[0], label='q')
     row[0].contour(vy, vx, Veff.T, levels=lev, colors='0.4', linewidths=0.5)
@@ -131,14 +126,14 @@ for row, name in zip(axes, ('staple', 'md')):
 fig.tight_layout(); fig.savefig(OUT + 'committor_errors_old_reference.png', dpi=100); plt.close(fig)
 
 fig, ax = plt.subplots(figsize=(9, 4.5))
-for k, name in enumerate(('staple', 'md')):
+for k, name in enumerate(('staple',)):
     r = res[name]
     ax.errorbar(np.arange(len(POINTS)) + 0.15 * k, (r['qg'] - r['p']) * 1e3, yerr=2e3 * r['se'], fmt='os'[k], capsize=3, label=f'{name}: grid - shooting (±2 s.e.)')
 ax.axhline(0, color='k', lw=0.8); ax.set_xticks(range(len(POINTS))); ax.set_xticklabels([f'({p[0]:.2f}, {p[1]:.2f})' for p in POINTS], fontsize=8)
 ax.set(ylabel='×10⁻³', xlabel='(y, x)', title=f'check against shooting ({N_SHOOT // 10**6}M trajectories per point)'); ax.legend(frameon=False)
 fig.tight_layout(); fig.savefig(OUT + 'shooting_check.png', dpi=110); plt.close(fig)
 
-fig, axes = plt.subplots(len(fits), 2, figsize=(16, 4 * len(fits)))
+fig, axes = plt.subplots(len(fits), 2, figsize=(16, 4 * len(fits)), squeeze=False)
 for row, (lab, (F, X, *_)) in zip(axes, fits.items()):
     im = row[0].imshow(F.T, origin='lower', extent=[ey[0], ey[-1], ex[0], ex[-1]], aspect='auto', cmap='coolwarm', vmin=0, vmax=1)
     row[0].contour(vy, vx, Veff.T, levels=lev, colors='0.4', linewidths=0.5); fig.colorbar(im, ax=row[0])
@@ -150,7 +145,7 @@ for row, (lab, (F, X, *_)) in zip(axes, fits.items()):
 fig.tight_layout(); fig.savefig(OUT + 'fits_vs_exact.png', dpi=100); plt.close(fig)
 
 fig, ax = plt.subplots(figsize=(7, 4.5))
-for name in ('staple', 'md'):
+for name in ('staple',):
     r = res[name]
     wB = np.exp(-RegularGridInterpolator((vy, vx), Veff, bounds_error=False, fill_value=50)(np.c_[np.meshgrid(r['gy'], r['gx'], indexing='ij')[0].ravel(), np.meshgrid(r['gy'], r['gx'], indexing='ij')[1].ravel()]))
     hst, e = np.histogram(r['Q'].ravel(), bins=100, range=(0, 1), weights=wB)

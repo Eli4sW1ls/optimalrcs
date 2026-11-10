@@ -1,0 +1,79 @@
+z_br: spread levels test [1.000e-04 2.000e-04 5.000e-04 1.200e-03 2.800e-03 6.400e-03 1.480e-02
+ 3.400e-02 7.810e-02 4.132e-01 9.500e-01]
+== z_br
+burnin:   6046 paths,   8393473 frames, cycles 13..39992
+train:   3751 paths,   5160451 frames, cycles 40003..84982
+val  :   1510 paths,   2151143 frames, cycles 45002..69999
+test :   1485 paths,   2082642 frames, cycles 55019..79991
+ood  :   2208 paths,   3133243 frames, cycles 85001..99994
+TIS plots in /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures/param_lambda/z_br/eval/tis_plots
+== z_br
+burnin:   6046 paths,   8393473 frames, cycles 13..39992
+train:   3751 paths,   5160451 frames, cycles 40003..84982
+val  :   1510 paths,   2151143 frames, cycles 45002..69999
+test :   1485 paths,   2082642 frames, cycles 55019..79991
+ood  :   2208 paths,   3133243 frames, cycles 85001..99994
+seed       -> /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/param_lambda/exported/z_br_seed.npz: 2.4 us/frame (one), 0.103 us/frame (batch); ramps hold 1.81% of the weight, max |h - m| 0.00865
+M1-logit   -> /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/param_lambda/exported/z_br_m1-logit.npz: 3.4 us/frame (one), 0.109 us/frame (batch); ramps hold 1.81% of the weight, max |h - m| 0.224
+M1-gam     -> /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/param_lambda/exported/z_br_m1-gam.npz: 5.8 us/frame (one), 0.256 us/frame (batch); ramps hold 1.81% of the weight, max |h - m| 0.212
+M3         -> /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/param_lambda/exported/z_br_m3.npz: 64.1 us/frame (one), 5.292 us/frame (batch); ramps hold 1.81% of the weight, max |h - m| 0.0116
+M3-fast    -> /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/param_lambda/exported/z_br_m3-fast.npz: 10.0 us/frame (one), 1.586 us/frame (batch); ramps hold 1.81% of the weight, max |h - m| 0.00954
+cc_br: spread levels test [0.0012 0.0028 0.0064 0.0148 0.034  0.0781 0.1797 0.4132 0.95  ]
+== cc_br
+burnin:      0 paths,         0 frames, cycles -1..-1
+train:   2366 paths,   1096474 frames, cycles 801..1700
+val  :    977 paths,    451538 frames, cycles 901..1400
+test :    965 paths,    457472 frames, cycles 1101..1600
+ood  :   1519 paths,    694918 frames, cycles 1701..2000
+TIS plots in /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures/param_lambda/cc_br/eval/tis_plots
+== cc_br
+burnin:      0 paths,         0 frames, cycles -1..-1
+train:   2366 paths,   1096474 frames, cycles 801..1700
+val  :    977 paths,    451538 frames, cycles 901..1400
+test :    965 paths,    457472 frames, cycles 1101..1600
+ood  :   1519 paths,    694918 frames, cycles 1701..2000
+seed       -> /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/param_lambda/exported/cc_br_seed.npz: 2.4 us/frame (one), 0.155 us/frame (batch); ramps hold 5.29% of the weight, max |h - m| 0.0021
+M1-logit   -> /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/param_lambda/exported/cc_br_m1-logit.npz: 4.4 us/frame (one), 0.134 us/frame (batch); ramps hold 5.29% of the weight, max |h - m| 0.0218
+M1-gam     -> /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/param_lambda/exported/cc_br_m1-gam.npz: 8.7 us/frame (one), 0.414 us/frame (batch); ramps hold 5.29% of the weight, max |h - m| 0.023
+M3         -> /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/param_lambda/exported/cc_br_m3.npz: 9.8 us/frame (one), 1.860 us/frame (batch); ramps hold 5.29% of the weight, max |h - m| 0.0227
+M3-fast    -> /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/param_lambda/exported/cc_br_m3-fast.npz: 6.7 us/frame (one), 0.367 us/frame (batch); ramps hold 5.29% of the weight, max |h - m| 0.0243
+flat1d: spread levels test [0.0151 0.0229 0.0346 0.0524 0.0792 0.1199 0.1814 0.2744 0.4151 0.628
+ 0.95  ]
+== flat1d
+burnin:      0 paths,         0 frames, cycles -1..-1
+train:   3741 paths,    523734 frames, cycles 40001..84995
+val  :   1486 paths,    210957 frames, cycles 45012..69991
+test :   1503 paths,    210946 frames, cycles 55012..80000
+ood  :   2270 paths,    319267 frames, cycles 85011..100000
+TIS plots in /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures/param_lambda/flat1d/eval/tis_plots
+== flat1d
+burnin:      0 paths,         0 frames, cycles -1..-1
+train:   3741 paths,    523734 frames, cycles 40001..84995
+val  :   1486 paths,    210957 frames, cycles 45012..69991
+test :   1503 paths,    210946 frames, cycles 55012..80000
+ood  :   2270 paths,    319267 frames, cycles 85011..100000
+seed       -> /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/param_lambda/exported/flat1d_seed.npz: 2.3 us/frame (one), 0.106 us/frame (batch); ramps hold 3.23% of the weight, max |h - m| 0.0234
+M1-logit   -> /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/param_lambda/exported/flat1d_m1-logit.npz: 2.6 us/frame (one), 0.107 us/frame (batch); ramps hold 3.23% of the weight, max |h - m| 0.0234
+M1-gam     -> /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/param_lambda/exported/flat1d_m1-gam.npz: 3.6 us/frame (one), 0.171 us/frame (batch); ramps hold 3.23% of the weight, max |h - m| 0.0229
+M3         -> /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/param_lambda/exported/flat1d_m3.npz: 8.8 us/frame (one), 1.576 us/frame (batch); ramps hold 3.23% of the weight, max |h - m| 0.0235
+M3-fast    -> /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/param_lambda/exported/flat1d_m3-fast.npz: 5.8 us/frame (one), 0.410 us/frame (batch); ramps hold 3.23% of the weight, max |h - m| 0.0233
+bumps1d: spread levels test [0.01   0.0151 0.0229 0.0346 0.0524 0.0792 0.1199 0.1814 0.2744 0.4151
+ 0.628  0.95  ]
+== bumps1d
+burnin:      0 paths,         0 frames, cycles -1..-1
+train:   3358 paths,   1361817 frames, cycles 40001..85000
+val  :   1329 paths,    544573 frames, cycles 45011..69999
+test :   1322 paths,    545399 frames, cycles 55010..79995
+ood  :   1991 paths,    806865 frames, cycles 85014..99999
+TIS plots in /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures/param_lambda/bumps1d/eval/tis_plots
+== bumps1d
+burnin:      0 paths,         0 frames, cycles -1..-1
+train:   3358 paths,   1361817 frames, cycles 40001..85000
+val  :   1329 paths,    544573 frames, cycles 45011..69999
+test :   1322 paths,    545399 frames, cycles 55010..79995
+ood  :   1991 paths,    806865 frames, cycles 85014..99999
+seed       -> /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/param_lambda/exported/bumps1d_seed.npz: 2.3 us/frame (one), 0.103 us/frame (batch); ramps hold 2.51% of the weight, max |h - m| 0.0129
+M1-logit   -> /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/param_lambda/exported/bumps1d_m1-logit.npz: 2.7 us/frame (one), 0.106 us/frame (batch); ramps hold 2.51% of the weight, max |h - m| 0.0129
+M1-gam     -> /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/param_lambda/exported/bumps1d_m1-gam.npz: 3.7 us/frame (one), 0.189 us/frame (batch); ramps hold 2.51% of the weight, max |h - m| 0.0129
+M3         -> /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/param_lambda/exported/bumps1d_m3.npz: 62.3 us/frame (one), 5.546 us/frame (batch); ramps hold 2.51% of the weight, max |h - m| 0.0129
+M3-fast    -> /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/param_lambda/exported/bumps1d_m3-fast.npz: 6.8 us/frame (one), 0.556 us/frame (batch); ramps hold 2.51% of the weight, max |h - m| 0.0129

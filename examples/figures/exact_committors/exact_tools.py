@@ -138,7 +138,7 @@ def gauss_hermite(n):
 ZMAX = 8.0                                                  # standard-normal range kept (P(|z| > 8) ~ 1e-15)
 
 
-def _split_nodes(zlo, zhi, n, xp):
+def _split_nodes(zlo, zhi, n, xp, force_split=False):
     """Quadrature in z ~ N(0, 1) restricted to [zlo, zhi] (per point). Where the interval covers [-ZMAX, ZMAX]
     (no boundary within reach): Gauss-Hermite. Otherwise (interval cut by an absorbing boundary): Gauss-Legendre
     in the probability variable u = Phi(z) on [Phi(zlo), Phi(zhi)], z = Phi^-1(u); the weights then sum to the
@@ -151,6 +151,8 @@ def _split_nodes(zlo, zhi, n, xp):
     gz, gw = gauss_hermite(n)
     lz, lw = np.polynomial.legendre.leggauss(n)
     full = (zlo <= -ZMAX) & (zhi >= ZMAX)
+    if force_split:
+        full = xp.zeros_like(full)
     # in u, symmetric around 1/2 for accuracy: use the upper tail when the interval lies in it
     upper = (zlo + zhi) > 0
     zl, zh = xp.where(upper, -zhi, zlo), xp.where(upper, -zlo, zhi)      # mirrored to the lower side
@@ -285,58 +287,136 @@ def eval_q_underdamped(step, coef, force, sol, x, v):
     return pB + (1 - pA - pB) * mval
 
 
+ZPIECE = 6.0                                                # nodes placed within |z| <= 6; tail mass added to the end pieces
+BASE_CUTS = (-3.0, -1.5, 0.0, 1.5, 3.0)
+
+
+def _pieces(zlo, zhi, zbreaks, n, xp, n_per_piece=5):
+    """Quadrature in z ~ N(0, 1) over [zlo, zhi] (per point; -inf/inf allowed), split at the integrand's jumps
+    (zbreaks: per-point arrays; the two nearest inside the interval are used) and at fixed cuts BASE_CUTS, so every
+    piece is short; Gauss-Legendre in z with the Gaussian density on each piece, rescaled to the piece's exact
+    probability. Mass and moments are then both accurate (Gauss-Legendre in u = Phi(z) gets the mass exactly but
+    the variance a few per cent low, which biases the diffusion every step). `n` is ignored (kept for the call
+    signature). Returns (len(BASE_CUTS) + 3) * n_per_piece node arrays and weights."""
+    if xp is np:
+        from scipy.special import ndtr
+    else:
+        from cupyx.scipy.special import ndtr
+    M = zlo.shape[0]
+    lo_t, hi_t = xp.maximum(zlo, -38.0), xp.minimum(zhi, 38.0)        # true limits (for the masses)
+    inner = []
+    if zbreaks:
+        zb = xp.stack([xp.where((b > lo_t) & (b < hi_t), b, xp.inf) for b in zbreaks])
+        zb = xp.sort(zb, axis=0)
+        inner += [zb[0], zb[1] if zb.shape[0] > 1 else xp.full(M, xp.inf)]
+    else:
+        inner += [xp.full(M, xp.inf)] * 2
+    inner += [xp.where((c > lo_t) & (c < hi_t), c, xp.inf) * xp.ones(M) for c in BASE_CUTS]
+    # points with no jump and no absorbing boundary within reach: plain Gauss-Hermite (exact moments)
+    no_cut = (lo_t <= -ZPIECE) & (hi_t >= ZPIECE)
+    for b in inner[:2]:
+        no_cut &= ~((b > -ZPIECE) & (b < ZPIECE))
+    cuts = xp.sort(xp.stack(inner), axis=0)                           # inf = unused
+    cuts = xp.minimum(cuts, hi_t)
+    edges = [lo_t] + [cuts[k] for k in range(cuts.shape[0])] + [hi_t]
+    lz, lw = np.polynomial.legendre.leggauss(n_per_piece)
+    n_total = (len(edges) - 1) * n_per_piece
+    ghz, ghw = gauss_hermite(n_total)
+    nodes, weights = [], []
+    for a, b in zip(edges[:-1], edges[1:]):
+        b = xp.maximum(b, a)
+        mass = xp.clip(ndtr(b) - ndtr(a), 0, 1)                        # exact probability of the piece
+        mass = xp.where((a > 0), xp.clip(ndtr(-a) - ndtr(-b), 0, 1), mass)   # upper tail: no cancellation
+        ap, bp = xp.clip(a, -ZPIECE, ZPIECE), xp.clip(b, -ZPIECE, ZPIECE)
+        mid, half = (ap + bp) / 2, (bp - ap) / 2
+        zs = [mid + half * lz[k] for k in range(n_per_piece)]
+        ws = [half * lw[k] * xp.exp(-zs[k] ** 2 / 2) for k in range(n_per_piece)]
+        S = sum(ws)
+        scale = xp.where(S > 0, mass / xp.where(S > 0, S, 1.0), 0.0)
+        # a piece entirely in the far tail (|z| > 6): its mass sits on one node at the clipped end
+        tail_only = (S <= 0) & (mass > 0)
+        for k in range(n_per_piece):
+            wk = ws[k] * scale
+            if k == 0:
+                wk = xp.where(tail_only, mass, wk)
+            nodes.append(zs[k]); weights.append(wk)
+    nodes = [xp.where(no_cut, ghz[j], z) for j, z in enumerate(nodes)]
+    weights = [xp.where(no_cut, ghw[j], w) for j, w in enumerate(weights)]
+    return nodes, weights
+
+
 def solve_brownian_2d(force2d, dt, gamma, kT, A, B, h, x_range=(-0.03, 0.33), y_box=(-0.03, 0.93), stride=1,
-                      n1=12, n2=7, tol=1e-11, maxiter=4000, m=1.0, verbose=True):
+                      n1=8, n2=5, y_jumps=(), ridge_jumps=None, tol=1e-11, maxiter=4000, m=1.0, verbose=True):
     """Committor of the 2D Brownian chain s' = s + mu F(s) + sigma z (mu = dt/(m gamma), sigma^2 = 2 kT mu, z
     standard normal per coordinate), A: y <= A, B: y >= B, checked every `stride` steps; y = first coordinate.
 
-    Where F jumps (the Z potential's ridge and well edges), the mean of the next step jumps by mu dF and so does
-    the exact committor of the chain. It is therefore not solved for directly. With the smoothed field
+    Where F jumps (the Z potential's ridge and well edges) the mean of the next step jumps by mu dF, and so does
+    the exact committor of the chain. So it is not solved for directly. With the smoothed field
         w(r) = E_z[ Q(r + sigma z) ]          (Gaussian convolution of Q: smooth),
-    one step from s gives q(s) = w(s + mu F(s)), exactly, with the force evaluated at s. The unknown is w on a grid
-    (cubic splines); Q(s') = 1 in B, 0 in A, and q(s') = w(s' + mu F(s')) inside, so
-        stride 1:  w(r) = E_z[ 1_B(s') + 1_inside(s') w(s' + mu F(s')) ],   s' = r + sigma z,
-    with the y-jump of Q at A and B integrated exactly (absorbed probability by erfc, inside part on [zA, zB]).
-    stride k: w_1 is the unknown; w_k(r) = E_z[Q(r + sigma z)] (split as above, Q from w_1), then k - 1 free
-    steps backwards, w_j(r) = E_z[ w_{j+1}(s' + mu F(s')) ], on the whole box; the system is w_1 = (these steps)(w_1).
-    Returns a dict (grid, w, settings) for eval_q_brownian_2d and the residual."""
+    one step from s gives q(s) = w(s + mu F(s)) exactly (force at s). The unknown is w on a grid (cubic splines);
+    Q(s') = 1 in B, 0 in A, q(s') = w(s' + mu F(s')) inside. The noise integral over s' is split exactly where its
+    integrand jumps: at A and B (absorption; absorbed probability by erfc) and at the force discontinuities, given as
+    y_jumps (lines y = const) and ridge_jumps = (normal (ny, nx), offsets c): lines n . s = c. Points within reach
+    (8 sigma) of a ridge line integrate along its normal, all others along y; each piece by Gauss-Legendre in the
+    probability variable, the other noise direction by Gauss-Hermite.
+        stride 1:  w(r) = E_z[ 1_B(s') + 1_inside(s') w(s' + mu F(s')) ],  s' = r + sigma z;
+        stride k:  w_k(r) = E_z[Q(r + sigma z)] (Q from w_1), then k - 1 free steps backwards,
+                   w_j(r) = E_z[ w_{j+1}(s' + mu F(s')) ], on the whole box; solve w_1 = (these steps)(w_1).
+    Returns a dict for eval_q_brownian_2d and the residual."""
     from cupyx.scipy import ndimage
     from cupyx.scipy.sparse.linalg import gmres, LinearOperator
     sg = np.sqrt(2 * kT * dt / (m * gamma)); mu = dt / (m * gamma)
     xs = np.arange(x_range[0], x_range[1] + h / 2, h)
-    if stride == 1:
-        ys = np.arange(A - 0.01, B + 0.01 + h / 2, h)          # r = s + mu F(s) for s inside stays within 0.002 of [A, B]
-    else:
-        ys = np.arange(y_box[0], y_box[1] + h / 2, h)
+    ys = np.arange(A - 0.01, B + 0.01 + h / 2, h) if stride == 1 else np.arange(y_box[0], y_box[1] + h / 2, h)
     shape = (len(ys), len(xs))
     Y, X = cp.meshgrid(cp.asarray(ys), cp.asarray(xs), indexing='ij'); Y, X = Y.ravel(), X.ravel()
     M = Y.size
-    gz, gw = gauss_hermite(n2)
     idx = lambda yy, xx: cp.stack([(yy - ys[0]) / h, (xx - xs[0]) / h]).astype(cp.float32)
 
     def mapped(yy, xx):
         fy, fx = force2d(yy, xx, cp)
         return yy + mu * fy, xx + mu * fx
 
-    # last step onto Q: y' = Y + sg z1 (absorbing coordinate, exact split), x' = X + sg z2
-    zA, zB = (A - Y) / sg, (B - Y) / sg
-    cB = _norm_sf(zB, cp)
-    z1n, w1n = _split_nodes(zA, zB, n1, cp)
-    inside = cp.clip(1 - _norm_sf(-zA, cp) - cB, 0, 1)
-    S1 = sum(w1n)
-    w1n = [w * cp.where(S1 > 0, inside / cp.where(S1 > 0, S1, 1.0), 0.0) for w in w1n]
-    cL, WL = [], []
-    for z1, w1 in zip(z1n, w1n):
-        for z2, w2 in zip(gz, gw):
-            yp, xp_ = Y + sg * z1, X + sg * z2
-            cL.append(idx(*mapped(cp.clip(yp, A, B), xp_))); WL.append(w1 * w2)
-    cL, WL = cp.concatenate(cL, axis=1), cp.concatenate(WL)
-    if stride > 1:                                             # free steps (no absorption): plain Gauss-Hermite
-        cF, WF = [], []
-        for z1, w1 in zip(gz, gw):
+    if ridge_jumps is not None:
+        (nY, nX), offs = ridge_jumps
+        nn = np.hypot(nY, nX); nY, nX = nY / nn, nX / nn
+        cR = nY * Y + nX * X                                      # coordinate along the ridge normal
+        ridge = cp.zeros(M, dtype=bool)
+        for c0 in offs:
+            ridge |= cp.abs(cR - c0 / nn) < ZMAX * sg
+    else:
+        ridge = cp.zeros(M, dtype=bool)
+    gz, gw = gauss_hermite(n2)
+
+    def step_nodes(absorbing):
+        """Nodes s' = r + sigma z and weights of one step from every grid point r."""
+        # along y: absorption at A, B (if absorbing) and the y jumps
+        zlo = (A - Y) / sg if absorbing else cp.full(M, -np.inf)
+        zhi = (B - Y) / sg if absorbing else cp.full(M, np.inf)
+        z1y, w1y = _pieces(zlo, zhi, [(yj - Y) / sg for yj in y_jumps], n1, cp)
+        if ridge_jumps is not None:                               # along the ridge normal, no absorption there
+            z1r, w1r = _pieces(cp.full(M, -np.inf), cp.full(M, np.inf), [(c0 / nn - cR) / sg for c0 in offs], n1, cp)
+        coords, W = [], []
+        for k in range(len(z1y)):
             for z2, w2 in zip(gz, gw):
-                cF.append(idx(*mapped(Y + sg * z1, X + sg * z2))); WF.append(cp.full(M, w1 * w2))
-        cF, WF = cp.concatenate(cF, axis=1), cp.concatenate(WF)
+                yp, xp_ = Y + sg * z1y[k], X + sg * z2
+                wk = w1y[k] * w2
+                if ridge_jumps is not None:                       # normal (nY, nX), tangent (-nX, nY)
+                    ypr = Y + sg * (z1r[k] * nY - z2 * nX)
+                    xpr = X + sg * (z1r[k] * nX + z2 * nY)
+                    yp, xp_ = cp.where(ridge, ypr, yp), cp.where(ridge, xpr, xp_)
+                    wk = cp.where(ridge, w1r[k] * w2, wk)
+                if absorbing:
+                    yp = cp.clip(yp, A, B)
+                coords.append(idx(*mapped(yp, xp_))); W.append(wk)
+        cB = _norm_sf((B - Y) / sg, cp) if absorbing else None
+        if absorbing and ridge_jumps is not None:
+            cB = cp.where(ridge, 0.0, cB)                         # ridge points are far from A and B
+        return cp.concatenate(coords, axis=1), cp.concatenate(W), cB
+
+    cL, WL, cB = step_nodes(True)
+    if stride > 1:
+        cF, WF, _ = step_nodes(False)
 
     def apply(coords, W, field):
         cf = ndimage.spline_filter(field.reshape(shape), order=3, mode='mirror')
@@ -364,9 +444,14 @@ def solve_brownian_2d(force2d, dt, gamma, kT, A, B, h, x_range=(-0.03, 0.33), y_
     if verbose:
         print(f'  2D grid {shape[0]} x {shape[1]} (h {h}), stride {stride}: gmres info {info}, residual {res:.2e}', flush=True)
     sol = dict(ys=ys, xs=xs, w=cp.asnumpy(w.reshape(shape)), A=A, B=B, mu=mu, stride=stride, h=h)
-    del cL, WL
     cp.get_default_memory_pool().free_all_blocks()
     return sol, res
+
+
+# discontinuities of the Z potential's force (sjoelbak_angle, Lx 0.3, 45 deg): state-well edges at
+# y = 0.025 +- 0.05 and 0.875 +- 0.05, slope ends at y = 0.1 and 0.825, ridge edges x + y = 0.6 +- sqrt(2) L/4
+ZPOT_Y_JUMPS = (-0.025, 0.075, 0.1, 0.825, 0.925)
+ZPOT_RIDGE_JUMPS = ((1.0, 1.0), (0.6 - np.sqrt(2) * 0.05, 0.6 + np.sqrt(2) * 0.05))
 
 
 def eval_q_brownian_2d(force2d, sol, y, x):

@@ -1,0 +1,10 @@
+== flat1d
+burnin:      0 paths,         0 frames, cycles -1..-1
+train:   3741 paths,    523734 frames, cycles 40001..84995
+val  :   1486 paths,    210957 frames, cycles 45012..69991
+test :   1503 paths,    210946 frames, cycles 55012..80000
+ood  :   2270 paths,    319267 frames, cycles 85011..100000
+seed       -> /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/param_lambda/exported/flat1d_seed.npz: 2.3 us/frame (one), 0.104 us/frame (batch); ramps hold 3.23% of the weight, max |h - m| 0.0234
+M1-logit   -> /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/param_lambda/exported/flat1d_m1-logit.npz: 2.6 us/frame (one), 0.105 us/frame (batch); ramps hold 3.23% of the weight, max |h - m| 0.0234
+M1-gam     -> /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/param_lambda/exported/flat1d_m1-gam.npz: 3.5 us/frame (one), 0.175 us/frame (batch); ramps hold 3.23% of the weight, max |h - m| 0.0229
+M3         -> /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/param_lambda/exported/flat1d_m3.npz: 8.9 us/frame (one), 1.503 us/frame (batch); ramps hold 3.23% of the weight, max |h - m| 0.0235

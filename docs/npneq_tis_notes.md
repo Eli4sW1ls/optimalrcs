@@ -1268,6 +1268,79 @@ Recommended combination: version B with L of the order of the typical piece leng
 bias, Markovianity), plus a few frames of version A in the regions the data pin down
 worst (levels), or the MSM level check (§6.5) where its memory-loss assumption holds.
 
+### 13.3 High-accuracy exact committors of the discrete-time dynamics (2026-11-10)
+
+Code: `examples/figures/exact_committors/` (`exact_tools.py`, one script per system); figures,
+logs and solved grids in its subfolders `brownian1d/`, `well/`, `zpot/`, `cc/` (curved channel, `cc_exact.py`).
+
+**What is computed.** The committor of the Markov chain the engine actually runs, not of the
+continuous dynamics: q(s) = P(the chain from state s reaches B before A), with A and B checked
+on every saved frame as in the data, i.e. q(s) = E[Q(s')] with Q = 0 in A, 1 in B and q
+elsewhere, s' one saved frame later. No continuous-time limit and no boundary-shift
+approximation. Engines: toytis Brownian step, toytis BBK Langevin step (checked against
+`LangevinEngine.step` with the same random numbers: identical to 4·10⁻¹⁶), and the
+Euler–Maruyama step of the user's script. Forces vectorized and checked against the potential
+classes (CosWellWalls exactly, Z potential to 2·10⁻¹⁴).
+
+**Grid solvers.** q = E[Q(s')] is a linear equation for q on a grid; off-grid values by cubic
+splines; solved with matrix-free GMRES on the GPU to residual ~10⁻¹³. Every detail that was
+needed for convergence:
+- **Absorption is integrated exactly.** Whether s' lands in A or B jumps with the noise;
+  Gauss–Hermite integrates a jump poorly and the error spreads inward. The absorbed
+  probability is computed with erfc, the inside part on the truncated noise interval.
+- **Every row sums to exactly 1.** A probability excess of even 10⁻³ per step adds up over
+  the 10²–10⁵ steps a trajectory takes to be absorbed (it gave errors of 0.1 in a first
+  version). Weights are rescaled to the exact piece probabilities, and kept in double
+  precision.
+- **Moments of the noise are exact.** Gauss–Legendre in the probability variable gets the
+  mass right but the variance a few per cent low, which weakens the diffusion every step.
+  Truncated intervals are therefore split into short pieces (cuts at z = ±1.5, ±3) with
+  Gauss–Legendre in z, each rescaled to its exact mass; uncut intervals use Gauss–Hermite.
+- **Underdamped: the one-step exit layer is taken out analytically.** Next to A and B a
+  state either leaves within one step or not, depending on x + v·dt; this gives a real layer
+  ~3·10⁻⁴ wide, narrower than any practical grid. Writing
+  q = pB + (1 − pA − pB)·m, with the exact next-step exit probabilities pA, pB, the solver
+  works on the smooth m. The later layers (leaving in 2, 3, … steps, sloped lines
+  x ≈ B − k v dt, widths 10⁻⁴–10⁻³ within ~0.02 of A and B) are resolved by an x grid that
+  is 9 times denser at A and B than in the middle.
+- **2D Brownian: discontinuous forces.** Where the force jumps (Z potential: ridge edges
+  x + y = 0.6 ± 0.071 from 9.4 to 0, state-well edges y = 0.075, 0.825, slope ends), the mean
+  of the next step jumps by μΔF ≈ 0.002 and the **exact committor itself jumps** (by up to
+  ~0.02 where q is steep). The solver therefore works on the smooth field
+  w(r) = E[Q(r + σz)], with q(s) = w(s + μF(s)) exactly, and splits the noise integral at the
+  known jump lines (along y, or along the ridge normal for points near a ridge edge).
+- Tests with known answers: 2D solver on a y-only problem with force jumps against the exact
+  1D chain: agreement to 8·10⁻⁵ (within the 1D reference's own uncertainty, 1.7·10⁻⁴).
+
+**Shooting checks.** GPU shooting with the same one-step update, 1–4 million trajectories
+per point, each run until A or B; standard error √(p(1 − p)/N). An earlier version of the
+shooting code kept absorbed trajectories moving until a clean-up every 100–200 steps, and some
+of them reached the other state and were relabelled: a bias of ~10⁻³ near the boundaries.
+Fixed (absorbed trajectories are removed at once); all numbers below are from the fixed code.
+
+**Results.**
+
+| System | Grid error estimate | Against shooting | Old reference − exact |
+|---|---|---|---|
+| 1D overdamped: long MD flat, two bumps (γ 5, dt 2·10⁻⁴); staple flat `sim_istar0br10intf` (γ 1) | ≤ 5·10⁻⁶ (Richardson, h = σ/40; second order) | 21 points × 4M trajectories: all within 2.2 s.e. (s.e. 0.7–2.5·10⁻⁴) | continuous formula with the 0.5826 σ shift: max 2.7·10⁻³ (next to A and B), RMS 3–5·10⁻⁴ |
+| 1D well, BBK (γ 1, dt 0.005) | max 3·10⁻⁶ for frames > 0.02 from A/B (96% of the frames); up to 7·10⁻⁴ within 0.02 of A/B; RMS 2·10⁻⁶. Symmetry q(x,v) + q(−x,−v) = 1 to 2·10⁻⁷ | 10 points × 2M: χ² 16.4/10; 9 within 1.3 s.e., the point 0.001 from A at −3.2 s.e. (−2·10⁻⁴) | old 600-trajectory 29 × 29 grid: RMS 0.012 per frame, max 0.05; per bin 0.009. The MD-outcome committor (no fit) differs from the new exact by RMS 0.0091 per bin, below its own noise 0.0107 |
+| 1D well, Euler–Maruyama | max 5·10⁻⁶ (> 0.02 from A/B), 1.7·10⁻⁴ overall | 10 points × 2M: χ² 11.7/10, all within 2.4 s.e. | — ; EM exact − BBK exact: RMS 0.0036, max 0.016 (different dynamics) |
+| 2D Brownian Z, staple definition (A: y ≤ 0.05, B: y ≥ 0.85, every step; γ 10, kT 0.05, dt 0.002) | h 0.002 → 0.001: RMS 2·10⁻⁵, 99% below 5·10⁻⁵, max 6·10⁻⁴ | 7 points × 1M: χ² 6.6/7, all within 1.7 s.e. (s.e. ≤ 5·10⁻⁴); the ridge crest (0.45, 0.15): 0.2996 ± 0.0005 vs grid 0.2990 | old PDE (continuous + shift): RMS 8·10⁻⁴, max 3.5·10⁻³; +0.001 on the plateau |
+| 2D Brownian curved channel, staple definition (`sim_istar_cc_br`: A: y ≤ 0.15, B: y ≥ 0.85, every step; γ 10, kT 0.05, dt 0.005; smooth force) | h 0.004 → 0.002: max 4·10⁻⁶; 0.002 → 0.0015: max 2·10⁻⁷, RMS 2·10⁻⁸ (where V < 10 kT) | 9 points × 1M: χ² 8.4/9, all within 2.3 s.e. (s.e. ≤ 5·10⁻⁴) | `toy2d.exact_committor_brownian` (h 0.004, continuous + shift; used by the toy2d notebooks): RMS 6·10⁻⁴ (Boltzmann-weighted 6·10⁻⁴), max 6·10⁻³ in a strip within ~σ of A; ≤ 10⁻³ at the shooting points |
+
+So the 1D committors are exact to ~10⁻⁵ (overdamped) and to ~10⁻⁵ in the bulk / ~10⁻³ in a
+0.02-wide band next to A and B (underdamped); the 2D Brownian Z committor (staple definition) to
+~10⁻⁴ (6·10⁻⁴ at worst); the curved-channel committor (smooth force) to ~10⁻⁶. The Z MD definition (A: y ≤ 0.1, checked every 20 steps) was not computed.
+
+**Consequences.** (1) The earlier ridge-crest discrepancy (PDE 0.300 vs shooting 0.317 ± 0.007, §13.1) was
+the shooting: that script also left absorbed trajectories moving between clean-ups. With the fixed shooting
+the ridge crest is 0.2996 ± 0.0005, and the PDE was right to 0.001. (2) The plateau overshoot of the staple
+NPNEq fit is real: against the exact committor, per bin RMS 0.058, mean +0.055; at the four plateau points
+0.707/0.738/0.754/0.799 vs exact 0.637/0.672/0.692/0.747. The old references were good to ~3·10⁻³
+(1D overdamped), ~0.01–0.05 (well) and ~10⁻³ (curved channel, staple definition: the staple-fit errors of §10.5, RMS 0.008–0.015
+vs exact, and the χ²/dof 0.84 against shooting stand). The curved-channel MD definition (A/B checked on the saved frames, every 50 steps)
+was not computed; the solver supports it (`stride=50`).
+
 ## 14. Fit settings of the runs
 
 **Defaults** (checked in `optimalrcs-cupy/optimalrcs.py`): `envelope_scale` 0.01 (module

@@ -1,0 +1,68 @@
+# 2D Brownian Z potential, staple run sim_istarz_br_g10 (forward + mirrored pieces, rejection weights).
+# q_np: the 25000-iteration NPNEq fit (zqs_z 1.36, RMS 0.030 vs exact, plateau +0.031).
+name = "z_br"
+seed = 0
+
+[data]
+tis_dir = "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/PyRETIS3/toytis/simulations/sim_istarz_br_g10"
+loader_args = ["--reversed", "--paths-per-ensemble", "1500", "--seed", "0"]
+tis_data_rev = "f18c794"            # q_np was fitted before the path selection changed (random subset, seed 0)
+q_np = "examples/figures/istarz_br_g10_reversed/r_continued.npy"
+check_against = "examples/figures/istarz_br_g10_reversed/committor.npz"   # its lam and i_traj must match
+cv_names = ["y", "x"]
+state_cv = 0                        # the CV the states (and the sampler's op[0] today) are defined on
+exact = "zpot"                      # exact_tools grid of the discrete chain
+potential = "sjoelbak_angle:RectangularGridWithAngledBarrierPotential"   # for the map contours (logged without its arguments)
+potential_kwargs = {Lx = 0.3, angle = 45}
+exact_file = "examples/figures/exact_committors/zpot/q_exact_staple_h0.001.npz"
+
+[split]
+id_from = 0.4                       # paths of earlier cycles are not used (the old loader had no burn-in)
+ood_from = 0.85                     # cycles >= 0.85 * n_cycles: the later sampling block (OOD test)
+block = 0.05                        # contiguous blocks of 5% of the cycles between burn-in and ood_from
+val_blocks = [1, 5]                 # checkpoint / model selection
+test_blocks = [3, 7]                # reported (in-distribution test)
+
+[features]
+# Monomials of linear forms of the CVs (see lambda_runtime.Features): u = (y + x)/sqrt2, v = (y - x)/sqrt2
+library = ["y", "x", "u", "v", "y^2", "x^2", "y*x", "u^2", "v^2", "y^3", "x^3", "y^2*x", "y*x^2"]
+top_k = [2, 4]
+
+[train]
+lags = [1, 2, 4, 8]
+anchor_stride = 4                   # every 4th valid training frame is an anchor of the pointwise loss
+mid_weight = 5.0                    # weight factor for 0.05 < q_np < 0.95
+
+[m1]
+l1_C = [0.01, 0.1, 1.0, 10.0]
+gam_knots = 12
+gam_ridge = [1e-3, 1e-1, 10.0]         # P-spline penalty on second differences of the coefficients
+max_frames = 400000
+
+[m2]
+max_frames = 400000
+max_iter = 300
+
+[m3]
+archs = [[32], [64, 64], [128, 128, 128]]
+betas = [0.0, 0.1, 1.0, 10.0]
+epochs = 24
+checkpoints = 8
+batch = 4096
+lr = 3e-3
+weight_decay = 1e-4
+max_anchors = 3000000
+
+[eval]
+q_lo = 1e-4                         # planned interfaces: n levels equally spaced in ln q on [q_lo, q_hi]
+q_hi = 0.95
+n_interfaces = 12
+slab_half_logit = 0.2                # slab |logit m - logit q_k| < 0.2 (same width at every level)
+zq_lags = [1, 4, 16, 64, 256, 1024, 4096]
+select_lags = [1, 4, 16, 64, 256]   # lags of the checkpoint-selection metric (validation paths)
+max_pieces_select = 4000            # validation pieces used for checkpoint selection
+
+[export]
+ramp = 0.05                         # A/B ramp width, as a fraction of lambda_B - lambda_A (not tied to interfaces)
+scale_eps = 1e-3                    # output scale s(p) = log1p(p/eps)/log1p(1/eps)
+ood_quantile = 0.999

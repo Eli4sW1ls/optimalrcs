@@ -1,0 +1,97 @@
+== bumps1d
+burnin:      0 paths,         0 frames, cycles -1..-1
+train:   3358 paths,   1361817 frames, cycles 40001..85000
+val  :   1329 paths,    544573 frames, cycles 45011..69999
+test :   1322 paths,    545399 frames, cycles 55010..79995
+ood  :   1991 paths,    806865 frames, cycles 85014..99999
+-- test: 545399 frames; reference turns {'turns_qnp': 26.69410431528435, 'crossings_qnp': 119.02904187952929, 'turns_exact': 26.814218351788966, 'crossings_exact': 119.80333072726033}
+   seed                         zqs_z   1.91  sdzqs    7.834  step 0.996  turns/q_np 0.999  (1 s)
+   q_np                         zqs_z   1.91  sdzqs    7.834  step 0.996  turns/q_np 1.000  (1 s)
+   exact                        zqs_z   1.91  sdzqs    7.836  step 0.996  turns/q_np 1.000  (1 s)
+   m1_logit_top1_0.01           zqs_z   1.91  sdzqs    7.834  step 0.996  turns/q_np 0.999  (1 s)
+   m1_logit_top1_0.1            zqs_z   1.91  sdzqs    7.834  step 0.996  turns/q_np 0.999  (1 s)
+   m1_logit_top1_1              zqs_z   1.91  sdzqs    7.834  step 0.996  turns/q_np 0.999  (1 s)
+   m1_logit_top1_10             zqs_z   1.91  sdzqs    7.834  step 0.996  turns/q_np 0.999  (1 s)
+   m1_gam_top1_0.001            zqs_z   1.91  sdzqs    7.831  step 0.996  turns/q_np 0.960  (1 s)
+   m1_gam_top1_0.1              zqs_z   1.91  sdzqs    7.832  step 0.995  turns/q_np 0.960  (1 s)
+   m1_gam_top1_10               zqs_z   1.91  sdzqs    7.833  step 0.994  turns/q_np 0.960  (1 s)
+   m3_top1_32_b0                zqs_z   1.91  sdzqs    7.833  step 0.996  turns/q_np 0.999  (1 s)
+   m3_top1_32_b0.1              zqs_z   1.91  sdzqs    7.831  step 0.996  turns/q_np 0.999  (1 s)
+   m3_top1_32_b1                zqs_z   1.91  sdzqs    7.835  step 0.996  turns/q_np 0.999  (1 s)
+   m3_top1_32_b10               zqs_z   1.91  sdzqs    7.833  step 0.996  turns/q_np 1.000  (1 s)
+   m3_top1_64x64_b0             zqs_z   1.91  sdzqs    7.833  step 0.996  turns/q_np 1.000  (2 s)
+   m3_top1_64x64_b0.1           zqs_z   1.91  sdzqs    7.832  step 0.996  turns/q_np 1.000  (2 s)
+   m3_top1_64x64_b1             zqs_z   1.91  sdzqs    7.829  step 0.996  turns/q_np 1.000  (2 s)
+   m3_top1_64x64_b10            zqs_z   1.91  sdzqs    7.833  step 0.996  turns/q_np 1.000  (2 s)
+   m3_top1_128x128x128_b0       zqs_z   1.91  sdzqs    7.835  step 0.996  turns/q_np 1.000  (6 s)
+   m3_top1_128x128x128_b0.1     zqs_z   1.91  sdzqs    7.835  step 0.996  turns/q_np 1.000  (6 s)
+   m3_top1_128x128x128_b1       zqs_z   1.91  sdzqs    7.832  step 0.996  turns/q_np 1.000  (6 s)
+   m3_top1_128x128x128_b10      zqs_z   1.91  sdzqs    7.836  step 0.996  turns/q_np 1.000  (5 s)
+   seed                         spread (q_np) 0.0129  (exact) 0.0126  missing 0
+   q_np                         spread (q_np) 0.0128  (exact) 0.0127  missing 0
+   exact                        spread (q_np) 0.0129  (exact) 0.0126  missing 0
+   m1_logit_top1_0.01           spread (q_np) 0.0129  (exact) 0.0126  missing 0
+   m1_logit_top1_0.1            spread (q_np) 0.0129  (exact) 0.0126  missing 0
+   m1_logit_top1_1              spread (q_np) 0.0129  (exact) 0.0126  missing 0
+   m1_logit_top1_10             spread (q_np) 0.0129  (exact) 0.0126  missing 0
+   m1_gam_top1_0.001            spread (q_np) 0.0129  (exact) 0.0126  missing 0
+   m1_gam_top1_0.1              spread (q_np) 0.0129  (exact) 0.0126  missing 0
+   m1_gam_top1_10               spread (q_np) 0.0129  (exact) 0.0126  missing 0
+   m3_top1_32_b0                spread (q_np) 0.0129  (exact) 0.0126  missing 0
+   m3_top1_32_b0.1              spread (q_np) 0.0129  (exact) 0.0126  missing 0
+   m3_top1_32_b1                spread (q_np) 0.0129  (exact) 0.0126  missing 0
+   m3_top1_32_b10               spread (q_np) 0.0129  (exact) 0.0126  missing 0
+   m3_top1_64x64_b0             spread (q_np) 0.0129  (exact) 0.0126  missing 0
+   m3_top1_64x64_b0.1           spread (q_np) 0.0129  (exact) 0.0126  missing 0
+   m3_top1_64x64_b1             spread (q_np) 0.0129  (exact) 0.0126  missing 0
+   m3_top1_64x64_b10            spread (q_np) 0.0129  (exact) 0.0126  missing 0
+   m3_top1_128x128x128_b0       spread (q_np) 0.0129  (exact) 0.0126  missing 0
+   m3_top1_128x128x128_b0.1     spread (q_np) 0.0129  (exact) 0.0126  missing 0
+   m3_top1_128x128x128_b1       spread (q_np) 0.0129  (exact) 0.0126  missing 0
+   m3_top1_128x128x128_b10      spread (q_np) 0.0129  (exact) 0.0126  missing 0
+-- ood: 806865 frames; reference turns {'turns_qnp': 26.639293664874568, 'crossings_qnp': 120.08582571497244, 'turns_exact': 26.90012001758548, 'crossings_exact': 121.55125799148836}
+   seed                         zqs_z   2.48  sdzqs    6.224  step 0.997  turns/q_np 1.000  (1 s)
+   q_np                         zqs_z   2.49  sdzqs    6.223  step 0.997  turns/q_np 1.000  (1 s)
+   exact                        zqs_z   2.49  sdzqs    6.223  step 0.997  turns/q_np 1.000  (1 s)
+   m1_logit_top1_0.01           zqs_z   2.48  sdzqs    6.224  step 0.997  turns/q_np 1.000  (1 s)
+   m1_logit_top1_0.1            zqs_z   2.48  sdzqs    6.224  step 0.997  turns/q_np 1.000  (1 s)
+   m1_logit_top1_1              zqs_z   2.48  sdzqs    6.224  step 0.997  turns/q_np 1.000  (1 s)
+   m1_logit_top1_10             zqs_z   2.48  sdzqs    6.224  step 0.997  turns/q_np 1.000  (1 s)
+   m1_gam_top1_0.001            zqs_z   2.51  sdzqs    6.219  step 0.997  turns/q_np 0.959  (1 s)
+   m1_gam_top1_0.1              zqs_z   2.53  sdzqs    6.219  step 0.996  turns/q_np 0.959  (1 s)
+   m1_gam_top1_10               zqs_z   2.58  sdzqs    6.217  step 0.995  turns/q_np 0.959  (1 s)
+   m3_top1_32_b0                zqs_z   2.49  sdzqs    6.225  step 0.997  turns/q_np 1.000  (1 s)
+   m3_top1_32_b0.1              zqs_z   2.49  sdzqs    6.232  step 0.997  turns/q_np 1.000  (2 s)
+   m3_top1_32_b1                zqs_z   2.49  sdzqs    6.223  step 0.997  turns/q_np 1.000  (1 s)
+   m3_top1_32_b10               zqs_z   2.49  sdzqs    6.223  step 0.997  turns/q_np 1.000  (1 s)
+   m3_top1_64x64_b0             zqs_z   2.49  sdzqs    6.231  step 0.997  turns/q_np 1.000  (3 s)
+   m3_top1_64x64_b0.1           zqs_z   2.49  sdzqs    6.230  step 0.997  turns/q_np 1.000  (3 s)
+   m3_top1_64x64_b1             zqs_z   2.49  sdzqs    6.227  step 0.997  turns/q_np 1.000  (3 s)
+   m3_top1_64x64_b10            zqs_z   2.49  sdzqs    6.230  step 0.997  turns/q_np 1.000  (3 s)
+   m3_top1_128x128x128_b0       zqs_z   2.49  sdzqs    6.221  step 0.997  turns/q_np 1.000  (7 s)
+   m3_top1_128x128x128_b0.1     zqs_z   2.49  sdzqs    6.224  step 0.997  turns/q_np 1.000  (7 s)
+   m3_top1_128x128x128_b1       zqs_z   2.49  sdzqs    6.227  step 0.997  turns/q_np 1.000  (7 s)
+   m3_top1_128x128x128_b10      zqs_z   2.49  sdzqs    6.224  step 0.997  turns/q_np 1.000  (7 s)
+   seed                         spread (q_np) 0.0130  (exact) 0.0127  missing 0
+   q_np                         spread (q_np) 0.0129  (exact) 0.0128  missing 0
+   exact                        spread (q_np) 0.0130  (exact) 0.0127  missing 0
+   m1_logit_top1_0.01           spread (q_np) 0.0130  (exact) 0.0127  missing 0
+   m1_logit_top1_0.1            spread (q_np) 0.0130  (exact) 0.0127  missing 0
+   m1_logit_top1_1              spread (q_np) 0.0130  (exact) 0.0127  missing 0
+   m1_logit_top1_10             spread (q_np) 0.0130  (exact) 0.0127  missing 0
+   m1_gam_top1_0.001            spread (q_np) 0.0130  (exact) 0.0127  missing 0
+   m1_gam_top1_0.1              spread (q_np) 0.0130  (exact) 0.0127  missing 0
+   m1_gam_top1_10               spread (q_np) 0.0130  (exact) 0.0126  missing 0
+   m3_top1_32_b0                spread (q_np) 0.0130  (exact) 0.0127  missing 0
+   m3_top1_32_b0.1              spread (q_np) 0.0130  (exact) 0.0127  missing 0
+   m3_top1_32_b1                spread (q_np) 0.0130  (exact) 0.0127  missing 0
+   m3_top1_32_b10               spread (q_np) 0.0130  (exact) 0.0127  missing 0
+   m3_top1_64x64_b0             spread (q_np) 0.0130  (exact) 0.0127  missing 0
+   m3_top1_64x64_b0.1           spread (q_np) 0.0130  (exact) 0.0127  missing 0
+   m3_top1_64x64_b1             spread (q_np) 0.0130  (exact) 0.0127  missing 0
+   m3_top1_64x64_b10            spread (q_np) 0.0130  (exact) 0.0127  missing 0
+   m3_top1_128x128x128_b0       spread (q_np) 0.0130  (exact) 0.0127  missing 0
+   m3_top1_128x128x128_b0.1     spread (q_np) 0.0130  (exact) 0.0127  missing 0
+   m3_top1_128x128x128_b1       spread (q_np) 0.0130  (exact) 0.0127  missing 0
+   m3_top1_128x128x128_b10      spread (q_np) 0.0130  (exact) 0.0127  missing 0
+TIS plots in /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures/param_lambda/bumps1d/eval/tis_plots

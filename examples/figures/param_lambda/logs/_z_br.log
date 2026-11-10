@@ -1,0 +1,99 @@
+== z_br
+burnin:   6046 paths,   8393473 frames, cycles 13..39992
+train:   3751 paths,   5160451 frames, cycles 40003..84982
+val  :   1510 paths,   2151143 frames, cycles 45002..69999
+test :   1485 paths,   2082642 frames, cycles 55019..79991
+ood  :   2208 paths,   3133243 frames, cycles 85001..99994
+m1_logit_top2_0.01              2.1 s  sdzqs   22.520  spread 1.1063
+m1_logit_top2_0.1               2.1 s  sdzqs   22.698  spread 1.1243
+m1_logit_top2_1                 2.1 s  sdzqs   22.731  spread 1.1228
+m1_logit_top2_10                2.0 s  sdzqs   22.740  spread 1.1244
+m1_gam_top2_0.001               0.2 s  sdzqs   35.873  spread 0.4634
+m1_gam_top2_0.1                 0.2 s  sdzqs   24.566  spread 0.5023
+m1_gam_top2_10                  0.2 s  sdzqs   13.211  spread 0.6877
+m1_logit_top4_0.01              2.9 s  sdzqs   26.045  spread 1.3245
+m1_logit_top4_0.1               2.9 s  sdzqs   26.757  spread 1.3415
+m1_logit_top4_1                 6.4 s  sdzqs   26.882  spread 1.3414
+m1_logit_top4_10               61.1 s  sdzqs   26.923  spread 1.3405
+m1_gam_top4_0.001               0.5 s  sdzqs   39.050  spread 0.1205
+m1_gam_top4_0.1                 0.5 s  sdzqs   31.770  spread 0.3325
+m1_gam_top4_10                  0.6 s  sdzqs   18.670  spread 0.6028
+m1_logit_cvs_0.01               3.7 s  sdzqs   14.280  spread 0.7238
+m1_logit_cvs_0.1                3.8 s  sdzqs   14.258  spread 0.7163
+m1_logit_cvs_1                  4.3 s  sdzqs   14.278  spread 0.7176
+m1_logit_cvs_10                 4.5 s  sdzqs   14.281  spread 0.7175
+m1_gam_cvs_0.001                0.3 s  sdzqs  619.264  spread 1.9950
+m1_gam_cvs_0.1                  0.3 s  sdzqs  411.281  spread 1.8106
+m1_gam_cvs_10                   0.4 s  sdzqs   18.613  spread 0.9440
+   m3_top2_32_b0 epoch   3: sdzqs   37.336 spread 0.5321
+   m3_top2_32_b0 epoch   6: sdzqs   34.855 spread 0.6075
+   m3_top2_32_b0 epoch   9: sdzqs   30.933 spread 0.4984
+   m3_top2_32_b0 epoch  12: sdzqs   32.857 spread 0.4631
+   m3_top2_32_b0 epoch  15: sdzqs   30.867 spread 0.4435
+   m3_top2_32_b0 epoch  18: sdzqs   30.618 spread 0.4428
+   m3_top2_32_b0 epoch  21: sdzqs   30.363 spread 0.4414
+   m3_top2_32_b0 epoch  24: sdzqs   30.289 spread 0.4414
+m3_top2_32_b0                  44.5 s  epoch 24  sdzqs   30.289
+   m3_top2_32_b0.1 epoch   3: sdzqs   36.662 spread 0.5264
+   m3_top2_32_b0.1 epoch   6: sdzqs   33.870 spread 0.6056
+   m3_top2_32_b0.1 epoch   9: sdzqs   31.328 spread 0.4999
+   m3_top2_32_b0.1 epoch  12: sdzqs   32.415 spread 0.4627
+   m3_top2_32_b0.1 epoch  15: sdzqs   31.117 spread 0.4427
+   m3_top2_32_b0.1 epoch  18: sdzqs   30.392 spread 0.4429
+   m3_top2_32_b0.1 epoch  21: sdzqs   29.962 spread 0.4436
+   m3_top2_32_b0.1 epoch  24: sdzqs   29.646 spread 0.4436
+m3_top2_32_b0.1                57.8 s  epoch 24  sdzqs   29.646
+   m3_top2_32_b1 epoch   3: sdzqs   33.039 spread 0.5112
+   m3_top2_32_b1 epoch   6: sdzqs   29.314 spread 0.5690
+   m3_top2_32_b1 epoch   9: sdzqs   33.108 spread 0.4920
+   m3_top2_32_b1 epoch  12: sdzqs   31.699 spread 0.4591
+   m3_top2_32_b1 epoch  15: sdzqs   28.673 spread 0.4566
+   m3_top2_32_b1 epoch  18: sdzqs   26.202 spread 0.4594
+   m3_top2_32_b1 epoch  21: sdzqs   25.134 spread 0.4612
+   m3_top2_32_b1 epoch  24: sdzqs   25.012 spread 0.4617
+m3_top2_32_b1                  59.7 s  epoch 24  sdzqs   25.012
+   m3_top2_32_b10 epoch   3: sdzqs   14.529 spread 0.4746
+   m3_top2_32_b10 epoch   6: sdzqs   27.844 spread 0.4659
+   m3_top2_32_b10 epoch   9: sdzqs   22.062 spread 0.4333
+   m3_top2_32_b10 epoch  12: sdzqs   16.028 spread 0.4529
+   m3_top2_32_b10 epoch  15: sdzqs   13.841 spread 0.4601
+   m3_top2_32_b10 epoch  18: sdzqs   13.312 spread 0.4638
+   m3_top2_32_b10 epoch  21: sdzqs   12.849 spread 0.4650
+   m3_top2_32_b10 epoch  24: sdzqs   12.799 spread 0.4654
+m3_top2_32_b10                 60.0 s  epoch 24  sdzqs   12.799
+   m3_top2_64x64_b0 epoch   3: sdzqs   26.091 spread 0.4817
+   m3_top2_64x64_b0 epoch   6: sdzqs   13.374 spread 0.4399
+   m3_top2_64x64_b0 epoch   9: sdzqs    7.986 spread 0.4215
+   m3_top2_64x64_b0 epoch  12: sdzqs    8.100 spread 0.4030
+   m3_top2_64x64_b0 epoch  15: sdzqs    8.192 spread 0.3906
+   m3_top2_64x64_b0 epoch  18: sdzqs    8.100 spread 0.3874
+   m3_top2_64x64_b0 epoch  21: sdzqs    7.665 spread 0.3864
+   m3_top2_64x64_b0 epoch  24: sdzqs    7.488 spread 0.3864
+m3_top2_64x64_b0              119.9 s  epoch 24  sdzqs    7.488
+   m3_top2_64x64_b0.1 epoch   3: sdzqs   22.100 spread 0.4736
+   m3_top2_64x64_b0.1 epoch   6: sdzqs   12.744 spread 0.4295
+   m3_top2_64x64_b0.1 epoch   9: sdzqs    8.139 spread 0.4180
+   m3_top2_64x64_b0.1 epoch  12: sdzqs    8.643 spread 0.4039
+   m3_top2_64x64_b0.1 epoch  15: sdzqs    8.407 spread 0.3934
+   m3_top2_64x64_b0.1 epoch  18: sdzqs    7.265 spread 0.3896
+   m3_top2_64x64_b0.1 epoch  21: sdzqs    7.307 spread 0.3875
+   m3_top2_64x64_b0.1 epoch  24: sdzqs    7.318 spread 0.3883
+m3_top2_64x64_b0.1            125.2 s  epoch 18  sdzqs    7.265
+   m3_top2_64x64_b1 epoch   3: sdzqs   12.911 spread 0.4517
+   m3_top2_64x64_b1 epoch   6: sdzqs    7.450 spread 0.4143
+   m3_top2_64x64_b1 epoch   9: sdzqs    7.679 spread 0.4069
+   m3_top2_64x64_b1 epoch  12: sdzqs    5.243 spread 0.4016
+   m3_top2_64x64_b1 epoch  15: sdzqs    7.409 spread 0.4010
+   m3_top2_64x64_b1 epoch  18: sdzqs    6.298 spread 0.3985
+   m3_top2_64x64_b1 epoch  21: sdzqs    6.114 spread 0.3948
+   m3_top2_64x64_b1 epoch  24: sdzqs    6.076 spread 0.3940
+m3_top2_64x64_b1              121.5 s  epoch 12  sdzqs    5.243
+   m3_top2_64x64_b10 epoch   3: sdzqs    6.703 spread 0.4163
+   m3_top2_64x64_b10 epoch   6: sdzqs    6.100 spread 0.4082
+   m3_top2_64x64_b10 epoch   9: sdzqs    5.074 spread 0.4063
+   m3_top2_64x64_b10 epoch  12: sdzqs    5.813 spread 0.4034
+   m3_top2_64x64_b10 epoch  15: sdzqs    5.596 spread 0.3995
+   m3_top2_64x64_b10 epoch  18: sdzqs    5.530 spread 0.3980
+   m3_top2_64x64_b10 epoch  21: sdzqs    5.087 spread 0.3952
+   m3_top2_64x64_b10 epoch  24: sdzqs    5.060 spread 0.3944
+m3_top2_64x64_b10             119.7 s  epoch 24  sdzqs    5.060

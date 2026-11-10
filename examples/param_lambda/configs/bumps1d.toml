@@ -1,0 +1,63 @@
+# 1D overdamped, two cosine bumps of 1 kT on [-0.1, 0.3], staple run sim_istar2cosbr_2108
+# (gamma 5, dt 2e-4, kT 1; A x <= -0.1, B x >= 0.3): the same dynamics as the long-MD "two bumps" test.
+name = "bumps1d"
+seed = 0
+
+[data]
+tis_dir = "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/PyRETIS3/toytis/simulations/sim_istar2cosbr_2108"
+loader_args = ["--reversed", "--paths-per-ensemble", "2000"]
+q_np = "examples/figures/param_lambda/bumps1d/qnp/committor.npz"
+qnp_fit_args = ["--max-iter", "3000", "--lazy-basis", "--gamma", "0.1", "--no-potential"]
+cv_names = ["x"]
+state_cv = 0
+exact = "1d"
+exact_file = "examples/figures/exact_committors/brownian1d/q_exact_longmd_two_bumps.npz"
+
+[split]
+ood_from = 0.85
+block = 0.05
+val_blocks = [1, 5]
+test_blocks = [3, 7]
+
+[features]
+library = ["x", "x^2", "x^3"]
+top_k = [1]
+
+[train]
+lags = [1, 2, 4, 8]
+anchor_stride = 2
+mid_weight = 5.0
+
+[m1]
+l1_C = [0.01, 0.1, 1.0, 10.0]
+gam_knots = 12
+gam_ridge = [1e-3, 1e-1, 10.0]         # P-spline penalty on second differences of the coefficients
+max_frames = 400000
+
+[m2]
+max_frames = 400000
+max_iter = 300
+
+[m3]
+archs = [[32], [64, 64], [128, 128, 128]]
+betas = [0.0, 0.1, 1.0, 10.0]
+epochs = 24
+checkpoints = 8
+batch = 4096
+lr = 3e-3
+weight_decay = 1e-4
+max_anchors = 3000000
+
+[eval]
+q_lo = 1e-2
+q_hi = 0.95
+n_interfaces = 12
+slab_half_logit = 0.2                # slab |logit m - logit q_k| < 0.2 (same width at every level)
+zq_lags = [1, 4, 16, 64, 256, 1024, 4096]
+select_lags = [1, 4, 16, 64, 256]
+max_pieces_select = 4000
+
+[export]
+ramp = 0.05
+scale_eps = 1e-3
+ood_quantile = 0.999

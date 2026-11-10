@@ -1,0 +1,16 @@
+  /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/PyRETIS3/toytis/simulations/sim_istar0br10intf/001: 1619 pieces, 41558 frames, cycles 40001..99998 of 100001
+  /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/PyRETIS3/toytis/simulations/sim_istar0br10intf/002: 2000 pieces, 128049 frames, cycles 40001..100000 of 100001
+  /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/PyRETIS3/toytis/simulations/sim_istar0br10intf/003: 2000 pieces, 150584 frames, cycles 40001..99999 of 100001
+  /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/PyRETIS3/toytis/simulations/sim_istar0br10intf/004: 2000 pieces, 156623 frames, cycles 40008..100000 of 100001
+  /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/PyRETIS3/toytis/simulations/sim_istar0br10intf/005: 2000 pieces, 171422 frames, cycles 40001..99996 of 100001
+  /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/PyRETIS3/toytis/simulations/sim_istar0br10intf/006: 2000 pieces, 165490 frames, cycles 40001..99999 of 100001
+  /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/PyRETIS3/toytis/simulations/sim_istar0br10intf/007: 2000 pieces, 162482 frames, cycles 40008..100000 of 100001
+  /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/PyRETIS3/toytis/simulations/sim_istar0br10intf/008: 2000 pieces, 156143 frames, cycles 40003..100000 of 100001
+  /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/PyRETIS3/toytis/simulations/sim_istar0br10intf/009: 2000 pieces, 132553 frames, cycles 40001..99995 of 100001
+1264904 frames, 17619 pieces, 9000 paths; A 3328, B 1955 frames; saved /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures/param_lambda/flat1d/frames.npz
+burnin:      0 paths,         0 frames, cycles -1..-1
+train:   3741 paths,    523734 frames, cycles 40001..84995
+val  :   1486 paths,    210957 frames, cycles 45012..69991
+test :   1503 paths,    210946 frames, cycles 55012..80000
+ood  :   2270 paths,    319267 frames, cycles 85011..100000
+extract done in 29 s

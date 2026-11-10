@@ -1,0 +1,10 @@
+== cc_br
+burnin:      0 paths,         0 frames, cycles -1..-1
+train:   2366 paths,   1096474 frames, cycles 801..1700
+val  :    977 paths,    451538 frames, cycles 901..1400
+test :    965 paths,    457472 frames, cycles 1101..1600
+ood  :   1519 paths,    694918 frames, cycles 1701..2000
+seed       -> /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/param_lambda/exported/cc_br_seed.npz: 2.4 us/frame (one), 0.122 us/frame (batch); ramps hold 5.29% of the weight, max |h - m| 0.002
+M1-logit   -> /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/param_lambda/exported/cc_br_m1-logit.npz: 4.3 us/frame (one), 0.126 us/frame (batch); ramps hold 5.29% of the weight, max |h - m| 0.0218
+M1-gam     -> /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/param_lambda/exported/cc_br_m1-gam.npz: 8.6 us/frame (one), 0.479 us/frame (batch); ramps hold 5.29% of the weight, max |h - m| 0.023
+M3         -> /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/param_lambda/exported/cc_br_m3.npz: 9.6 us/frame (one), 1.720 us/frame (batch); ramps hold 5.29% of the weight, max |h - m| 0.0227

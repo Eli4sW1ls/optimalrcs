@@ -1,0 +1,351 @@
+== z_br
+burnin:   6046 paths,   8393473 frames, cycles 13..39992
+train:   3751 paths,   5160451 frames, cycles 40003..84982
+val  :   1510 paths,   2151143 frames, cycles 45002..69999
+test :   1485 paths,   2082642 frames, cycles 55019..79991
+ood  :   2208 paths,   3133243 frames, cycles 85001..99994
+m1_logit_top2_0.01              2.1 s  sdzqs   24.083  spread 1.6534
+m1_logit_top2_0.1               2.1 s  sdzqs   23.263  spread 1.6799
+m1_logit_top2_1                 2.0 s  sdzqs   23.543  spread 1.6054
+m1_logit_top2_10                2.2 s  sdzqs   23.543  spread 1.5980
+m1_gam_top2_0.001               0.2 s  sdzqs   34.762  spread 0.4329
+m1_gam_top2_0.1                 0.2 s  sdzqs   23.482  spread 0.5235
+m1_gam_top2_10                  0.2 s  sdzqs   12.207  spread 0.9774
+m1_logit_top4_0.01              2.9 s  sdzqs   18.484  spread 3.0295
+m1_logit_top4_0.1               2.8 s  sdzqs   18.865  spread 3.0470
+m1_logit_top4_1                 6.3 s  sdzqs   19.032  spread 3.0151
+m1_logit_top4_10               60.0 s  sdzqs   19.057  spread 3.0132
+m1_gam_top4_0.001               0.4 s  sdzqs   34.691  spread 0.1191
+m1_gam_top4_0.1                 0.3 s  sdzqs   29.730  spread 0.4650
+m1_gam_top4_10                  0.3 s  sdzqs   16.419  spread 0.7084
+m1_logit_cvs_0.01               3.2 s  sdzqs   11.920  spread 1.2908
+m1_logit_cvs_0.1                3.4 s  sdzqs   12.035  spread 1.2592
+m1_logit_cvs_1                  3.6 s  sdzqs   12.050  spread 1.2489
+m1_logit_cvs_10                 3.3 s  sdzqs   12.047  spread 1.2489
+m1_gam_cvs_0.001                0.2 s  sdzqs  639.255  spread 2.0586
+m1_gam_cvs_0.1                  0.1 s  sdzqs  418.659  spread 1.9328
+m1_gam_cvs_10                   0.2 s  sdzqs   14.871  spread 1.4477
+   m3_top2_32_b0 epoch   3: sdzqs   33.022 spread 0.5250
+   m3_top2_32_b0 epoch   6: sdzqs   27.394 spread 0.5936
+   m3_top2_32_b0 epoch   9: sdzqs   28.820 spread 0.5071
+   m3_top2_32_b0 epoch  12: sdzqs   29.063 spread 0.4405
+   m3_top2_32_b0 epoch  15: sdzqs   26.966 spread 0.4894
+   m3_top2_32_b0 epoch  18: sdzqs   26.720 spread 0.4777
+   m3_top2_32_b0 epoch  21: sdzqs   26.515 spread 0.4716
+   m3_top2_32_b0 epoch  24: sdzqs   26.057 spread 0.4738
+m3_top2_32_b0                  17.5 s  epoch 24  sdzqs   26.057
+   m3_top2_32_b0.1 epoch   3: sdzqs   32.863 spread 0.5026
+   m3_top2_32_b0.1 epoch   6: sdzqs   28.956 spread 0.6084
+   m3_top2_32_b0.1 epoch   9: sdzqs   28.191 spread 0.5322
+   m3_top2_32_b0.1 epoch  12: sdzqs   29.464 spread 0.5553
+   m3_top2_32_b0.1 epoch  15: sdzqs   27.344 spread 0.4902
+   m3_top2_32_b0.1 epoch  18: sdzqs   26.326 spread 0.4779
+   m3_top2_32_b0.1 epoch  21: sdzqs   25.682 spread 0.4727
+   m3_top2_32_b0.1 epoch  24: sdzqs   25.839 spread 0.4689
+m3_top2_32_b0.1                28.9 s  epoch 21  sdzqs   25.682
+   m3_top2_32_b1 epoch   3: sdzqs   28.690 spread 0.4725
+   m3_top2_32_b1 epoch   6: sdzqs   46.799 spread 0.5479
+   m3_top2_32_b1 epoch   9: sdzqs   30.482 spread 0.4796
+   m3_top2_32_b1 epoch  12: sdzqs   27.054 spread 0.4949
+   m3_top2_32_b1 epoch  15: sdzqs   24.586 spread 0.4746
+   m3_top2_32_b1 epoch  18: sdzqs   23.264 spread 0.4911
+   m3_top2_32_b1 epoch  21: sdzqs   21.776 spread 0.4999
+   m3_top2_32_b1 epoch  24: sdzqs   21.174 spread 0.4915
+m3_top2_32_b1                  29.3 s  epoch 24  sdzqs   21.174
+   m3_top2_32_b10 epoch   3: sdzqs   14.108 spread 0.4495
+   m3_top2_32_b10 epoch   6: sdzqs   24.522 spread 0.4516
+   m3_top2_32_b10 epoch   9: sdzqs   19.041 spread 0.4565
+   m3_top2_32_b10 epoch  12: sdzqs   14.009 spread 0.4436
+   m3_top2_32_b10 epoch  15: sdzqs   11.141 spread 0.4482
+   m3_top2_32_b10 epoch  18: sdzqs   10.711 spread 0.4416
+   m3_top2_32_b10 epoch  21: sdzqs    9.948 spread 0.4470
+   m3_top2_32_b10 epoch  24: sdzqs    9.821 spread 0.4505
+m3_top2_32_b10                 29.8 s  epoch 24  sdzqs    9.821
+   m3_top2_64x64_b0 epoch   3: sdzqs   24.810 spread 0.5404
+   m3_top2_64x64_b0 epoch   6: sdzqs   10.126 spread 0.4321
+   m3_top2_64x64_b0 epoch   9: sdzqs    6.137 spread 0.4096
+   m3_top2_64x64_b0 epoch  12: sdzqs    5.516 spread 0.3946
+   m3_top2_64x64_b0 epoch  15: sdzqs    5.871 spread 0.3923
+   m3_top2_64x64_b0 epoch  18: sdzqs    5.087 spread 0.3805
+   m3_top2_64x64_b0 epoch  21: sdzqs    5.377 spread 0.3881
+   m3_top2_64x64_b0 epoch  24: sdzqs    5.564 spread 0.3859
+m3_top2_64x64_b0               46.3 s  epoch 18  sdzqs    5.087
+   m3_top2_64x64_b0.1 epoch   3: sdzqs   21.368 spread 0.5258
+   m3_top2_64x64_b0.1 epoch   6: sdzqs    9.750 spread 0.4200
+   m3_top2_64x64_b0.1 epoch   9: sdzqs    5.045 spread 0.4160
+   m3_top2_64x64_b0.1 epoch  12: sdzqs    5.755 spread 0.3934
+   m3_top2_64x64_b0.1 epoch  15: sdzqs    6.202 spread 0.3876
+   m3_top2_64x64_b0.1 epoch  18: sdzqs    5.307 spread 0.3904
+   m3_top2_64x64_b0.1 epoch  21: sdzqs    4.733 spread 0.3831
+   m3_top2_64x64_b0.1 epoch  24: sdzqs    5.187 spread 0.3787
+m3_top2_64x64_b0.1             63.9 s  epoch 21  sdzqs    4.733
+   m3_top2_64x64_b1 epoch   3: sdzqs   10.338 spread 0.4596
+   m3_top2_64x64_b1 epoch   6: sdzqs    5.147 spread 0.4036
+   m3_top2_64x64_b1 epoch   9: sdzqs    4.163 spread 0.3978
+   m3_top2_64x64_b1 epoch  12: sdzqs    3.963 spread 0.3733
+   m3_top2_64x64_b1 epoch  15: sdzqs    3.996 spread 0.3735
+   m3_top2_64x64_b1 epoch  18: sdzqs    4.484 spread 0.3723
+   m3_top2_64x64_b1 epoch  21: sdzqs    4.677 spread 0.3702
+   m3_top2_64x64_b1 epoch  24: sdzqs    3.999 spread 0.3650
+m3_top2_64x64_b1               64.0 s  epoch 12  sdzqs    3.963
+   m3_top2_64x64_b10 epoch   3: sdzqs    4.421 spread 0.3999
+   m3_top2_64x64_b10 epoch   6: sdzqs    3.952 spread 0.3700
+   m3_top2_64x64_b10 epoch   9: sdzqs    3.948 spread 0.3687
+   m3_top2_64x64_b10 epoch  12: sdzqs    3.990 spread 0.3631
+   m3_top2_64x64_b10 epoch  15: sdzqs    3.799 spread 0.3674
+   m3_top2_64x64_b10 epoch  18: sdzqs    3.790 spread 0.3584
+   m3_top2_64x64_b10 epoch  21: sdzqs    3.709 spread 0.3583
+   m3_top2_64x64_b10 epoch  24: sdzqs    3.456 spread 0.3571
+m3_top2_64x64_b10              64.4 s  epoch 24  sdzqs    3.456
+   m3_top2_128x128x128_b0 epoch   3: sdzqs    4.875 spread 0.3883
+   m3_top2_128x128x128_b0 epoch   6: sdzqs    3.649 spread 0.3348
+   m3_top2_128x128x128_b0 epoch   9: sdzqs    3.839 spread 0.3467
+   m3_top2_128x128x128_b0 epoch  12: sdzqs    4.487 spread 0.3415
+   m3_top2_128x128x128_b0 epoch  15: sdzqs    4.324 spread 0.3385
+   m3_top2_128x128x128_b0 epoch  18: sdzqs    4.251 spread 0.3623
+   m3_top2_128x128x128_b0 epoch  21: sdzqs    4.203 spread 0.3601
+   m3_top2_128x128x128_b0 epoch  24: sdzqs    4.188 spread 0.3536
+m3_top2_128x128x128_b0        129.6 s  epoch 6  sdzqs    3.649
+   m3_top2_128x128x128_b0.1 epoch   3: sdzqs    4.439 spread 0.3843
+   m3_top2_128x128x128_b0.1 epoch   6: sdzqs    4.450 spread 0.3202
+   m3_top2_128x128x128_b0.1 epoch   9: sdzqs    5.567 spread 0.3393
+   m3_top2_128x128x128_b0.1 epoch  12: sdzqs    4.312 spread 0.3263
+   m3_top2_128x128x128_b0.1 epoch  15: sdzqs    3.879 spread 0.3319
+   m3_top2_128x128x128_b0.1 epoch  18: sdzqs    3.926 spread 0.3265
+   m3_top2_128x128x128_b0.1 epoch  21: sdzqs    3.866 spread 0.3219
+   m3_top2_128x128x128_b0.1 epoch  24: sdzqs    4.065 spread 0.3199
+m3_top2_128x128x128_b0.1      187.0 s  epoch 21  sdzqs    3.866
+   m3_top2_128x128x128_b1 epoch   3: sdzqs    4.344 spread 0.3741
+   m3_top2_128x128x128_b1 epoch   6: sdzqs    4.478 spread 0.3329
+   m3_top2_128x128x128_b1 epoch   9: sdzqs    4.331 spread 0.3305
+   m3_top2_128x128x128_b1 epoch  12: sdzqs    4.762 spread 0.3097
+   m3_top2_128x128x128_b1 epoch  15: sdzqs    4.009 spread 0.3112
+   m3_top2_128x128x128_b1 epoch  18: sdzqs    3.946 spread 0.3113
+   m3_top2_128x128x128_b1 epoch  21: sdzqs    3.849 spread 0.3160
+   m3_top2_128x128x128_b1 epoch  24: sdzqs    4.084 spread 0.3133
+m3_top2_128x128x128_b1        189.6 s  epoch 21  sdzqs    3.849
+   m3_top2_128x128x128_b10 epoch   3: sdzqs    4.167 spread 0.3799
+   m3_top2_128x128x128_b10 epoch   6: sdzqs    6.509 spread 0.3478
+   m3_top2_128x128x128_b10 epoch   9: sdzqs    3.877 spread 0.3360
+   m3_top2_128x128x128_b10 epoch  12: sdzqs    4.223 spread 0.3366
+   m3_top2_128x128x128_b10 epoch  15: sdzqs    3.591 spread 0.3263
+   m3_top2_128x128x128_b10 epoch  18: sdzqs    4.068 spread 0.3188
+   m3_top2_128x128x128_b10 epoch  21: sdzqs    3.909 spread 0.3167
+   m3_top2_128x128x128_b10 epoch  24: sdzqs    3.720 spread 0.3166
+m3_top2_128x128x128_b10       185.7 s  epoch 15  sdzqs    3.591
+   m3_top4_32_b0 epoch   3: sdzqs   26.197 spread 1.0280
+   m3_top4_32_b0 epoch   6: sdzqs   34.541 spread 0.3936
+   m3_top4_32_b0 epoch   9: sdzqs   42.653 spread 0.2665
+   m3_top4_32_b0 epoch  12: sdzqs   31.323 spread 0.2501
+   m3_top4_32_b0 epoch  15: sdzqs   25.393 spread 0.2445
+   m3_top4_32_b0 epoch  18: sdzqs   22.571 spread 0.2460
+   m3_top4_32_b0 epoch  21: sdzqs   19.924 spread 0.2389
+   m3_top4_32_b0 epoch  24: sdzqs   19.593 spread 0.2296
+m3_top4_32_b0                  18.2 s  epoch 24  sdzqs   19.593
+   m3_top4_32_b0.1 epoch   3: sdzqs   27.020 spread 0.7146
+   m3_top4_32_b0.1 epoch   6: sdzqs   30.346 spread 0.3713
+   m3_top4_32_b0.1 epoch   9: sdzqs   32.588 spread 0.3425
+   m3_top4_32_b0.1 epoch  12: sdzqs   24.877 spread 0.2616
+   m3_top4_32_b0.1 epoch  15: sdzqs   18.010 spread 0.2515
+   m3_top4_32_b0.1 epoch  18: sdzqs   15.608 spread 0.2445
+   m3_top4_32_b0.1 epoch  21: sdzqs   15.127 spread 0.2353
+   m3_top4_32_b0.1 epoch  24: sdzqs   14.901 spread 0.2247
+m3_top4_32_b0.1                29.9 s  epoch 24  sdzqs   14.901
+   m3_top4_32_b1 epoch   3: sdzqs   23.434 spread 0.8374
+   m3_top4_32_b1 epoch   6: sdzqs   32.442 spread 0.3848
+   m3_top4_32_b1 epoch   9: sdzqs   21.040 spread 0.2770
+   m3_top4_32_b1 epoch  12: sdzqs   11.627 spread 0.2222
+   m3_top4_32_b1 epoch  15: sdzqs    9.054 spread 0.1937
+   m3_top4_32_b1 epoch  18: sdzqs    7.932 spread 0.1938
+   m3_top4_32_b1 epoch  21: sdzqs    7.730 spread 0.1988
+   m3_top4_32_b1 epoch  24: sdzqs    7.664 spread 0.1986
+m3_top4_32_b1                  30.4 s  epoch 24  sdzqs    7.664
+   m3_top4_32_b10 epoch   3: sdzqs   18.877 spread 0.5297
+   m3_top4_32_b10 epoch   6: sdzqs    9.482 spread 0.2548
+   m3_top4_32_b10 epoch   9: sdzqs    4.371 spread 0.2595
+   m3_top4_32_b10 epoch  12: sdzqs    3.307 spread 0.1947
+   m3_top4_32_b10 epoch  15: sdzqs    3.270 spread 0.1749
+   m3_top4_32_b10 epoch  18: sdzqs    3.317 spread 0.1576
+   m3_top4_32_b10 epoch  21: sdzqs    3.494 spread 0.1592
+   m3_top4_32_b10 epoch  24: sdzqs    3.666 spread 0.1620
+m3_top4_32_b10                 30.3 s  epoch 15  sdzqs    3.270
+   m3_top4_64x64_b0 epoch   3: sdzqs   10.423 spread 0.2151
+   m3_top4_64x64_b0 epoch   6: sdzqs   12.426 spread 0.1743
+   m3_top4_64x64_b0 epoch   9: sdzqs    6.845 spread 0.1584
+   m3_top4_64x64_b0 epoch  12: sdzqs    5.884 spread 0.1525
+   m3_top4_64x64_b0 epoch  15: sdzqs    5.536 spread 0.1177
+   m3_top4_64x64_b0 epoch  18: sdzqs    4.888 spread 0.1153
+   m3_top4_64x64_b0 epoch  21: sdzqs    4.499 spread 0.1141
+   m3_top4_64x64_b0 epoch  24: sdzqs    4.564 spread 0.1179
+m3_top4_64x64_b0               48.3 s  epoch 21  sdzqs    4.499
+   m3_top4_64x64_b0.1 epoch   3: sdzqs   11.059 spread 0.2067
+   m3_top4_64x64_b0.1 epoch   6: sdzqs    6.982 spread 0.1667
+   m3_top4_64x64_b0.1 epoch   9: sdzqs    7.175 spread 0.1469
+   m3_top4_64x64_b0.1 epoch  12: sdzqs    5.180 spread 0.1320
+   m3_top4_64x64_b0.1 epoch  15: sdzqs    4.260 spread 0.1129
+   m3_top4_64x64_b0.1 epoch  18: sdzqs    3.905 spread 0.1140
+   m3_top4_64x64_b0.1 epoch  21: sdzqs    3.864 spread 0.1072
+   m3_top4_64x64_b0.1 epoch  24: sdzqs    3.834 spread 0.1107
+m3_top4_64x64_b0.1             66.9 s  epoch 24  sdzqs    3.834
+   m3_top4_64x64_b1 epoch   3: sdzqs    4.203 spread 0.1854
+   m3_top4_64x64_b1 epoch   6: sdzqs    4.028 spread 0.1578
+   m3_top4_64x64_b1 epoch   9: sdzqs    2.616 spread 0.1100
+   m3_top4_64x64_b1 epoch  12: sdzqs    1.940 spread 0.0899
+   m3_top4_64x64_b1 epoch  15: sdzqs    1.531 spread 0.0756
+   m3_top4_64x64_b1 epoch  18: sdzqs    1.906 spread 0.0669
+   m3_top4_64x64_b1 epoch  21: sdzqs    1.990 spread 0.0650
+   m3_top4_64x64_b1 epoch  24: sdzqs    1.595 spread 0.0624
+m3_top4_64x64_b1               68.4 s  epoch 15  sdzqs    1.531
+   m3_top4_64x64_b10 epoch   3: sdzqs    2.304 spread 0.0749
+   m3_top4_64x64_b10 epoch   6: sdzqs    1.664 spread 0.0663
+   m3_top4_64x64_b10 epoch   9: sdzqs    1.315 spread 0.0570
+   m3_top4_64x64_b10 epoch  12: sdzqs    1.382 spread 0.0496
+   m3_top4_64x64_b10 epoch  15: sdzqs    1.362 spread 0.0392
+   m3_top4_64x64_b10 epoch  18: sdzqs    1.356 spread 0.0369
+   m3_top4_64x64_b10 epoch  21: sdzqs    1.269 spread 0.0398
+   m3_top4_64x64_b10 epoch  24: sdzqs    1.263 spread 0.0382
+m3_top4_64x64_b10              68.5 s  epoch 24  sdzqs    1.263
+   m3_top4_128x128x128_b0 epoch   3: sdzqs    1.421 spread 0.0619
+   m3_top4_128x128x128_b0 epoch   6: sdzqs    1.512 spread 0.0467
+   m3_top4_128x128x128_b0 epoch   9: sdzqs    1.635 spread 0.0521
+   m3_top4_128x128x128_b0 epoch  12: sdzqs    1.261 spread 0.0484
+   m3_top4_128x128x128_b0 epoch  15: sdzqs    1.215 spread 0.0413
+   m3_top4_128x128x128_b0 epoch  18: sdzqs    1.387 spread 0.0419
+   m3_top4_128x128x128_b0 epoch  21: sdzqs    1.281 spread 0.0398
+   m3_top4_128x128x128_b0 epoch  24: sdzqs    1.192 spread 0.0374
+m3_top4_128x128x128_b0        131.7 s  epoch 24  sdzqs    1.192
+   m3_top4_128x128x128_b0.1 epoch   3: sdzqs    1.786 spread 0.0602
+   m3_top4_128x128x128_b0.1 epoch   6: sdzqs    1.284 spread 0.0613
+   m3_top4_128x128x128_b0.1 epoch   9: sdzqs    1.402 spread 0.0510
+   m3_top4_128x128x128_b0.1 epoch  12: sdzqs    1.244 spread 0.0435
+   m3_top4_128x128x128_b0.1 epoch  15: sdzqs    1.225 spread 0.0418
+   m3_top4_128x128x128_b0.1 epoch  18: sdzqs    1.273 spread 0.0433
+   m3_top4_128x128x128_b0.1 epoch  21: sdzqs    1.210 spread 0.0394
+   m3_top4_128x128x128_b0.1 epoch  24: sdzqs    1.196 spread 0.0361
+m3_top4_128x128x128_b0.1      188.2 s  epoch 24  sdzqs    1.196
+   m3_top4_128x128x128_b1 epoch   3: sdzqs    1.567 spread 0.0488
+   m3_top4_128x128x128_b1 epoch   6: sdzqs    1.198 spread 0.0527
+   m3_top4_128x128x128_b1 epoch   9: sdzqs    1.163 spread 0.0435
+   m3_top4_128x128x128_b1 epoch  12: sdzqs    1.200 spread 0.0358
+   m3_top4_128x128x128_b1 epoch  15: sdzqs    1.193 spread 0.0405
+   m3_top4_128x128x128_b1 epoch  18: sdzqs    1.185 spread 0.0372
+   m3_top4_128x128x128_b1 epoch  21: sdzqs    1.245 spread 0.0342
+   m3_top4_128x128x128_b1 epoch  24: sdzqs    1.246 spread 0.0344
+m3_top4_128x128x128_b1        189.1 s  epoch 9  sdzqs    1.163
+   m3_top4_128x128x128_b10 epoch   3: sdzqs    1.311 spread 0.0349
+   m3_top4_128x128x128_b10 epoch   6: sdzqs    1.350 spread 0.0315
+   m3_top4_128x128x128_b10 epoch   9: sdzqs    1.299 spread 0.0348
+   m3_top4_128x128x128_b10 epoch  12: sdzqs    1.277 spread 0.0281
+   m3_top4_128x128x128_b10 epoch  15: sdzqs    1.462 spread 0.0231
+   m3_top4_128x128x128_b10 epoch  18: sdzqs    1.338 spread 0.0239
+   m3_top4_128x128x128_b10 epoch  21: sdzqs    1.337 spread 0.0221
+   m3_top4_128x128x128_b10 epoch  24: sdzqs    1.384 spread 0.0215
+m3_top4_128x128x128_b10       188.8 s  epoch 12  sdzqs    1.277
+   m3_cvs_32_b0 epoch   3: sdzqs   24.271 spread 0.6920
+   m3_cvs_32_b0 epoch   6: sdzqs   20.983 spread 0.1818
+   m3_cvs_32_b0 epoch   9: sdzqs   23.326 spread 0.1008
+   m3_cvs_32_b0 epoch  12: sdzqs   20.995 spread 0.1038
+   m3_cvs_32_b0 epoch  15: sdzqs   20.194 spread 0.1164
+   m3_cvs_32_b0 epoch  18: sdzqs   19.810 spread 0.1316
+   m3_cvs_32_b0 epoch  21: sdzqs   19.375 spread 0.1342
+   m3_cvs_32_b0 epoch  24: sdzqs   19.374 spread 0.1353
+m3_cvs_32_b0                   17.7 s  epoch 24  sdzqs   19.374
+   m3_cvs_32_b0.1 epoch   3: sdzqs   26.116 spread 0.7290
+   m3_cvs_32_b0.1 epoch   6: sdzqs   21.607 spread 0.1709
+   m3_cvs_32_b0.1 epoch   9: sdzqs   22.129 spread 0.0938
+   m3_cvs_32_b0.1 epoch  12: sdzqs   20.940 spread 0.0986
+   m3_cvs_32_b0.1 epoch  15: sdzqs   19.218 spread 0.1257
+   m3_cvs_32_b0.1 epoch  18: sdzqs   18.772 spread 0.1364
+   m3_cvs_32_b0.1 epoch  21: sdzqs   18.806 spread 0.1313
+   m3_cvs_32_b0.1 epoch  24: sdzqs   18.649 spread 0.1331
+m3_cvs_32_b0.1                 30.0 s  epoch 24  sdzqs   18.649
+   m3_cvs_32_b1 epoch   3: sdzqs   25.047 spread 0.7542
+   m3_cvs_32_b1 epoch   6: sdzqs   18.898 spread 0.1326
+   m3_cvs_32_b1 epoch   9: sdzqs   20.918 spread 0.0862
+   m3_cvs_32_b1 epoch  12: sdzqs   19.264 spread 0.1121
+   m3_cvs_32_b1 epoch  15: sdzqs   16.133 spread 0.1217
+   m3_cvs_32_b1 epoch  18: sdzqs   14.188 spread 0.1206
+   m3_cvs_32_b1 epoch  21: sdzqs   13.554 spread 0.1267
+   m3_cvs_32_b1 epoch  24: sdzqs   13.475 spread 0.1166
+m3_cvs_32_b1                   29.8 s  epoch 24  sdzqs   13.475
+   m3_cvs_32_b10 epoch   3: sdzqs   13.496 spread 1.0377
+   m3_cvs_32_b10 epoch   6: sdzqs   19.914 spread 0.1008
+   m3_cvs_32_b10 epoch   9: sdzqs   12.414 spread 0.1237
+   m3_cvs_32_b10 epoch  12: sdzqs    5.774 spread 0.0904
+   m3_cvs_32_b10 epoch  15: sdzqs    3.689 spread 0.0767
+   m3_cvs_32_b10 epoch  18: sdzqs    2.948 spread 0.0762
+   m3_cvs_32_b10 epoch  21: sdzqs    2.752 spread 0.0750
+   m3_cvs_32_b10 epoch  24: sdzqs    2.721 spread 0.0747
+m3_cvs_32_b10                  29.9 s  epoch 24  sdzqs    2.721
+   m3_cvs_64x64_b0 epoch   3: sdzqs   10.454 spread 0.0679
+   m3_cvs_64x64_b0 epoch   6: sdzqs    3.001 spread 0.0683
+   m3_cvs_64x64_b0 epoch   9: sdzqs    1.966 spread 0.0556
+   m3_cvs_64x64_b0 epoch  12: sdzqs    1.973 spread 0.0576
+   m3_cvs_64x64_b0 epoch  15: sdzqs    1.469 spread 0.0464
+   m3_cvs_64x64_b0 epoch  18: sdzqs    1.504 spread 0.0481
+   m3_cvs_64x64_b0 epoch  21: sdzqs    1.408 spread 0.0489
+   m3_cvs_64x64_b0 epoch  24: sdzqs    1.523 spread 0.0482
+m3_cvs_64x64_b0                48.1 s  epoch 21  sdzqs    1.408
+   m3_cvs_64x64_b0.1 epoch   3: sdzqs    7.232 spread 0.0759
+   m3_cvs_64x64_b0.1 epoch   6: sdzqs    3.173 spread 0.0745
+   m3_cvs_64x64_b0.1 epoch   9: sdzqs    2.234 spread 0.0613
+   m3_cvs_64x64_b0.1 epoch  12: sdzqs    1.622 spread 0.0548
+   m3_cvs_64x64_b0.1 epoch  15: sdzqs    1.626 spread 0.0504
+   m3_cvs_64x64_b0.1 epoch  18: sdzqs    1.611 spread 0.0533
+   m3_cvs_64x64_b0.1 epoch  21: sdzqs    1.509 spread 0.0530
+   m3_cvs_64x64_b0.1 epoch  24: sdzqs    1.673 spread 0.0535
+m3_cvs_64x64_b0.1              64.4 s  epoch 21  sdzqs    1.509
+   m3_cvs_64x64_b1 epoch   3: sdzqs    3.771 spread 0.0645
+   m3_cvs_64x64_b1 epoch   6: sdzqs    2.790 spread 0.0629
+   m3_cvs_64x64_b1 epoch   9: sdzqs    1.647 spread 0.0568
+   m3_cvs_64x64_b1 epoch  12: sdzqs    1.371 spread 0.0526
+   m3_cvs_64x64_b1 epoch  15: sdzqs    2.601 spread 0.0512
+   m3_cvs_64x64_b1 epoch  18: sdzqs    3.122 spread 0.0461
+   m3_cvs_64x64_b1 epoch  21: sdzqs    2.835 spread 0.0462
+   m3_cvs_64x64_b1 epoch  24: sdzqs    2.332 spread 0.0495
+m3_cvs_64x64_b1                64.5 s  epoch 12  sdzqs    1.371
+   m3_cvs_64x64_b10 epoch   3: sdzqs    2.026 spread 0.0566
+   m3_cvs_64x64_b10 epoch   6: sdzqs    1.388 spread 0.0481
+   m3_cvs_64x64_b10 epoch   9: sdzqs    1.246 spread 0.0464
+   m3_cvs_64x64_b10 epoch  12: sdzqs    1.200 spread 0.0397
+   m3_cvs_64x64_b10 epoch  15: sdzqs    1.287 spread 0.0432
+   m3_cvs_64x64_b10 epoch  18: sdzqs    1.192 spread 0.0425
+   m3_cvs_64x64_b10 epoch  21: sdzqs    1.270 spread 0.0387
+   m3_cvs_64x64_b10 epoch  24: sdzqs    1.260 spread 0.0366
+m3_cvs_64x64_b10               64.9 s  epoch 18  sdzqs    1.192
+   m3_cvs_128x128x128_b0 epoch   3: sdzqs    2.258 spread 0.0664
+   m3_cvs_128x128x128_b0 epoch   6: sdzqs    1.313 spread 0.0462
+   m3_cvs_128x128x128_b0 epoch   9: sdzqs    1.120 spread 0.0483
+   m3_cvs_128x128x128_b0 epoch  12: sdzqs    1.583 spread 0.0486
+   m3_cvs_128x128x128_b0 epoch  15: sdzqs    1.371 spread 0.0437
+   m3_cvs_128x128x128_b0 epoch  18: sdzqs    1.292 spread 0.0428
+   m3_cvs_128x128x128_b0 epoch  21: sdzqs    1.485 spread 0.0396
+   m3_cvs_128x128x128_b0 epoch  24: sdzqs    1.300 spread 0.0419
+m3_cvs_128x128x128_b0         130.0 s  epoch 9  sdzqs    1.120
+   m3_cvs_128x128x128_b0.1 epoch   3: sdzqs    1.871 spread 0.0622
+   m3_cvs_128x128x128_b0.1 epoch   6: sdzqs    1.333 spread 0.0571
+   m3_cvs_128x128x128_b0.1 epoch   9: sdzqs    1.153 spread 0.0525
+   m3_cvs_128x128x128_b0.1 epoch  12: sdzqs    1.156 spread 0.0387
+   m3_cvs_128x128x128_b0.1 epoch  15: sdzqs    1.277 spread 0.0420
+   m3_cvs_128x128x128_b0.1 epoch  18: sdzqs    1.137 spread 0.0406
+   m3_cvs_128x128x128_b0.1 epoch  21: sdzqs    1.197 spread 0.0366
+   m3_cvs_128x128x128_b0.1 epoch  24: sdzqs    1.198 spread 0.0382
+m3_cvs_128x128x128_b0.1       184.8 s  epoch 18  sdzqs    1.137
+   m3_cvs_128x128x128_b1 epoch   3: sdzqs    1.963 spread 0.0437
+   m3_cvs_128x128x128_b1 epoch   6: sdzqs    1.419 spread 0.0435
+   m3_cvs_128x128x128_b1 epoch   9: sdzqs    1.155 spread 0.0373
+   m3_cvs_128x128x128_b1 epoch  12: sdzqs    1.215 spread 0.0324
+   m3_cvs_128x128x128_b1 epoch  15: sdzqs    1.383 spread 0.0300
+   m3_cvs_128x128x128_b1 epoch  18: sdzqs    1.255 spread 0.0302
+   m3_cvs_128x128x128_b1 epoch  21: sdzqs    1.255 spread 0.0301
+   m3_cvs_128x128x128_b1 epoch  24: sdzqs    1.326 spread 0.0306
+m3_cvs_128x128x128_b1         185.7 s  epoch 9  sdzqs    1.155
+   m3_cvs_128x128x128_b10 epoch   3: sdzqs    1.253 spread 0.0391
+   m3_cvs_128x128x128_b10 epoch   6: sdzqs    1.401 spread 0.0323
+   m3_cvs_128x128x128_b10 epoch   9: sdzqs    1.449 spread 0.0351
+   m3_cvs_128x128x128_b10 epoch  12: sdzqs    1.400 spread 0.0254
+   m3_cvs_128x128x128_b10 epoch  15: sdzqs    1.470 spread 0.0226
+   m3_cvs_128x128x128_b10 epoch  18: sdzqs    1.371 spread 0.0222
+   m3_cvs_128x128x128_b10 epoch  21: sdzqs    1.369 spread 0.0206
+   m3_cvs_128x128x128_b10 epoch  24: sdzqs    1.481 spread 0.0203
+m3_cvs_128x128x128_b10        185.4 s  epoch 3  sdzqs    1.253
