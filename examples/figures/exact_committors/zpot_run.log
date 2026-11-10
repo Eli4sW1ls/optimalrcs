@@ -1,0 +1,6 @@
+===== staple: A 0.05, B 0.85, absorption every 1 steps =====
+/home/elias/anaconda3/envs/test/lib/python3.12/site-packages/cupyx/scipy/sparse/linalg/_iterative.py:192: FutureWarning: `rcond` parameter will change to the default of machine precision times ``max(M, N)`` where M and N are the input matrix dimensions.
+To use the future default and silence this warning we advise to pass `rcond=None`, to keep using the old, explicitly pass `rcond=-1`.
+  ret = numpy.linalg.lstsq(cupy.asnumpy(H), e)
+  h 0.004: grid 201 x 91, residual 7.8e-12, 3 s; q at POINTS 0.0021 0.0040 0.2908 0.6189 0.6545 0.6764 0.7350
+  h 0.002: grid 401 x 181, residual 9.5e-12, 25 s; q at POINTS 0.0019 0.0036 0.3036 0.6473 0.6799 0.7004 0.7542
