@@ -164,7 +164,7 @@ def limit_piece_length(piece, max_length, long_pieces="truncate"):
 
 
 def load_order_file(order_file, path_info, lambda_m=None, burn_in=0, max_paths=None, rng=None,
-                    reversed_pieces=False, odd_columns=(), fd_velocity=False, fd_columns=(1,),
+                    burn_in_fraction=0.0, thin=1, reversed_pieces=False, odd_columns=(), fd_velocity=False, fd_columns=(1,),
                     max_length=None, long_pieces="truncate"):
     """Load accepted paths and their Monte Carlo weights from one ensemble's `order.txt`.
 
@@ -175,14 +175,18 @@ def load_order_file(order_file, path_info, lambda_m=None, burn_in=0, max_paths=N
     The returned CVs include the order parameter as their first column.
 
     Paths are kept if accepted, not the initial load ('ld') path, from cycle
-    `burn_in` on, and with a nonzero weight in `path_info` (see `read_path_info`).
+    `burn_in` on (or, if later, after the first `burn_in_fraction` of the ensemble's
+    cycles are over), and with a nonzero weight in `path_info` (see `read_path_info`).
+    Of those, every `thin`-th path is kept, starting with the first; with `max_paths`
+    as well, at most that many are kept, evenly spaced over the chain. There is no
+    random draw (`rng` is accepted and ignored): the chain is stationary after the
+    burn-in, so skipping paths in a fixed pattern leaves it unbiased, and the kept
+    paths keep their own weights.
     With `lambda_m`, each path is cut to start at `first_frame_past_m`; with
     `reversed_pieces` as well, the frames from its start up to
     `last_frame_before_m` are added read backwards (time t_end - t), which needs
     time-reversible dynamics at equilibrium; the columns in `odd_columns`
-    (velocities) change sign there. If `max_paths` is given, at most that
-    many paths are kept, drawn at random (in their original order); they keep
-    their weights, so the subset stays unbiased. With `max_length`, every piece
+    (velocities) change sign there. With `max_length`, every piece
     (after the cut at M) longer than that many frames is truncated or discarded,
     as `long_pieces` says (see `limit_piece_length`).
 
@@ -216,6 +220,8 @@ def load_order_file(order_file, path_info, lambda_m=None, burn_in=0, max_paths=N
         order_file, comment="#", header=None, sep=r"\s+",
     ).to_numpy(dtype=float)
 
+    n_cycles = max(path_info) + 1 if path_info else 0
+    burn_in = max(burn_in, int(np.ceil(burn_in_fraction * n_cycles)))
     keep = []
     for i, (cycle, accepted) in enumerate(zip(cycles, accepted_flags)):
         if not accepted or cycle < burn_in:
@@ -228,11 +234,12 @@ def load_order_file(order_file, path_info, lambda_m=None, burn_in=0, max_paths=N
                              f"frames, pathensemble.txt says {length}")
         if weight > 0 and generation != "ld":
             keep.append(i)
-    subsample = max_paths is not None and len(keep) > max_paths
-    if subsample:
-        rng = rng if rng is not None else np.random.default_rng()
-        keep = np.sort(rng.choice(keep, max_paths, replace=False))
+    n_eligible = len(keep)
+    keep = keep[::max(1, int(thin))]
+    if max_paths is not None and len(keep) > max_paths:
+        keep = [keep[j] for j in np.unique(np.round(np.linspace(0, len(keep) - 1, max_paths)).astype(int))]
 
+    subsample = len(keep) < n_eligible
     cvs, order, time, weights, paths = [], [], [], [], []
     n_no_crossing = n_long = 0
     for n_path, i in enumerate(keep):
@@ -292,7 +299,7 @@ def load_order_file(order_file, path_info, lambda_m=None, burn_in=0, max_paths=N
 
 def load_tis_data(tis_dir, interfaces, ensemble_glob="0[0-9][0-9]", include_zero_minus=False,
                   weighting="rejections", cut_at_m=True, burn_in=0, paths_per_ensemble=None,
-                  seed=None, reversed_pieces=False, odd_columns=(), fd_velocity=False, fd_columns=(1,),
+                  seed=None, burn_in_fraction=0.4, thin=1, reversed_pieces=False, odd_columns=(), fd_velocity=False, fd_columns=(1,),
                   max_length=None, long_pieces="truncate"):
     """Load per-path time/order/CV arrays and MC weights from all ensemble folders in `tis_dir`.
 
@@ -300,9 +307,11 @@ def load_tis_data(tis_dir, interfaces, ensemble_glob="0[0-9][0-9]", include_zero
     `order.txt` and `pathensemble.txt`, following the standard PyRETIS (RE)TIS,
     REPPTIS and staple output layout. Folder 0NN must cross interface
     max(NN - 1, 0): l_0 for [0-] and [0+-] (folders 000, 001), l_1 for 002, and
-    so on. The [0-] folder is skipped unless `include_zero_minus` is set. With
-    `paths_per_ensemble`, a random subset of that many paths is taken from
-    each ensemble. With `reversed_pieces` (needs `cut_at_m`), every path also
+    so on. The [0-] folder is skipped unless `include_zero_minus` is set. The
+    first `burn_in_fraction` of the cycles of every ensemble (and the first `burn_in`
+    cycles, if more) are discarded; then every `thin`-th path is kept, and with
+    `paths_per_ensemble` at most that many, evenly spaced over the rest of the chain
+    (no random draw: `seed` is ignored). With `reversed_pieces` (needs `cut_at_m`), every path also
     gives its piece before the last M crossing, read backwards, with the
     `order.txt` columns in `odd_columns` (velocities) negated. With `max_length`,
     pieces longer than that many frames are truncated or discarded (`long_pieces`).
@@ -312,7 +321,6 @@ def load_tis_data(tis_dir, interfaces, ensemble_glob="0[0-9][0-9]", include_zero
     """
     if reversed_pieces and not cut_at_m:
         raise ValueError("reversed pieces need the cut at M")
-    rng = np.random.default_rng(seed)
     cvs, order, time, weights, paths = [], [], [], [], []
     folders = sorted(glob.glob(os.path.join(tis_dir, ensemble_glob)))
     n_ensembles = len(folders)
@@ -328,8 +336,8 @@ def load_tis_data(tis_dir, interfaces, ensemble_glob="0[0-9][0-9]", include_zero
         lambda_m = interfaces[max(k - 1, 0)] if cut_at_m else None
         path_info = read_path_info(folder, k, n_ensembles, weighting)
         c, o, t, w, pth, n_no_crossing, n_long = load_order_file(
-            order_file, path_info, lambda_m=lambda_m, burn_in=burn_in,
-            max_paths=paths_per_ensemble, rng=rng, reversed_pieces=reversed_pieces,
+            order_file, path_info, lambda_m=lambda_m, burn_in=burn_in, burn_in_fraction=burn_in_fraction,
+            thin=thin, max_paths=paths_per_ensemble, reversed_pieces=reversed_pieces,
             odd_columns=odd_columns, fd_velocity=fd_velocity, fd_columns=fd_columns,
             max_length=max_length, long_pieces=long_pieces)
         offset = paths[-1] + 1 if paths else 0
@@ -498,14 +506,21 @@ def add_data_arguments(parser):
                              "first N frames (a stopping rule, unbiased; default), 'discard' drops "
                              "them (selects on the future, biased; for comparison only)")
     parser.add_argument("--burn-in", type=int, default=0, metavar="N",
-                        help="skip the first N cycles of every ensemble")
+                        help="skip the first N cycles of every ensemble (on top of "
+                             "--burn-in-fraction: the larger of the two applies)")
+    parser.add_argument("--burn-in-fraction", type=float, default=0.4, metavar="F",
+                        help="discard the first fraction F of the MC cycles of every "
+                             "ensemble (default: 0.4)")
+    parser.add_argument("--thin", type=int, default=1, metavar="K",
+                        help="after the burn-in, keep every K-th accepted path (default: 1, all)")
     parser.add_argument("--include-zero-minus", action="store_true",
                         help="also use the [0-] ensemble (folder 000)")
     parser.add_argument("--paths-per-ensemble", type=int, metavar="N",
-                        help="randomly take at most N accepted paths from each ensemble, "
-                             "keeping their weights (default: all)")
+                        help="keep at most N accepted paths per ensemble, evenly spaced over "
+                             "the chain after the burn-in (after --thin), with their weights "
+                             "(default: all)")
     parser.add_argument("--seed", type=int,
-                        help="random seed for --paths-per-ensemble")
+                        help="ignored: paths are no longer drawn at random (see --thin)")
     parser.add_argument("--n-cvs", type=int, metavar="N",
                         help="train on only the first N CVs; CV 0 is the order parameter "
                              "(default: all CVs in order.txt)")
@@ -556,10 +571,14 @@ def prepare_data(args):
     odd_columns = range(1 + dim, 1 + 2 * dim) if (v_ord and dim) else ()
     if args.reversed and v_ord and not dim:
         raise SystemExit("--reversed: order.txt holds velocities but the dimension is not recorded")
+    if getattr(args, "seed", None) is not None:
+        print("Note: --seed is ignored; paths are thinned in a fixed pattern (--thin, --paths-per-ensemble), "
+              "not drawn at random")
     cvs, order, time, weights, paths = load_tis_data(
         args.tis_dir, interfaces, include_zero_minus=args.include_zero_minus,
         weighting=args.weights, cut_at_m=not args.no_cut, burn_in=args.burn_in,
-        paths_per_ensemble=args.paths_per_ensemble, seed=args.seed,
+        burn_in_fraction=getattr(args, "burn_in_fraction", 0.4), thin=getattr(args, "thin", 1),
+        paths_per_ensemble=args.paths_per_ensemble,
         reversed_pieces=args.reversed, odd_columns=odd_columns, fd_velocity=args.fd_velocity,
         fd_columns=list(range(1, 1 + dim)) if dim else [1],
         max_length=getattr(args, "max_length", None), long_pieces=getattr(args, "long_pieces", "truncate"))
