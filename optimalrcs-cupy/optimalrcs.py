@@ -137,6 +137,11 @@ class CommittorNE:
     def set_poisson_traj_length_trap(self, trap_boundary, traj_length=None):
         self.future_boundary.set_distance_to_end_poisson_traj_length_trap(self.i_traj, trap_boundary, traj_length)
 
+    def set_stopped_traj_end(self, stop_boundary):
+        """Segments whose last frame lies in stop_boundary were stopped by a rule that depends on the
+        trajectory (e.g. a turn); Z_q then uses r at the stop for windows that pass it (FutureBoundary.set_stopped_end)."""
+        self.future_boundary.set_stopped_end(self.i_traj, stop_boundary)
+
     def print_metrics(self, metrics_print):
         s = ''
         for metric in metrics_print:

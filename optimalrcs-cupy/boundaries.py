@@ -99,6 +99,7 @@ class FutureBoundary(_Boundary):
         self.r = cp.where(self.index > -1, r_traj[self.index], 0)
         self.r2 = cp.where(self.index2 > -1, r_traj[self.index2], 0)
         self._t_traj = None if t_traj is None else cp.asarray(t_traj)
+        self.stop_to_end = None     # set_stopped_end: distance to a stopped segment end, -1 elsewhere
 
     @property
     def delta_t3(self):
@@ -146,6 +147,21 @@ class FutureBoundary(_Boundary):
                 traj_length=int(-np.log(np.random.random())*average_traj_length -1)
                 delta_i_to_end[i_start:i_end+1] += traj_length
         self.delta_i_to_end = cp.asarray(delta_i_to_end)
+
+    def set_stopped_end(self, i_traj, stop_boundary):
+        """Segments whose last frame lies in stop_boundary were ended by a stopping rule that depends on
+        the trajectory (e.g. a turn in [i*] TIS), not by A or B and not at a preset length. In Z_q, a window
+        that passes such an end counts as staying at the last frame, r(min(t + dt, tau)) - r(t), instead of
+        being dropped: dropping it would condition on the trajectory not stopping before t + dt.
+        Stores self.stop_to_end: frames to the segment end in those segments, -1 elsewhere."""
+        _stop = cp.asnumpy(stop_boundary) > 0
+        _i_traj = None if i_traj is None else cp.asnumpy(i_traj)
+        starts, ends = _segment_bounds(len(_stop), _i_traj)
+        stop_to_end = np.full(len(_stop), -1, dtype='int32')
+        for s, e in zip(starts, ends):
+            if _stop[e - 1]:
+                stop_to_end[s:e] = np.arange(e - s - 1, -1, -1)
+        self.stop_to_end = cp.asarray(stop_to_end)
 
     def set_distance_to_end_trap(self, i_traj, trap_boundary, extra=10 ** 9):
         """Segments whose last frame lies in trap_boundary continue there indefinitely: the segment

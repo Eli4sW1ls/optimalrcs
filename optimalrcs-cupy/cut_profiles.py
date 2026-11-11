@@ -348,6 +348,15 @@ def comp_zq(r_traj: np.ndarray, b_traj: np.ndarray, i_traj: np.ndarray = None,
         delta_r01 *= w_traj
     hist += _bincount(bin_indices, minlength=nbins, weights=delta_r01)
 
+    # windows passing a stopped segment end (set_stopped_end): r(tau) - r(t), as if the trajectory stayed at its last frame
+    if getattr(future_boundary, 'stop_to_end', None) is not None:
+        to_end = future_boundary.stop_to_end
+        past_stop = ((to_end >= 0) & (to_end < dt) & (future_boundary.index == -1)).astype(r_traj.dtype)
+        delta_r = past_stop * (r_traj[future_boundary.index3] - r_traj)
+        if w_traj is not None:
+            delta_r *= w_traj
+        hist += _bincount(bin_indices, minlength=nbins, weights=delta_r)
+
     # crossing of the past boundary
     delta_r = i_past_boundary_crossed * (1 - b_traj) * (r_traj - past_boundary.r2)
     delta_r = delta_r * (past_boundary.delta_i_from_start >= dt).astype(r_traj.dtype)
