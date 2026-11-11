@@ -59,12 +59,11 @@ close to isocommittors, (4) pointwise accuracy.
 **Model selection: the specified rule is the weak point.**
 - The validation SD(Z_q) separates gross failures (y, M1 on Z) but cannot rank good models by isosurface
   alignment: their values lie within its noise. On cc it picks an M3 checkpoint at epoch 3.
-- Selecting by validation isosurface spread instead, computed from q_np alone, would have given better test
-  spreads against the exact committor (selection-sensitivity tables):
-  - Z: 0.037 instead of 0.055.
-  - cc: 0.014 instead of 0.047.
-  - The test SD(Z_q) is equal for both choices.
-- Suggestion: SD(Z_q) within a tolerance → validation spread → cost.
+- Selecting by validation isosurface spread instead, computed from q_np alone (selection-sensitivity tables):
+  - Z: test spread against the exact committor 0.037 instead of 0.055, with equal test SD(Z_q).
+  - cc: not reliably better. In an earlier sweep it gave 0.014 instead of 0.047. After a refit that differs
+    only by GPU rounding it gives 0.061: the validation spread of the cc runs is itself noisy at this level.
+- Suggestion: SD(Z_q) within a tolerance → validation spread → cost; on cc no rule separates the M3 runs.
 
 **What q_np can and cannot tell.**
 - Below q ≈ 1e-3 the q_np labels are noise: logit q_np varies by 10–100× the slab width on exact isocommittor

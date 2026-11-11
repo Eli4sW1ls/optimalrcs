@@ -56,14 +56,22 @@ class Context:
             self._ts[key] = models.TrainSet(self.f, self.cfg, list(specs))
         return self._ts[key]
 
-    def calibration(self, params):
+    def calibration(self, params, z=None):
         """Calibration of a score model on the training frames (path weights only)."""
-        z = ScoreModel(params).raw(self.f.cv[self.cal_idx])
+        if z is None:
+            z = ScoreModel(params).raw(self.f.cv[self.cal_idx])
         return ev.calibrate(z, self.f.q[self.cal_idx], self.f.w[self.cal_idx].astype(float))
 
-    def select_metrics(self, params):
-        cal = self.calibration(params)
-        z = ScoreModel(params).raw(self.f.cv[self.sel_mask])
+    def score_sets(self, ts):
+        """Standardized features of the calibration and the selection frames, for scoring on the training device."""
+        return [((ts.feat(self.f.cv[i]) - ts.mu) / ts.sd).astype(np.float32)
+                for i in (self.cal_idx, np.flatnonzero(self.sel_mask))]
+
+    def select_metrics(self, params, scores=None):
+        """Selection metrics on the validation pieces. `scores`: (z of the calibration frames, z of the selection
+        frames) when the caller already has them (M3 checkpoints, scored on the GPU); else the numpy forward pass."""
+        z_cal, z = scores if scores is not None else (None, ScoreModel(params).raw(self.f.cv[self.sel_mask]))
+        cal = self.calibration(params, z_cal)
         out = ev.evaluate(self.f, self.sel_mask, z, cal, self.cfg, full=False)
         return dict(sdzqs=out['sdzqs'], spread_mean=out['spread_mean'], zq_sd=out['zq_sd'])
 
@@ -159,8 +167,15 @@ def cmd_fit(cfg, args):
         set_items = list(sets.items())
         if args.quick:
             archs, betas, set_items = archs[:1], betas[:2], set_items[:1]
+        elif getattr(args, 'lean', False):
+            # the short sweep of [m3.lean]: by default the raw CVs (or the largest top-K set), two sizes, beta 0 / 10
+            lean = c.get('lean', {})
+            archs, betas = lean.get('archs', [[64, 64], [128, 128, 128]]), lean.get('betas', [0.0, 10.0])
+            names = lean.get('sets', ['cvs'] if 'cvs' in sets else [set_items[-1][0]])
+            set_items = [(k, v) for k, v in set_items if k in names]
         for set_name, specs in set_items:
             ts = ctx.ts(specs)
+            sets_dev = ctx.score_sets(ts)
             for arch in archs:
                 for beta in betas:
                     rid = f'm3_{set_name}_{"x".join(map(str, arch))}_b{beta:g}'
@@ -168,14 +183,14 @@ def cmd_fit(cfg, args):
                         continue
                     ckpts = []
 
-                    def on_ckpt(epoch, params):
-                        sel = ctx.select_metrics(params)
+                    def on_ckpt(epoch, params, scores):
+                        sel = ctx.select_metrics(params, scores)
                         ckpts.append(dict(epoch=epoch, **sel))
                         common.say(f'   {rid} epoch {epoch:3d}: sdzqs {sel["sdzqs"]:8.3f} '
                                    f'spread {sel["spread_mean"]:.4f}', log=ctx.log)
 
                     m = models.MLP(arch, beta, cfg, seed=cfg['seed'])
-                    m.fit(ts, on_checkpoint=on_ckpt)
+                    m.fit(ts, on_checkpoint=on_ckpt, score_sets=sets_dev)
                     best = int(np.argmin([k['sdzqs'] for k in ckpts]))   # selected by the dynamical metric
                     m.use_checkpoint(best)
                     np.savez(os.path.join(runs_dir, rid + '.npz'), **m.export())

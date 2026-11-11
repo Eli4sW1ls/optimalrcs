@@ -18,14 +18,25 @@ forward pass for the toytis sampler. Results: [`docs/param_lambda_report.md`](..
 ```bash
 python run.py extract z_br      # frame cache (needs the run and its q_np)
 python run.py screen z_br       # M2
-python run.py fit z_br          # M1 + M3 sweeps (resumes; --fresh to restart, --only m1|m3)
+python run.py fit z_br          # M1 + M3 sweeps (resumes; --fresh to restart, --only m1|m3, --lean: 4 M3 runs)
 python run.py evaluate z_br     # test + OOD metrics, TIS plots
 python run.py export z_br       # exported/z_br_<family>.npz, µs per frame
 python run.py report            # docs/param_lambda_report.md
 ```
 
-On the laptop (RTX 2000 Ada, 8 GB) the Z sweep takes ~2 h: 36 M3 runs, of which the 128×128×128 ones take
-~5 min each including the checkpoint evaluations. The other systems take minutes. Run long steps in their own unit:
+Training time (laptop, RTX 2000 Ada, 8 GB; Z: 5.2M training frames). The checkpoints are scored by the network
+on the GPU; the metrics themselves take ~0.7 s per checkpoint (before, the numpy forward pass over 2.7M frames
+took ~13 s per checkpoint and ~75% of the sweep). M3 runs take 10–40 s each on Z.
+
+| | Z | cc | flat 1D | bumps 1D |
+|---|---|---|---|---|
+| full M3 sweep (36 / 36 / 12 / 12 runs) | 12.5 min | 4.5 min | 0.7 min | 3.1 min |
+| `fit --lean` M3 (4 runs: raw CVs, 64×64 and 128×128×128, β ∈ {0, 10}) | 80 s | 28 s | 14 s | 60 s |
+| whole `fit` step (M1 + M3 + loading), full sweep | 15 min | 5 min | 1 min | 3.5 min |
+
+The lean sweep selects the same M3 as the full one on Z (and M3-fast 64×64 β=10); on cc and 1D all M3 runs tie
+within a few % in the selection metric. Training time grows about linearly with frames × network size.
+Run long steps in their own unit:
 `systemd-run --user --unit=pl-z --collect -p MemoryMax=12G -p MemorySwapMax=0 --working-directory=$PWD ./run_all.sh z_br`.
 
 ## On the workstation (RTX 5080)

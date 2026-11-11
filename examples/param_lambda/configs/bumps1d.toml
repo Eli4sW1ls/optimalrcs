@@ -48,6 +48,11 @@ lr = 3e-3
 weight_decay = 1e-4
 max_anchors = 3000000
 
+[m3.lean]                           # `run.py fit bumps1d --lean`: the short sweep (the full one above is the reference)
+archs = [[64, 64], [128, 128, 128]]
+betas = [0.0, 10.0]
+sets = ["top1"]
+
 [eval]
 q_lo = 1e-2
 q_hi = 0.95

@@ -3,7 +3,7 @@
     python run.py extract  <system>     frame cache from the staple run and its q_np
     python run.py fit-qnp  <system>     NPNEq fit of q_np with load_tis_data_cupy.py (systems without one)
     python run.py screen   <system>     M2 feature ranking
-    python run.py fit      <system> [--only m1|m3] [--quick]
+    python run.py fit      <system> [--only m1|m3] [--quick | --lean] [--fresh]
     python run.py evaluate <system>
     python run.py export   <system>
     python run.py report   [<system> ...]
@@ -49,6 +49,7 @@ def main():
     p.add_argument('systems', nargs='*')
     p.add_argument('--only', choices=['m1', 'm3'])
     p.add_argument('--quick', action='store_true', help='small sweep for testing the pipeline')
+    p.add_argument('--lean', action='store_true', help='fit: the short M3 sweep of [m3.lean] (a few minutes)')
     p.add_argument('--fresh', action='store_true', help='fit: start a new results list (default: skip runs done)')
     args = p.parse_args()
     commands = {'extract': cmd_extract, 'fit-qnp': cmd_fit_qnp}

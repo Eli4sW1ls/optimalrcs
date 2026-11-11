@@ -53,6 +53,11 @@ lr = 3e-3
 weight_decay = 1e-4
 max_anchors = 3000000
 
+[m3.lean]                           # `run.py fit z_br --lean`: the short sweep (the full one above is the reference)
+archs = [[64, 64], [128, 128, 128]]
+betas = [0.0, 10.0]
+sets = ["cvs"]
+
 [eval]
 q_lo = 1e-4                         # planned interfaces: n levels equally spaced in ln q on [q_lo, q_hi]
 q_hi = 0.95

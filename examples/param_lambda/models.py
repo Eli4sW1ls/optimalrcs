@@ -174,9 +174,11 @@ class MLP(_Model):
         self.device = device or ('cuda' if torch.cuda.is_available() else 'cpu')
         self.name = f'M3 MLP {"x".join(map(str, arch))} beta={beta:g}'
 
-    def fit(self, ts, on_checkpoint=None):
+    def fit(self, ts, on_checkpoint=None, score_sets=()):
         """Train for the fixed epoch budget; at each of `checkpoints` evenly spaced epochs export the network and
-        call on_checkpoint(epoch, model_params) (the caller evaluates the dynamical metrics there)."""
+        call on_checkpoint(epoch, model_params, scores) (the caller evaluates the dynamical metrics there).
+        `score_sets`: standardized feature arrays that the network scores at each checkpoint on the training device
+        (float32); `scores` lists the results. That replaces the numpy forward pass, which dominated the sweep."""
         import torch
         torch.manual_seed(self.seed)
         rng = torch.Generator(device=self.device).manual_seed(self.seed)
@@ -187,6 +189,7 @@ class MLP(_Model):
         anchors = torch.as_tensor(ts.anchors, device=dev)
         pairs = {lag: (torch.as_tensor(i0, device=dev), torch.as_tensor(i1, device=dev))
                  for lag, (i0, i1) in ts.pairs.items()}
+        score_sets = [torch.as_tensor(np.asarray(S, np.float32), device=dev) for S in score_sets]
         net = _net(X.shape[1], self.arch).to(dev)
         opt = torch.optim.AdamW(net.parameters(), lr=self.c['lr'], weight_decay=self.c['weight_decay'])
         batch, epochs = self.c['batch'], self.c['epochs']
@@ -198,38 +201,54 @@ class MLP(_Model):
         t0 = time.time()
         for epoch in range(1, epochs + 1):
             perm = anchors[torch.randperm(len(anchors), generator=rng, device=dev)]
-            tot = tot_inc = 0.0
+            tot = torch.zeros((), device=dev)
+            tot_inc = torch.zeros((), device=dev)
             for s in range(steps):
                 a = perm[s * batch:(s + 1) * batch]
+                # one forward pass over the anchors and the frames of all lag pairs (fewer kernel launches)
+                idx = [a]
+                if self.beta > 0:
+                    for lag, (i0, i1) in pairs.items():
+                        j = torch.randint(len(i0), (batch,), generator=rng, device=dev)
+                        idx += [i0[j], i1[j]]
+                cat = torch.cat(idx)
+                out = net(X[cat])[:, 0] - z[cat]
+                na = len(a)
                 wa = w[a]
-                loss_pt = torch.sum(wa * (net(X[a])[:, 0] - z[a]) ** 2) / wa.sum()
+                loss_pt = torch.sum(wa * out[:na] ** 2) / wa.sum()
                 loss = loss_pt
                 if self.beta > 0:
                     inc = 0.0
-                    for lag, (i0, i1) in pairs.items():
-                        j = torch.randint(len(i0), (batch,), generator=rng, device=dev)
-                        p0, p1 = i0[j], i1[j]
-                        d = net(X[p1])[:, 0] - net(X[p0])[:, 0]
+                    for k in range(len(pairs)):
+                        lo = na + 2 * k * batch
+                        p0 = idx[1 + 2 * k]
                         wp = w[p0]
-                        inc = inc + torch.sum(wp * (d - (z[p1] - z[p0])) ** 2) / wp.sum()
+                        inc = inc + torch.sum(wp * (out[lo + batch:lo + 2 * batch] - out[lo:lo + batch]) ** 2) / wp.sum()
                     loss = loss + self.beta * inc
-                    tot_inc += float(inc)
+                    tot_inc += inc.detach()
                 opt.zero_grad(set_to_none=True)
                 loss.backward()
                 opt.step()
                 sched.step()
-                tot += float(loss_pt)
-            self.history.append(dict(epoch=epoch, loss_point=tot / steps, loss_inc=tot_inc / steps,
+                tot += loss_pt.detach()
+            self.history.append(dict(epoch=epoch, loss_point=float(tot) / steps, loss_inc=float(tot_inc) / steps,
                                      seconds=time.time() - t0))
             if epoch in ckpt_epochs:
                 params = self._export_net(net, ts)
                 self.checkpoints.append(dict(epoch=epoch, params=params))
                 if on_checkpoint is not None:
-                    on_checkpoint(epoch, params)
+                    on_checkpoint(epoch, params, [self._score(net, S) for S in score_sets])
         self.train_seconds = time.time() - t0
         self.params = self.checkpoints[-1]['params']
         self._net = net
         return self
+
+    @staticmethod
+    def _score(net, S, chunk=1 << 20):
+        import torch
+        with torch.no_grad():
+            return np.concatenate([net(S[i:i + chunk])[:, 0].double().cpu().numpy()
+                                   for i in range(0, len(S), chunk)]) if len(S) else np.zeros(0)
 
     def _export_net(self, net, ts):
         params = ts.base_params('mlp')
