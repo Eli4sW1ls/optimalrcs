@@ -1,5 +1,0 @@
-history [0, 4]: zqs_z by print step [36.9, 40.2, 25.5, 24.4, 29.0, 31.2, 31.8, 30.5] | final |dx| 1.8e-02 | 340 s
-history [0, 8]: zqs_z by print step [35.6, 37.8, 29.1, 32.0, 36.6, 36.7, 37.0, 37.5] | final |dx| 2.0e-02 | 341 s
-history [0, 16]: zqs_z by print step [37.6, 38.7, 31.3, 37.9, 37.1, 36.3, 36.9, 36.8] | final |dx| 1.9e-02 | 342 s
-history [0, 1, 4, 16]: zqs_z by print step [44.4, 39.9, 27.2, 28.5, 31.8, 33.4, 35.1, 35.7] | final |dx| 1.1e-02 | 346 s
-ALL DONE

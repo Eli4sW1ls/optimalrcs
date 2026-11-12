@@ -1,4 +1,0 @@
-baseline (x, v)       : done before (see the first log)
-joint basis (r, x, v) :  2935 s, |dx| 0.0029 | RMS all 0.083 | near A slow: RMS 0.154 bias +0.148 | max|z| lags 1,4,16,64,256,1024: 0.6 2.3 2.5 2.3 2.2 1.6
-extra CV x + v/gamma  :   124 s, |dx| 0.0044 | RMS all 0.095 | near A slow: RMS 0.159 bias +0.151 | max|z| lags 1,4,16,64,256,1024: 0.5 2.4 2.5 2.5 2.3 1.7
-ALL DONE

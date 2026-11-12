@@ -1,7 +1,0 @@
-start (true q)  : RMS all 0.000 | near A slow: bias +0.000
-after 100       : RMS all 0.011 | near A slow: bias +0.014
-after 500       : RMS all 0.033 | near A slow: bias +0.063
-after 1000      : RMS all 0.049 | near A slow: bias +0.098
-after 2000      : RMS all 0.065 | near A slow: bias +0.130
-after 4000      : RMS all 0.081 | near A slow: bias +0.152
-ALL DONE

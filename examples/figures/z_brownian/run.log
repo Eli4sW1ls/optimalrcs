@@ -1,9 +1,0 @@
-grid 490 x 190; Brownian step sigma 0.0045, boundary shift 0.0026
-TPT rate A->B: 1.130e-05 per time unit -> mean 4.427e+07 steps (dt 0.002, gamma 10.0) per A->B transition in a long MD
-  check at (y=0.30, x=0.15): shooting q = 0.002 +- 0.001 (4000 absorbed) | PDE q = 0.002
-  check at (y=0.40, x=0.05): shooting q = 0.004 +- 0.001 (4000 absorbed) | PDE q = 0.004
-  check at (y=0.45, x=0.15): shooting q = 0.317 +- 0.007 (4000 absorbed) | PDE q = 0.273
-  check at (y=0.50, x=0.25): shooting q = 0.633 +- 0.008 (4000 absorbed) | PDE q = 0.638
-  check at (y=0.55, x=0.10): shooting q = 0.663 +- 0.007 (4000 absorbed) | PDE q = 0.670
-  check at (y=0.62, x=0.15): shooting q = 0.690 +- 0.007 (4000 absorbed) | PDE q = 0.692
-ALL DONE

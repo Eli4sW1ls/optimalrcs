@@ -1,1 +1,0 @@
-baseline (x, v)       :   106 s, |dx| 0.0035 | RMS all 0.086 | near A slow: RMS 0.161 bias +0.154 | max|z| lags 1,4,16,64,256,1024: 0.8 2.4 2.7 2.6 2.3 1.6

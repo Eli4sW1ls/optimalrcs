@@ -1,9 +1,0 @@
-reference done after 6400 steps; q(x, v=0): [0.09 0.35 0.56 0.54 0.51 0.44 0.62 0.92]
-1390026 frames; corr(v_rec, v_fd) 0.9981, std(v_fd - v_rec) 0.059
-true q with recorded v      : max|z| lags (1, 2, 4, 16, 64, 256): 12.0 11.1  9.6  3.5  2.5  2.1
-true q with fd-estimated v  : max|z| lags (1, 2, 4, 16, 64, 256): 16.1  8.1  8.4  2.9  2.2  2.1
-recorded v lag 1:   252 s, |dx| 0.0007 | RMS all 0.019 | near A slow bias +0.003 (RMS 0.025) | near B slow bias +0.014 | max|z| lags (1, 2, 4, 16, 64, 256):  0.5  0.8  0.9  1.6  2.3  2.7
-recorded v lag 4:   258 s, |dx| 0.0004 | RMS all 0.015 | near A slow bias +0.010 (RMS 0.018) | near B slow bias +0.020 | max|z| lags (1, 2, 4, 16, 64, 256):  2.7  1.1  0.4  1.5  1.4  1.8
-fd v       lag 1:   260 s, |dx| 0.0008 | RMS all 0.032 | near A slow bias -0.000 (RMS 0.043) | near B slow bias -0.026 | max|z| lags (1, 2, 4, 16, 64, 256):  0.5  7.8 10.0  8.8  6.4  5.8
-fd v       lag 4:   260 s, |dx| 0.0004 | RMS all 0.021 | near A slow bias +0.011 (RMS 0.035) | near B slow bias +0.011 | max|z| lags (1, 2, 4, 16, 64, 256): 14.2  4.6  0.3  1.6  1.9  2.1
-ALL DONE

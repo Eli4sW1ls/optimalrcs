@@ -1,2 +1,0 @@
-calib_env0.01: 5177825 frames, 30000 walkers, 18955 in A, 11045 in B
-calib_env0.01 calibration, exact committor: worst z at lags 1 4 16 64 256:  -2.9 (q 0.08)   -2.8 (q 0.61)   -2.8 (q 0.61)   -2.6 (q 0.61)   -1.8 (q 0.60)

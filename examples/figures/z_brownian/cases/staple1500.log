@@ -1,6 +1,0 @@
-staple_both_all          RMS 0.0303  plateau +0.0313
-staple_both_even         RMS 0.0487  plateau +0.0494
-staple_both_odd          RMS 0.0247  plateau +0.0144
-staple_both_even_lag50   RMS 0.0365  plateau +0.0339
-staple_both_odd_lag50    RMS 0.0264  plateau +0.0158
-done staple1500
