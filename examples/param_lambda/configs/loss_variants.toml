@@ -1,0 +1,17 @@
+# Loss variants of M3 (run.py variants <system> --variants loss_variants): overrides of config sections.
+# noise_q: weight min(1, min(q, 1 - q) / noise_q) on the point and increment terms (logit q_np is noise at small q).
+# huber:   Huber point loss on logit q with this delta (quadratic below, linear above).
+[base]
+
+[noise_1e-3]
+train = {noise_q = 1e-3}
+
+[noise_1e-2]
+train = {noise_q = 1e-2}
+
+[huber_1]
+m3 = {huber = 1.0}
+
+[noise_1e-3_huber_1]
+train = {noise_q = 1e-3}
+m3 = {huber = 1.0}

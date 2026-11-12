@@ -91,6 +91,9 @@ def feature_sets(cfg, frames):
     cvs = frames.cv_names.tolist()
     if cvs not in [list(v) for v in sets.values()]:
         sets['cvs'] = cvs
+    # configured sets, e.g. [features.sets.noclean] exclude = ["y", "x"]: all CVs but those
+    for name, spec in cfg['features'].get('sets', {}).items():
+        sets[name] = [c for c in cvs if c not in spec.get('exclude', [])]
     return sets
 
 
@@ -102,6 +105,8 @@ def feature_sets(cfg, frames):
 def cmd_screen(cfg, args):
     ctx = Context(cfg)
     lib = cfg['features']['library']
+    if lib == 'cvs':                       # the raw CVs (embedded systems)
+        lib = ctx.f.cv_names.tolist()
     ts_tr = ctx.ts(lib)
     ts_val = models.TrainSet(ctx.f, cfg, lib, split='val', stats=(ts_tr.mu, ts_tr.sd))
     res = models.screen_gbt(ts_tr, ts_val, cfg, seed=cfg['seed'])

@@ -29,14 +29,33 @@ if EXAMPLES not in sys.path:
     sys.path.insert(0, EXAMPLES)
 
 
-def load_config(name_or_path):
-    """Config dict from configs/<name>.toml (or a path). Relative paths in [data] are taken from the repo root."""
+def _merge_tables(base, over):
+    out = dict(base)
+    for k, v in over.items():
+        out[k] = _merge_tables(out[k], v) if isinstance(v, dict) and isinstance(out.get(k), dict) else v
+    return out
+
+
+def _read_toml(name_or_path):
     path = name_or_path if name_or_path.endswith('.toml') else os.path.join(HERE, 'configs', name_or_path + '.toml')
     with open(path, 'rb') as f:
         cfg = tomllib.load(f)
+    # `inherit = "<config>"`: start from that config and override table by table (embedded systems, variants)
+    if 'inherit' in cfg:
+        cfg = _merge_tables(_read_toml(cfg.pop('inherit')), cfg)
+    return cfg
+
+
+def load_config(name_or_path):
+    """Config dict from configs/<name>.toml (or a path). Relative paths in [data] (and [embed] labels) are taken from
+    the repo root."""
+    cfg = _read_toml(name_or_path)
     for key in ('q_np', 'check_against', 'exact_file'):
         if key in cfg['data'] and not os.path.isabs(cfg['data'][key]):
             cfg['data'][key] = os.path.join(REPO, cfg['data'][key])
+    emb = cfg.get('embed', {})
+    if emb.get('labels', 'base') != 'base' and not os.path.isabs(emb['labels']):
+        emb['labels'] = os.path.join(REPO, emb['labels'])
     cfg['out_dir'] = os.path.join(OUT_ROOT, cfg['name'])
     os.makedirs(cfg['out_dir'], exist_ok=True)
     return cfg

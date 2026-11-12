@@ -39,6 +39,10 @@ class TrainSet:
         self.q = q
         self.w_path = frames.w[sel].astype(float)
         self.w = self.w_path * np.where((q > 0.05) & (q < 0.95), t['mid_weight'], 1.0)
+        # optional label-noise weight: logit q_np is noise where min(q, 1 - q) is small; weight min(1, p / noise_q)
+        # (the variance of a logit estimate grows ~ 1/p). Off by default (noise_q = 0).
+        if t.get('noise_q', 0) > 0:
+            self.w = self.w * np.minimum(1.0, np.minimum(q, 1 - q) / t['noise_q'])
         anchors = np.arange(len(sel))[::t['anchor_stride']]
         max_a = cfg.get('m3', {}).get('max_anchors')
         if max_a and len(anchors) > max_a:
@@ -215,7 +219,7 @@ class MLP(_Model):
                 out = net(X[cat])[:, 0] - z[cat]
                 na = len(a)
                 wa = w[a]
-                loss_pt = torch.sum(wa * out[:na] ** 2) / wa.sum()
+                loss_pt = torch.sum(wa * self._point_loss(out[:na])) / wa.sum()
                 loss = loss_pt
                 if self.beta > 0:
                     inc = 0.0
@@ -242,6 +246,15 @@ class MLP(_Model):
         self.params = self.checkpoints[-1]['params']
         self._net = net
         return self
+
+    def _point_loss(self, r):
+        """Squared residual of logit q; with m3.huber = delta > 0, the Huber loss (quadratic up to |r| = delta,
+        linear beyond; scaled to equal r^2 in the quadratic part)."""
+        delta = self.c.get('huber', 0)
+        if delta > 0:
+            import torch
+            return 2 * torch.nn.functional.huber_loss(r, torch.zeros_like(r), reduction='none', delta=delta)
+        return r ** 2
 
     @staticmethod
     def _score(net, S, chunk=1 << 20):

@@ -1,0 +1,23 @@
+== z_br
+burnin:   6046 paths,   8393473 frames, cycles 13..39992
+train:   3751 paths,   5160451 frames, cycles 40003..84982
+val  :   1510 paths,   2151143 frames, cycles 45002..69999
+test :   1485 paths,   2082642 frames, cycles 55019..79991
+ood  :   2208 paths,   3133243 frames, cycles 85001..99994
+base__cvs_64x64_b0_s1                 11.4 s  val sdzqs  2.707  test spread (exact) std 0.0437 low 0.086  sdzqs 3.188  (7 s eval)
+base__cvs_64x64_b10_s1                14.5 s  val sdzqs  1.403  test spread (exact) std 0.0442 low 0.173  sdzqs 2.298  (6 s eval)
+base__cvs_128x128x128_b0_s1           13.2 s  val sdzqs  1.152  test spread (exact) std 0.0470 low 0.128  sdzqs 2.159  (15 s eval)
+base__cvs_128x128x128_b10_s1          36.1 s  val sdzqs  1.213  test spread (exact) std 0.0464 low 0.126  sdzqs 2.193  (16 s eval)
+base__cvs_64x64_b0_s2                 11.3 s  val sdzqs  1.727  test spread (exact) std 0.0473 low 0.049  sdzqs 2.143  (6 s eval)
+base__cvs_64x64_b10_s2                15.9 s  val sdzqs  1.167  test spread (exact) std 0.0397 low 0.126  sdzqs 2.156  (6 s eval)
+base__cvs_128x128x128_b0_s2           11.4 s  val sdzqs  1.187  test spread (exact) std 0.0550 low 0.143  sdzqs 2.147  (16 s eval)
+base__cvs_128x128x128_b10_s2          37.3 s  val sdzqs  1.137  test spread (exact) std 0.0403 low 0.109  sdzqs 2.305  (17 s eval)
+noise_1e-3__cvs_64x64_b0_s1           11.2 s  val sdzqs  1.312  test spread (exact) std 0.0479 low 0.115  sdzqs 2.180  (8 s eval)
+noise_1e-3__cvs_64x64_b10_s1          17.2 s  val sdzqs  1.215  test spread (exact) std 0.0385 low 0.103  sdzqs 2.301  (8 s eval)
+noise_1e-3__cvs_128x128x128_b0_s1     16.7 s  val sdzqs  1.140  test spread (exact) std 0.0454 low 0.139  sdzqs 2.138  (30 s eval)
+noise_1e-3__cvs_128x128x128_b10_s1    70.9 s  val sdzqs  1.238  test spread (exact) std 0.0374 low 0.163  sdzqs 2.147  (35 s eval)
+noise_1e-3__cvs_64x64_b0_s2           19.6 s  val sdzqs  1.248  test spread (exact) std 0.0584 low 0.146  sdzqs 2.321  (9 s eval)
+noise_1e-3__cvs_64x64_b10_s2          29.7 s  val sdzqs  1.118  test spread (exact) std 0.0443 low 0.106  sdzqs 2.206  (9 s eval)
+noise_1e-3__cvs_128x128x128_b0_s2     24.5 s  val sdzqs  1.155  test spread (exact) std 0.0454 low 0.115  sdzqs 2.202  (20 s eval)
+noise_1e-3__cvs_128x128x128_b10_s2   155.4 s  val sdzqs  1.264  test spread (exact) std 0.0396 low 0.101  sdzqs 2.100  (23 s eval)
+noise_1e-2__cvs_64x64_b0_s1           15.8 s  val sdzqs  1.132  test spread (exact) std 0.0622 low 0.142  sdzqs 2.289  (8 s eval)

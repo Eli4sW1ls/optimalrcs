@@ -1,0 +1,21 @@
+seed 0 : /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/load_tis_data_cupy.py /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/PyRETIS3/toytis/simulations/test_cc_br --reversed --max-iter 40000 --lazy-basis --gamma 0.1 --print-step 2000 --figure-dir /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures/param_lambda/cc_emb_np/qnp --no-potential
+Interfaces from /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/PyRETIS3/toytis/simulations/test_cc_br/logging.log: [0.15, 0.22, 0.29, 0.36, 0.43, 0.5, 0.57, 0.64, 0.71, 0.78, 0.85]
+State A: order <= 0.15, state B: order >= 0.85
+Found 11 ensemble folders in /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/PyRETIS3/toytis/simulations/test_cc_br
+  /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/PyRETIS3/toytis/simulations/test_cc_br/001: loaded 816 pieces, 20716 frames, total weight 2307, cut at M = 0.15
+  /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/PyRETIS3/toytis/simulations/test_cc_br/002: loaded 1142 pieces, 221400 frames, total weight 2400, cut at M = 0.22
+  /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/PyRETIS3/toytis/simulations/test_cc_br/003: loaded 1242 pieces, 296695 frames, total weight 2400, cut at M = 0.29
+  /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/PyRETIS3/toytis/simulations/test_cc_br/004: loaded 1262 pieces, 353400 frames, total weight 2396, cut at M = 0.36
+  /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/PyRETIS3/toytis/simulations/test_cc_br/005: loaded 1224 pieces, 363358 frames, total weight 2398, cut at M = 0.43
+  /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/PyRETIS3/toytis/simulations/test_cc_br/006: loaded 1210 pieces, 382497 frames, total weight 2400, cut at M = 0.5
+  /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/PyRETIS3/toytis/simulations/test_cc_br/007: loaded 1162 pieces, 333358 frames, total weight 2398, cut at M = 0.57
+  /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/PyRETIS3/toytis/simulations/test_cc_br/008: loaded 1128 pieces, 282378 frames, total weight 2400, cut at M = 0.64
+  /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/PyRETIS3/toytis/simulations/test_cc_br/009: loaded 1200 pieces, 241638 frames, total weight 2386, cut at M = 0.71
+  /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/PyRETIS3/toytis/simulations/test_cc_br/010: loaded 1216 pieces, 204962 frames, total weight 2400, cut at M = 0.78
+Loaded 11602 pieces, 2700402 frames total
+Using 2 of 2 CV(s)
+Frames in A: 2321, in B: 1980
+Embedded CVs: 31 (y, x, cy1, cy3, cy10, cx1, cx3, cx10, cu3, cv3, f01, f02, f03, f04, f05, f06, f07, f08, f09, f10, f11, f12, f13, f14, f15, f16, f17, f18, f19, f20, w)
+Starting CommittorNE training for 40000 iterations...
+#=2000, dr2=406.284, zqs_z=1.94609, sdzqs=6.25905, |dx|=0.391263, time=120.03
+#=4000, dr2=405.334, zqs_z=1.50535, sdzqs=6.97929, |dx|=0.00674571, time=232.699

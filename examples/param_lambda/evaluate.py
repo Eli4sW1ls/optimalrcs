@@ -282,7 +282,8 @@ def evaluate(frames, mask, z, cal, cfg, zq_lags=None, full=True, ref_turns=None)
     sub = np.flatnonzero(valid)
     sub = sub[np.random.default_rng(0).choice(len(sub), min(len(sub), 200_000), replace=False)]
     out['spearman'] = float(spearmanr(zc[sub], q[sub]).statistic)
-    cv = frames.cv[idx]
+    # the CV grid of the binned RMSE: eval.bin_cvs (column indices), by default the first two CVs (y, x)
+    cv = frames.cv[idx][:, e.get('bin_cvs', list(range(min(frames.dim, 2))))]
     out['logit_rmse'] = binned_logit_rmse(cv, zm, zq_np, w, valid)
     if frames.has_exact:
         out['logit_rmse_exact'] = binned_logit_rmse(cv, zm, zx, w, valid)

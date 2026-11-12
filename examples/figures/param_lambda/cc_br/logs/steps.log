@@ -1702,3 +1702,35 @@ train:   2366 paths,   1096474 frames, cycles 801..1700
 val  :    977 paths,    451538 frames, cycles 901..1400
 test :    965 paths,    457472 frames, cycles 1101..1600
 ood  :   1519 paths,    694918 frames, cycles 1701..2000
+== cc_br
+burnin:      0 paths,         0 frames, cycles -1..-1
+train:   2366 paths,   1096474 frames, cycles 801..1700
+val  :    977 paths,    451538 frames, cycles 901..1400
+test :    965 paths,    457472 frames, cycles 1101..1600
+ood  :   1519 paths,    694918 frames, cycles 1701..2000
+base__cvs_64x64_b0                     3.4 s  val sdzqs  3.752  test spread (exact) std 0.0683 low 0.410  sdzqs 3.513  (2 s eval)
+base__cvs_64x64_b10                    6.0 s  val sdzqs  3.764  test spread (exact) std 0.0141 low 0.256  sdzqs 3.588  (2 s eval)
+base__cvs_128x128x128_b0               4.5 s  val sdzqs  3.736  test spread (exact) std 0.0178 low 0.263  sdzqs 3.549  (5 s eval)
+base__cvs_128x128x128_b10             13.8 s  val sdzqs  3.737  test spread (exact) std 0.0145 low 0.351  sdzqs 3.524  (5 s eval)
+noise_1e-3__cvs_64x64_b0               3.2 s  val sdzqs  3.774  test spread (exact) std 0.0620 low 0.462  sdzqs 3.487  (2 s eval)
+noise_1e-3__cvs_64x64_b10              5.4 s  val sdzqs  3.770  test spread (exact) std 0.0138 low 0.183  sdzqs 3.588  (2 s eval)
+noise_1e-3__cvs_128x128x128_b0         3.7 s  val sdzqs  3.736  test spread (exact) std 0.0162 low 0.225  sdzqs 3.516  (7 s eval)
+noise_1e-3__cvs_128x128x128_b10       14.7 s  val sdzqs  3.733  test spread (exact) std 0.0147 low 0.191  sdzqs 3.524  (8 s eval)
+noise_1e-2__cvs_64x64_b0               5.6 s  val sdzqs  3.768  test spread (exact) std 0.0588 low 0.460  sdzqs 3.463  (2 s eval)
+noise_1e-2__cvs_64x64_b10              6.0 s  val sdzqs  3.806  test spread (exact) std 0.0155 low 0.208  sdzqs 3.577  (2 s eval)
+noise_1e-2__cvs_128x128x128_b0         4.7 s  val sdzqs  3.762  test spread (exact) std 0.0203 low 0.253  sdzqs 3.571  (6 s eval)
+noise_1e-2__cvs_128x128x128_b10       14.2 s  val sdzqs  3.760  test spread (exact) std 0.0206 low 0.250  sdzqs 3.509  (5 s eval)
+huber_1__cvs_64x64_b0                  4.0 s  val sdzqs  3.829  test spread (exact) std 0.0368 low 0.315  sdzqs 3.516  (2 s eval)
+huber_1__cvs_64x64_b10                 5.9 s  val sdzqs  3.767  test spread (exact) std 0.0138 low 0.224  sdzqs 3.576  (2 s eval)
+huber_1__cvs_128x128x128_b0            4.6 s  val sdzqs  3.753  test spread (exact) std 0.0151 low 0.203  sdzqs 3.532  (6 s eval)
+huber_1__cvs_128x128x128_b10          14.4 s  val sdzqs  3.746  test spread (exact) std 0.0151 low 0.490  sdzqs 3.507  (6 s eval)
+noise_1e-3_huber_1__cvs_64x64_b0       3.6 s  val sdzqs  3.826  test spread (exact) std 0.0596 low 0.451  sdzqs 3.512  (2 s eval)
+noise_1e-3_huber_1__cvs_64x64_b10      5.4 s  val sdzqs  3.765  test spread (exact) std 0.0137 low 0.178  sdzqs 3.577  (2 s eval)
+noise_1e-3_huber_1__cvs_128x128x128_b0   4.4 s  val sdzqs  3.753  test spread (exact) std 0.0151 low 0.194  sdzqs 3.541  (6 s eval)
+noise_1e-3_huber_1__cvs_128x128x128_b10  14.5 s  val sdzqs  3.736  test spread (exact) std 0.0134 low 0.197  sdzqs 3.533  (6 s eval)
+== cc_br
+burnin:      0 paths,         0 frames, cycles -1..-1
+train:   2366 paths,   1096474 frames, cycles 801..1700
+val  :    977 paths,    451538 frames, cycles 901..1400
+test :    965 paths,    457472 frames, cycles 1101..1600
+ood  :   1519 paths,    694918 frames, cycles 1701..2000

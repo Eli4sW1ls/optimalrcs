@@ -7,6 +7,9 @@
     python run.py evaluate <system>
     python run.py export   <system>
     python run.py report   [<system> ...]
+    python run.py variants <system> [--variants loss_variants] [--seeds 0 1 2]   loss variants (lean sweep)
+    python run.py embed    <system>     embedded system: base frames + extra coordinates (embed.py)
+    python run.py fit-qnp-embedded <system>   NPNEq on the embedded CVs (labels of an embedded system)
 
 <system> is a config name in configs/ (z_br, cc_br, flat1d, bumps1d). Long steps go through systemd-run, e.g.
     systemd-run --user --unit=pl-z --collect -p MemoryMax=7G -p MemorySwapMax=0 \\
@@ -51,8 +54,13 @@ def main():
     p.add_argument('--quick', action='store_true', help='small sweep for testing the pipeline')
     p.add_argument('--lean', action='store_true', help='fit: the short M3 sweep of [m3.lean] (a few minutes)')
     p.add_argument('--fresh', action='store_true', help='fit: start a new results list (default: skip runs done)')
+    p.add_argument('--variants', default='loss_variants', help='variants: configs/<name>.toml')
+    p.add_argument('--seeds', type=int, nargs='+', help='variants: training seeds (default: the config seed)')
     args = p.parse_args()
-    commands = {'extract': cmd_extract, 'fit-qnp': cmd_fit_qnp}
+    commands = {'extract': cmd_extract, 'fit-qnp': cmd_fit_qnp,
+                'variants': lambda cfg, a: __import__('variants').cmd_variants(cfg, a),
+                'embed': lambda cfg, a: __import__('embed').cmd_embed(cfg, a),
+                'fit-qnp-embedded': lambda cfg, a: __import__('embed').cmd_fit_qnp_embedded(cfg, a)}
     if args.command not in commands:
         import steps
         commands[args.command] = getattr(steps, 'cmd_' + args.command.replace('-', '_'))

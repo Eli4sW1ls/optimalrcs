@@ -352,3 +352,23 @@ def test_calibration_monotone_and_resolves_low_q():
     assert np.max(np.abs(g[mid] - 1 / (1 + np.exp(-(grid[mid] - 1))))) < 0.01
     low = (1 / (1 + np.exp(-(grid - 1))) > 1e-3) & (1 / (1 + np.exp(-(grid - 1))) < 1e-2)
     assert np.max(np.abs(np.log(g[low]) - np.log(1 / (1 + np.exp(-(grid[low] - 1)))))) < 1.0
+
+
+# ---------------------------------------------------------------------------------------------------
+# embedding test: the extra coordinates
+# ---------------------------------------------------------------------------------------------------
+
+
+def test_embed_ou_stationary_and_independent():
+    """embed._ou: stationary variance sd^2 and lag-1 correlation exp(-1/tau) within a path, from the first frame
+    on; no correlation between the end of one path and the start of the next."""
+    import embed
+    rng = np.random.default_rng(3)
+    path_len = np.full(4000, 50)
+    offset = np.concatenate([[0], np.cumsum(path_len)[:-1]])
+    for tau in (2.0, 1e6):
+        x = embed._ou(rng, path_len, offset, tau, 0.1).reshape(len(path_len), -1)
+        assert abs(x[:, 0].std() - 0.1) < 0.01 and abs(x[:, -1].std() - 0.1) < 0.01
+        r = np.corrcoef(x[:, 10], x[:, 11])[0, 1]
+        assert abs(r - np.exp(-1 / tau)) < 0.05
+        assert abs(np.corrcoef(x[:-1, -1], x[1:, 0])[0, 1]) < 0.05

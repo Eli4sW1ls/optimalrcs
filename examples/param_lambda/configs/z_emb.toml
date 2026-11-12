@@ -1,0 +1,33 @@
+# Embedding test (embed.py): the z_br staple frames plus 29 coordinates that do not interact with (y, x);
+# the exact committor stays q_2D(y, x). Labels: the 2D q_np of z_br.
+inherit = "z_br"
+name = "z_emb"
+
+[embed]
+base = "z_br"
+seed = 11
+drop_burnin = true
+labels = "base"                     # q_np of the base system (2D fit), or an NPNEq fit on the embedded CVs
+copy_tau = 2                        # frames: the noise of the copies is fast
+copies = [["y", 0.01], ["y", 0.03], ["y", 0.1], ["x", 0.01], ["x", 0.03], ["x", 0.1], ["u", 0.03], ["v", 0.03]]
+n_fast = 20
+fast_taus = [1, 2, 5, 10, 20]       # frames, cycled over f01..f20
+fast_sd = 0.1                       # about the SD of y and x
+slow_tau = 1e6                      # frames, >> the longest path (w is nearly constant along a path)
+slow_sd = 0.1
+
+[features]
+library = "cvs"                     # M2 screens the raw CVs
+top_k = [2, 8]
+[features.sets.noclean]             # no clean y, x: only noisy copies carry the reaction coordinate
+exclude = ["y", "x"]
+
+[m1]
+l1_C = [0.01, 1.0]
+gam_ridge = [0.1, 10.0]
+
+[m3.lean]
+sets = ["cvs", "noclean"]
+
+[eval]
+bin_cvs = [0, 1]                    # binned RMSE on the (y, x) grid
