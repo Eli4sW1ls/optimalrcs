@@ -83,3 +83,12 @@ m3_noclean_64x64_b10           20.1 s  epoch 12  sdzqs   19.566
    m3_noclean_128x128x128_b0 epoch  21: sdzqs   19.785 spread 0.7686
    m3_noclean_128x128x128_b0 epoch  24: sdzqs   19.822 spread 0.9805
 m3_noclean_128x128x128_b0       8.7 s  epoch 21  sdzqs   19.785
+   m3_noclean_128x128x128_b10 epoch   3: sdzqs   19.873 spread 0.9200
+   m3_noclean_128x128x128_b10 epoch   6: sdzqs   20.037 spread 0.8755
+   m3_noclean_128x128x128_b10 epoch   9: sdzqs   19.614 spread 0.3967
+   m3_noclean_128x128x128_b10 epoch  12: sdzqs   19.586 spread 0.8903
+   m3_noclean_128x128x128_b10 epoch  15: sdzqs   19.624 spread 0.4221
+   m3_noclean_128x128x128_b10 epoch  18: sdzqs   19.714 spread 0.8608
+   m3_noclean_128x128x128_b10 epoch  21: sdzqs   19.708 spread 0.9376
+   m3_noclean_128x128x128_b10 epoch  24: sdzqs   19.650 spread 0.9103
+m3_noclean_128x128x128_b10     68.4 s  epoch 12  sdzqs   19.586

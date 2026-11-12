@@ -21,3 +21,39 @@ noise_1e-3__cvs_64x64_b10_s2          29.7 s  val sdzqs  1.118  test spread (exa
 noise_1e-3__cvs_128x128x128_b0_s2     24.5 s  val sdzqs  1.155  test spread (exact) std 0.0454 low 0.115  sdzqs 2.202  (20 s eval)
 noise_1e-3__cvs_128x128x128_b10_s2   155.4 s  val sdzqs  1.264  test spread (exact) std 0.0396 low 0.101  sdzqs 2.100  (23 s eval)
 noise_1e-2__cvs_64x64_b0_s1           15.8 s  val sdzqs  1.132  test spread (exact) std 0.0622 low 0.142  sdzqs 2.289  (8 s eval)
+noise_1e-2__cvs_64x64_b10_s1          62.0 s  val sdzqs  1.276  test spread (exact) std 0.0440 low 0.087  sdzqs 2.256  (7 s eval)
+noise_1e-2__cvs_128x128x128_b0_s1     20.7 s  val sdzqs  1.175  test spread (exact) std 0.0552 low 0.152  sdzqs 2.315  (21 s eval)
+noise_1e-2__cvs_128x128x128_b10_s1   109.6 s  val sdzqs  1.310  test spread (exact) std 0.0412 low 0.143  sdzqs 2.202  (24 s eval)
+noise_1e-2__cvs_64x64_b0_s2           19.7 s  val sdzqs  1.199  test spread (exact) std 0.0570 low 0.166  sdzqs 2.240  (9 s eval)
+noise_1e-2__cvs_64x64_b10_s2          37.2 s  val sdzqs  1.243  test spread (exact) std 0.0498 low 0.164  sdzqs 2.200  (10 s eval)
+noise_1e-2__cvs_128x128x128_b0_s2     23.0 s  val sdzqs  1.210  test spread (exact) std 0.0455 low 0.136  sdzqs 2.161  (21 s eval)
+noise_1e-2__cvs_128x128x128_b10_s2   108.8 s  val sdzqs  1.307  test spread (exact) std 0.0400 low 0.096  sdzqs 2.355  (17 s eval)
+huber_1__cvs_64x64_b0_s1              11.9 s  val sdzqs  1.485  test spread (exact) std 0.0400 low 0.116  sdzqs 2.341  (8 s eval)
+huber_1__cvs_64x64_b10_s1             34.9 s  val sdzqs  1.209  test spread (exact) std 0.0490 low 0.107  sdzqs 2.243  (9 s eval)
+huber_1__cvs_128x128x128_b0_s1        19.3 s  val sdzqs  1.147  test spread (exact) std 0.0531 low 0.133  sdzqs 2.214  (20 s eval)
+huber_1__cvs_128x128x128_b10_s1      106.3 s  val sdzqs  1.317  test spread (exact) std 0.0393 low 0.071  sdzqs 2.334  (21 s eval)
+huber_1__cvs_64x64_b0_s2              13.9 s  val sdzqs  1.274  test spread (exact) std 0.0505 low 0.113  sdzqs 2.154  (7 s eval)
+huber_1__cvs_64x64_b10_s2             34.3 s  val sdzqs  1.226  test spread (exact) std 0.0379 low 0.134  sdzqs 2.185  (8 s eval)
+huber_1__cvs_128x128x128_b0_s2        19.4 s  val sdzqs  1.208  test spread (exact) std 0.0405 low 0.153  sdzqs 2.197  (20 s eval)
+huber_1__cvs_128x128x128_b10_s2      108.0 s  val sdzqs  1.173  test spread (exact) std 0.0406 low 0.074  sdzqs 2.324  (18 s eval)
+noise_1e-3_huber_1__cvs_64x64_b0_s1   12.2 s  val sdzqs  1.216  test spread (exact) std 0.0498 low 0.138  sdzqs 2.219  (7 s eval)
+noise_1e-3_huber_1__cvs_64x64_b10_s1  33.6 s  val sdzqs  1.215  test spread (exact) std 0.0445 low 0.154  sdzqs 2.293  (8 s eval)
+noise_1e-3_huber_1__cvs_128x128x128_b0_s1  18.7 s  val sdzqs  1.159  test spread (exact) std 0.0421 low 0.133  sdzqs 2.105  (18 s eval)
+noise_1e-3_huber_1__cvs_128x128x128_b10_s1 106.5 s  val sdzqs  1.313  test spread (exact) std 0.0390 low 0.052  sdzqs 2.274  (18 s eval)
+noise_1e-3_huber_1__cvs_64x64_b0_s2   12.6 s  val sdzqs  1.202  test spread (exact) std 0.0539 low 0.163  sdzqs 2.220  (7 s eval)
+noise_1e-3_huber_1__cvs_64x64_b10_s2  33.5 s  val sdzqs  1.272  test spread (exact) std 0.0430 low 0.106  sdzqs 2.190  (7 s eval)
+noise_1e-3_huber_1__cvs_128x128x128_b0_s2  18.4 s  val sdzqs  1.163  test spread (exact) std 0.0441 low 0.124  sdzqs 2.203  (18 s eval)
+noise_1e-3_huber_1__cvs_128x128x128_b10_s2 103.4 s  val sdzqs  1.262  test spread (exact) std 0.0391 low 0.129  sdzqs 2.187  (17 s eval)
+# z_br: training variants (60 runs, seeds [0, 1, 2])
+
+Test paths. Spread vs the exact committor: "std" = the report's level set (q = 0.0001, 0.00023, 0.00053, 0.0012, 0.0028, 0.0064, 0.015, 0.034, 0.078, 0.41, 0.95); "unrel." = levels the exact committor reaches but the report drops because q_np is unreliable there (too few frames or label noise; q = 0.18). Selected: the lean run with the lowest validation SD(Z_q), per seed; mean ± SD over seeds.
+
+| variant | overrides | selected runs | spread std | spread unrel. | test SD(Z_q) | step ratio | median over all runs: spread std / unrel. | train s (all runs) |
+|---|---|---|---|---|---|---|---|---|
+| q_np | | | 0.0494 | 0.0818 | 2.260 | 0.992 | | |
+| exact | | | 0.0124 | 0.0172 | 2.190 | 0.636 | | |
+| base | (as configured) | 128x128x128 β=0, 128x128x128 β=0, 128x128x128 β=10 | 0.0474 ± 0.0074 | 0.117 ± 0.010 | 2.252 ± 0.081 | 0.752 ± 0.008 | 0.0456 / 0.1261 | 228 |
+| noise_1e-3 | train.noise_q=0.001 | 128x128x128 β=0, 128x128x128 β=0, 64x64 β=10 | 0.0443 ± 0.0011 | 0.148 ± 0.047 | 2.167 ± 0.035 | 0.657 ± 0.044 | 0.0439 / 0.1149 | 427 |
+| noise_1e-2 | train.noise_q=0.01 | 128x128x128 β=0, 64x64 β=0, 64x64 β=0 | 0.0591 ± 0.0028 | 0.160 ± 0.016 | 2.252 ± 0.033 | 0.646 ± 0.031 | 0.0479 / 0.1456 | 473 |
+| huber_1 | m3.huber=1.0 | 128x128x128 β=0, 128x128x128 β=0, 128x128x128 β=10 | 0.0469 ± 0.0062 | 0.114 ± 0.035 | 2.251 ± 0.063 | 0.752 ± 0.007 | 0.0406 / 0.1145 | 425 |
+| noise_1e-3_huber_1 | train.noise_q=0.001; m3.huber=1.0 | 128x128x128 β=0, 128x128x128 β=0, 128x128x128 β=0 | 0.0444 ± 0.0025 | 0.159 ± 0.054 | 2.146 ± 0.051 | 0.657 ± 0.005 | 0.0435 / 0.1286 | 416 |

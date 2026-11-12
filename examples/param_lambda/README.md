@@ -13,6 +13,8 @@ forward pass for the toytis sampler. Results: [`docs/param_lambda_report.md`](..
 | `toytis_adapter.py` | step 5: plugs λ into toytis without changing it |
 | `report.py`, `report_intro.md` | step 6: figures and the report |
 | `run.py`, `steps.py`, `run_all.sh` | command line; `./run_all.sh` regenerates everything |
+| `variants.py`, `configs/loss_variants.toml` | training variants (lean sweep, several seeds), every run on the test paths |
+| `embed.py`, `embed_report.py`, `embed_intro.md`, `run_embedded.sh`, `configs/*_emb*.toml` | embedding test: the 2D runs plus 29 non-interacting coordinates ([`docs/param_lambda_embedding.md`](../../docs/param_lambda_embedding.md)) |
 | `tests/` | `python -m pytest tests -q` (export = model, continuity, A/B, reversal, adapter, loader, toytis run) |
 
 ```bash
@@ -22,7 +24,11 @@ python run.py fit z_br          # M1 + M3 sweeps (resumes; --fresh to restart, -
 python run.py evaluate z_br     # test + OOD metrics, TIS plots
 python run.py export z_br       # exported/z_br_<family>.npz, µs per frame
 python run.py report            # docs/param_lambda_report.md
+python run.py variants z_br --seeds 0 1 2    # loss variants (configs/loss_variants.toml), test metrics per run
+./run_embedded.sh z_emb cc_emb cc_emb_np     # embedding test; then: OMP_NUM_THREADS=1 python embed_report.py
 ```
+
+Interface spacing near fixed states: [`docs/param_lambda_interface_spacing.md`](../../docs/param_lambda_interface_spacing.md).
 
 Training time (laptop, RTX 2000 Ada, 8 GB; Z: 5.2M training frames). The checkpoints are scored by the network
 on the GPU; the metrics themselves take ~0.7 s per checkpoint (before, the numpy forward pass over 2.7M frames

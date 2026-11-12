@@ -60,7 +60,8 @@ def _ou(rng, path_len, offset, tau, sd):
 
 
 def coordinates(cfg, fz, keep=None):
-    """(names, columns) of the embedded CVs for the frames of the base cache `fz` (those in `keep`, default all)."""
+    """(names, array) of the embedded CVs for the frames of the base cache `fz` (those in `keep`, default all);
+    the columns are filled one at a time (memory: one (n, d) array)."""
     e = cfg['embed']
     rng = np.random.default_rng(e['seed'])
     phys, path_len, offset = _physical_index(fz)
@@ -69,18 +70,20 @@ def coordinates(cfg, fz, keep=None):
         phys, base = phys[keep], base[keep]
     y, x = base[:, 0], base[:, 1]
     rel = {'y': y, 'x': x, 'u': (y + x) / np.sqrt(2), 'v': (y - x) / np.sqrt(2)}
-    names, cols = ['y', 'x'], [y, x]
+    names = ['y', 'x'] + [f'c{cv}{round(a * 100):g}' for cv, a in e['copies']]
+    names += [f'f{k + 1:02d}' for k in range(e['n_fast'])] + ['w']
+    X = np.empty((len(y), len(names)))
+    X[:, 0], X[:, 1] = y, x
+    j = 2
     for cv, a in e['copies']:
-        xi = _ou(rng, path_len, offset, e['copy_tau'], 1.0)[phys]
-        names.append(f'c{cv}{round(a * 100):g}')
-        cols.append(rel[cv] + a * xi)
+        X[:, j] = rel[cv] + a * _ou(rng, path_len, offset, e['copy_tau'], 1.0)[phys]
+        j += 1
     taus = e['fast_taus']
     for k in range(e['n_fast']):
-        names.append(f'f{k + 1:02d}')
-        cols.append(_ou(rng, path_len, offset, taus[k % len(taus)], e['fast_sd'])[phys])
-    names.append('w')
-    cols.append(_ou(rng, path_len, offset, e['slow_tau'], e['slow_sd'])[phys])
-    return names, cols
+        X[:, j] = _ou(rng, path_len, offset, taus[k % len(taus)], e['fast_sd'])[phys]
+        j += 1
+    X[:, j] = _ou(rng, path_len, offset, e['slow_tau'], e['slow_sd'])[phys]
+    return names, X
 
 
 def groups(names):
@@ -118,14 +121,13 @@ def cmd_embed(cfg, args):
     keep = np.ones(len(fz['q_np']), bool)
     if cfg['embed'].get('drop_burnin', False):
         keep = data.Frames(common.load_config(cfg['embed']['base'])).frame_split != 'burnin'
-    names, cols = coordinates(cfg, fz, keep)
+    names, X = coordinates(cfg, fz, keep)
     out = {k: fz[k] for k in fz.files}
     out['q_np'] = _labels(cfg, fz)
     for k in ('q_np', 'piece', 'path', 't', 'w', 'A', 'B', 'q_exact'):
         if k in out:
             out[k] = out[k][keep]
-    out['cv'] = np.stack(cols, axis=1)
-    del cols
+    out['cv'] = X
     out['cv_names'] = np.array(names)
     # consistency: the same physical frame has the same base CVs in every piece (checked on a sample)
     phys = _physical_index(fz)[0]
@@ -143,8 +145,7 @@ def cmd_fit_qnp_embedded(cfg, args):
     system's frames (the same frames, in the same order, as the base cache). Writes cfg['embed']['labels']."""
     base_cfg = common.load_config(cfg['embed']['base'])
     fz = _base_frames(cfg)
-    names, cols = coordinates(cfg, fz)
-    X = np.stack(cols, axis=1)
+    names, X = coordinates(cfg, fz)
     d = base_cfg['data']
     fig_dir = os.path.dirname(cfg['embed']['labels'])
     os.makedirs(fig_dir, exist_ok=True)

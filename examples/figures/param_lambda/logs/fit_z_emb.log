@@ -1,0 +1,94 @@
+== z_emb
+burnin:   6046 paths,         0 frames, cycles 13..39992
+train:   3751 paths,   5160451 frames, cycles 40003..84982
+val  :   1510 paths,   2151143 frames, cycles 45002..69999
+test :   1485 paths,   2082642 frames, cycles 55019..79991
+ood  :   2208 paths,   3133243 frames, cycles 85001..99994
+m1_logit_top2_0.01              2.8 s  sdzqs   11.920  spread 1.2908
+m1_logit_top2_1                 2.8 s  sdzqs   12.050  spread 1.2489
+m1_gam_top2_0.1                 0.2 s  sdzqs  418.659  spread 1.9328
+m1_gam_top2_10                  0.2 s  sdzqs   14.871  spread 1.4477
+m1_logit_top8_0.01              5.6 s  sdzqs   12.173  spread 1.2808
+m1_logit_top8_1                 5.9 s  sdzqs   12.349  spread 1.2899
+m1_gam_top8_0.1                 0.8 s  sdzqs  292.589  spread 1.9056
+m1_gam_top8_10                  0.8 s  sdzqs   32.808  spread 1.8744
+m1_logit_cvs_0.01              11.1 s  sdzqs   12.473  spread 1.2293
+m1_logit_cvs_1                 12.4 s  sdzqs   12.615  spread 1.1383
+m1_gam_cvs_0.1                  5.9 s  sdzqs  290.534  spread 1.9632
+m1_gam_cvs_10                   6.1 s  sdzqs   43.102  spread 1.7288
+m1_logit_noclean_0.01          11.4 s  sdzqs   67.325  spread 1.8714
+m1_logit_noclean_1             12.6 s  sdzqs   68.355  spread 1.9166
+m1_gam_noclean_0.1              5.2 s  sdzqs  330.859  spread 1.9509
+m1_gam_noclean_10               5.0 s  sdzqs  182.357  spread 1.9494
+   m3_cvs_64x64_b0 epoch   3: sdzqs   46.322 spread 0.6537
+   m3_cvs_64x64_b0 epoch   6: sdzqs   19.784 spread 0.4548
+   m3_cvs_64x64_b0 epoch   9: sdzqs   10.797 spread 0.4024
+   m3_cvs_64x64_b0 epoch  12: sdzqs    9.240 spread 0.2948
+   m3_cvs_64x64_b0 epoch  15: sdzqs    7.165 spread 0.3290
+   m3_cvs_64x64_b0 epoch  18: sdzqs    5.419 spread 0.2732
+   m3_cvs_64x64_b0 epoch  21: sdzqs    4.990 spread 0.2484
+   m3_cvs_64x64_b0 epoch  24: sdzqs    5.335 spread 0.2366
+m3_cvs_64x64_b0                12.2 s  epoch 21  sdzqs    4.990
+   m3_cvs_64x64_b10 epoch   3: sdzqs    5.130 spread 0.1258
+   m3_cvs_64x64_b10 epoch   6: sdzqs    2.741 spread 0.0741
+   m3_cvs_64x64_b10 epoch   9: sdzqs    1.558 spread 0.0594
+   m3_cvs_64x64_b10 epoch  12: sdzqs    1.701 spread 0.0469
+   m3_cvs_64x64_b10 epoch  15: sdzqs    1.461 spread 0.0464
+   m3_cvs_64x64_b10 epoch  18: sdzqs    1.243 spread 0.0457
+   m3_cvs_64x64_b10 epoch  21: sdzqs    1.316 spread 0.0465
+   m3_cvs_64x64_b10 epoch  24: sdzqs    1.260 spread 0.0469
+m3_cvs_64x64_b10               43.3 s  epoch 18  sdzqs    1.243
+   m3_cvs_128x128x128_b0 epoch   3: sdzqs   15.653 spread 0.3785
+   m3_cvs_128x128x128_b0 epoch   6: sdzqs    5.954 spread 0.2205
+   m3_cvs_128x128x128_b0 epoch   9: sdzqs    4.319 spread 0.1724
+   m3_cvs_128x128x128_b0 epoch  12: sdzqs    4.370 spread 0.1211
+   m3_cvs_128x128x128_b0 epoch  15: sdzqs    3.037 spread 0.1247
+   m3_cvs_128x128x128_b0 epoch  18: sdzqs    2.126 spread 0.0961
+   m3_cvs_128x128x128_b0 epoch  21: sdzqs    2.301 spread 0.1006
+   m3_cvs_128x128x128_b0 epoch  24: sdzqs    2.550 spread 0.1017
+m3_cvs_128x128x128_b0          19.4 s  epoch 18  sdzqs    2.126
+   m3_cvs_128x128x128_b10 epoch   3: sdzqs    1.716 spread 0.0486
+   m3_cvs_128x128x128_b10 epoch   6: sdzqs    1.607 spread 0.0432
+   m3_cvs_128x128x128_b10 epoch   9: sdzqs    1.307 spread 0.0417
+   m3_cvs_128x128x128_b10 epoch  12: sdzqs    1.444 spread 0.0384
+   m3_cvs_128x128x128_b10 epoch  15: sdzqs    1.532 spread 0.0286
+   m3_cvs_128x128x128_b10 epoch  18: sdzqs    1.251 spread 0.0325
+   m3_cvs_128x128x128_b10 epoch  21: sdzqs    1.261 spread 0.0298
+   m3_cvs_128x128x128_b10 epoch  24: sdzqs    1.275 spread 0.0284
+m3_cvs_128x128x128_b10        113.4 s  epoch 18  sdzqs    1.251
+   m3_noclean_64x64_b0 epoch   3: sdzqs   65.922 spread 1.1129
+   m3_noclean_64x64_b0 epoch   6: sdzqs   40.622 spread 0.9537
+   m3_noclean_64x64_b0 epoch   9: sdzqs   27.607 spread 0.8691
+   m3_noclean_64x64_b0 epoch  12: sdzqs   25.562 spread 0.8294
+   m3_noclean_64x64_b0 epoch  15: sdzqs   24.018 spread 0.7173
+   m3_noclean_64x64_b0 epoch  18: sdzqs   20.026 spread 0.7295
+   m3_noclean_64x64_b0 epoch  21: sdzqs   21.548 spread 0.6955
+   m3_noclean_64x64_b0 epoch  24: sdzqs   20.305 spread 0.7009
+m3_noclean_64x64_b0            11.8 s  epoch 18  sdzqs   20.026
+   m3_noclean_64x64_b10 epoch   3: sdzqs   18.002 spread 0.6205
+   m3_noclean_64x64_b10 epoch   6: sdzqs   18.737 spread 0.6376
+   m3_noclean_64x64_b10 epoch   9: sdzqs   18.966 spread 0.5930
+   m3_noclean_64x64_b10 epoch  12: sdzqs   18.367 spread 0.5587
+   m3_noclean_64x64_b10 epoch  15: sdzqs   17.526 spread 0.6811
+   m3_noclean_64x64_b10 epoch  18: sdzqs   17.976 spread 0.6664
+   m3_noclean_64x64_b10 epoch  21: sdzqs   17.661 spread 0.7455
+   m3_noclean_64x64_b10 epoch  24: sdzqs   17.575 spread 0.6568
+m3_noclean_64x64_b10           43.0 s  epoch 15  sdzqs   17.526
+   m3_noclean_128x128x128_b0 epoch   3: sdzqs   37.450 spread 0.7047
+   m3_noclean_128x128x128_b0 epoch   6: sdzqs   21.762 spread 0.7231
+   m3_noclean_128x128x128_b0 epoch   9: sdzqs   20.448 spread 0.6489
+   m3_noclean_128x128x128_b0 epoch  12: sdzqs   19.515 spread 0.6177
+   m3_noclean_128x128x128_b0 epoch  15: sdzqs   19.094 spread 0.8715
+   m3_noclean_128x128x128_b0 epoch  18: sdzqs   19.116 spread 0.7343
+   m3_noclean_128x128x128_b0 epoch  21: sdzqs   18.408 spread 0.6248
+   m3_noclean_128x128x128_b0 epoch  24: sdzqs   18.745 spread 0.7638
+m3_noclean_128x128x128_b0      19.9 s  epoch 21  sdzqs   18.408
+   m3_noclean_128x128x128_b10 epoch   3: sdzqs   18.169 spread 0.6651
+   m3_noclean_128x128x128_b10 epoch   6: sdzqs   18.965 spread 0.6517
+   m3_noclean_128x128x128_b10 epoch   9: sdzqs   17.939 spread 0.7298
+   m3_noclean_128x128x128_b10 epoch  12: sdzqs   17.427 spread 0.6556
+   m3_noclean_128x128x128_b10 epoch  15: sdzqs   17.393 spread 0.7675
+   m3_noclean_128x128x128_b10 epoch  18: sdzqs   17.171 spread 0.7456
+   m3_noclean_128x128x128_b10 epoch  21: sdzqs   17.561 spread 0.6838
+   m3_noclean_128x128x128_b10 epoch  24: sdzqs   17.537 spread 0.7173
+m3_noclean_128x128x128_b10    115.0 s  epoch 18  sdzqs   17.171

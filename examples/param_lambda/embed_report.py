@@ -28,7 +28,7 @@ GROUP_COLOR = {'relevant (y, x)': '#2a78d6', 'copy, noise 0.01': '#f6b48a', 'cop
 # candidates: fixed colour per entity
 CAND = {
     'exact': dict(color='#0b0b0b', ls='--', label='exact committor'),
-    'base M3': dict(color='#1baf7a', ls='-', label='M3 on (y, x) only (2D run)'),
+    'base M3': dict(color='#1baf7a', ls='-', label='M3 on (y, x) only, same sweep'),
     'M3 cvs': dict(color='#2a78d6', ls='-', label='M3, all 31 CVs'),
     'M3-fast cvs': dict(color='#2a78d6', ls=':', label='M3-fast, all 31 CVs'),
     'M3 noclean': dict(color='#eb6834', ls='-', label='M3, without clean y, x'),
@@ -60,9 +60,14 @@ def select(cfg):
 
 
 def attribution(f, idx, params, n_pairs=50_000, seed=0):
-    """Share of each CV in the per-step motion of the score along the paths: c_i = dz/dx_i * dx_i (lag 1, central
-    differences at the midpoint), share_i = E[c_i^2] / sum_j E[c_j^2], over steps in the transition region
-    (1e-3 < q_exact < 0.99) of the frames idx."""
+    """Two attributions over the steps of the transition region (1e-3 < q_exact < 0.99) of the frames idx, with
+    the gradient g_i = dz/dx_i from central differences at the midpoint of each lag-1 step:
+
+    - dynamic: share of E[(g_i dx_i)^2], the per-step motion of the score (jitter);
+    - static: share of E[(g_i sd_i)^2], how much z changes when x_i varies over its spread (a slow coordinate that
+      is constant along a path has no dynamic share, but a static one if the model uses it as an offset).
+
+    Also the RMS effect E[(g_i sd_i)^2]^(1/2) in logit units."""
     piece, qx = f.piece[idx], f.q_exact[idx]
     ok = (piece[1:] == piece[:-1]) & f.valid[idx][1:] & f.valid[idx][:-1] & (qx[:-1] > 1e-3) & (qx[:-1] < 0.99)
     i0 = np.flatnonzero(ok)
@@ -70,15 +75,17 @@ def attribution(f, idx, params, n_pairs=50_000, seed=0):
     x0, x1 = f.cv[idx[i0]], f.cv[idx[i0 + 1]]
     xm, dx = (x0 + x1) / 2, x1 - x0
     w = f.w[idx[i0]].astype(float)
+    sd = np.sqrt(np.average((xm - np.average(xm, axis=0, weights=w)) ** 2, axis=0, weights=w))
     sm = ScoreModel(params)
     h = 1e-3 * f.cv[idx[:200_000]].std(0)
-    c2 = np.zeros(f.dim)
+    dyn, sta = np.zeros(f.dim), np.zeros(f.dim)
     for i in range(f.dim):
         e = np.zeros(f.dim)
         e[i] = h[i]
         g = (sm.raw(xm + e) - sm.raw(xm - e)) / (2 * h[i])
-        c2[i] = np.average((g * dx[:, i]) ** 2, weights=w)
-    return c2 / c2.sum()
+        dyn[i] = np.average((g * dx[:, i]) ** 2, weights=w)
+        sta[i] = np.average((g * sd[i]) ** 2, weights=w)
+    return dyn / dyn.sum(), sta / sta.sum(), np.sqrt(sta)
 
 
 def _metrics_row(m):
@@ -104,10 +111,21 @@ def analyse(system):
     grp = embed.groups(names)
     out = dict(system=system, base=base, labels=cfg['embed'].get('labels', 'base'), names=names, groups=grp,
                screen=screen, rows={}, attribution={}, trace={})
-    b = base_metrics['_best']['M3']
-    out['rows']['base M3'] = dict(_metrics_row(base_metrics[b]), run=b, features='y, x')
+    # the 2D comparison: the base system's runs of the same lean sweep on (y, x), the same selection rule
+    base_cfg = common.load_config(base)
+    lean = base_cfg['m3'].get('lean', {})
+    with open(os.path.join(base_cfg['out_dir'], 'fit', 'results.json')) as fh:
+        base_runs = [r for r in json.load(fh) if r['family'] == 'M3' and r['set'] in lean.get('sets', ['cvs'])
+                     and r['arch'] in lean.get('archs', []) and r['beta'] in lean.get('betas', [])]
+    b = min(base_runs, key=lambda r: r['sdzqs'])
+    bp = dict(np.load(os.path.join(base_cfg['out_dir'], 'fit', 'runs', b['id'] + '.npz')))
+    out['rows']['base M3'] = dict(_metrics_row(base_metrics[b['id']]), run=b['id'], features='y, x (2)',
+                                  model='x'.join(map(str, b['arch'])) + f' β={b["beta"]:g}', train_s=b['train_seconds'])
     out['rows']['exact'] = _metrics_row(metrics['exact'])
     out['rows']['q_np'] = _metrics_row(metrics['q_np'])
+    base_ctx = steps.Context(base_cfg)
+    base_lm = LambdaModel(steps.build_export(base_ctx, bp))
+    del base_ctx
     bench_cv = f.cv[test[:20000]]
     models = {}
     for ent, r in sel.items():
@@ -119,27 +137,31 @@ def analyse(system):
         out['rows'][ent] = dict(_metrics_row(metrics[r['id']]), run=r['id'], features=f'{r["set"]} ({len(r["features"])})',
                                 model=arch, us_one=bench['us_per_frame_one'], train_s=r['train_seconds'],
                                 n_nonzero=r.get('n_nonzero'))
-        share = attribution(f, test, p)
-        out['attribution'][ent] = {g: float(share[[k for k, gg in enumerate(grp) if gg == g]].sum())
-                                   for g in GROUP_ORDER}
+        share, static, effect = attribution(f, test, p)
+        by_group = lambda v: {g: float(v[[k for k, gg in enumerate(grp) if gg == g]].sum()) for g in GROUP_ORDER}
+        out['attribution'][ent] = by_group(share)
         out['attribution'][ent]['top'] = [(names[k], float(share[k])) for k in np.argsort(share)[::-1][:5]]
+        out.setdefault('static', {})[ent] = by_group(static)
+        out.setdefault('w_effect', {})[ent] = float(effect[names.index('w')])
         common.say(f'{system} {ent:16s} {r["id"]:32s} spread {out["rows"][ent]["spread"]:.4f}  '
                    f'step {out["rows"][ent]["step"]:.3f}  us {bench["us_per_frame_one"]:.1f}  '
                    f'shares {", ".join(f"{g}: {v:.3f}" for g, v in out["attribution"][ent].items() if g != "top")}')
-    # one reactive test piece for the traces: from q < 0.01 to q > 0.95, at most 3000 frames, mid-length
-    piece, qx = f.piece[test], f.q_exact[test]
-    cand = []
-    for p_ in np.unique(piece):
-        m_ = piece == p_
-        if 200 < m_.sum() < 3000 and qx[m_].min() < 0.01 and qx[m_].max() > 0.95:
-            cand.append((m_.sum(), p_))
-    if cand:
-        _, p_ = sorted(cand)[len(cand) // 2]
+    # one test piece for the traces: 200-3000 frames, the widest range of logit q_exact (pieces start at the
+    # interface below their ensemble, so few run from near A to B); the median of the 10 widest
+    piece, qx = f.piece[test], np.clip(f.q_exact[test].astype(float), 1e-6, 1 - 1e-6)
+    u, inv = np.unique(piece, return_inverse=True)
+    n = np.bincount(inv)
+    lo, hi = np.ones(len(u)), np.zeros(len(u))
+    np.minimum.at(lo, inv, qx)
+    np.maximum.at(hi, inv, qx)
+    width = np.where((n > 200) & (n < 3000), common.logit(hi) - common.logit(lo), -np.inf)
+    top = np.argsort(width)[::-1][:10]
+    if np.isfinite(width[top[0]]):
+        p_ = u[top[len(top) // 2]]
         ii = test[piece == p_]
         cv = f.cv[ii]
         out['trace'] = {'t': f.t[ii].tolist(), 'exact': f.q_exact[ii].astype(float).tolist(),
                         'A': f.A[ii].tolist(), 'B': f.B[ii].tolist()}
-        base_lm = LambdaModel(os.path.join(common.HERE, 'exported', f'{base}_m3.npz'))
         out['trace']['base M3'] = base_lm.q(cv[:, :2]).tolist()
         for ent, lm in models.items():
             out['trace'][ent] = lm.q(cv).tolist()
@@ -150,7 +172,6 @@ def analyse(system):
     wv = f.w[test].astype(float)[v]
     out['maps'] = {'edges': [e.tolist() for e in edges],
                    'exact': _binned((yx[v, 0], yx[v, 1]), edges, f.q_exact[test][v].astype(float), wv).tolist()}
-    base_lm = LambdaModel(os.path.join(common.HERE, 'exported', f'{base}_m3.npz'))
     out['maps']['base M3'] = _binned((yx[v, 0], yx[v, 1]), edges, base_lm.q(yx[v]), wv).tolist()
     for ent in ('M3 cvs', 'M3 noclean'):
         if ent in models:
@@ -192,21 +213,24 @@ def fig_screen(res, path):
 def fig_attribution(res, path):
     plt = _plt()
     ents = [e for e in CAND if e not in ('exact', 'base M3')]
-    fig, axes = plt.subplots(len(res), 1, figsize=(8.5, 1.0 + 0.42 * len(ents) * len(res)), squeeze=False)
-    for ax, r in zip(axes[:, 0], res):
+    fig, axes = plt.subplots(len(res), 2, figsize=(12, 1.0 + 0.42 * len(ents) * len(res)), squeeze=False)
+    for row, r in zip(axes, res):
         es = [e for e in ents if e in r['attribution']]
         yy = np.arange(len(es))[::-1]
-        left = np.zeros(len(es))
-        for g in GROUP_ORDER:
-            val = np.array([r['attribution'][e][g] for e in es])
-            ax.barh(yy, val, left=left, color=GROUP_COLOR[g], height=0.7, edgecolor='white', linewidth=1)
-            left += val
-        ax.set_yticks(yy, [CAND[e]['label'] for e in es], fontsize=8)
-        ax.set_xlim(0, 1)
-        ax.set_title(f'{r["system"]} (labels: {"2D q_np" if r["labels"] == "base" else "NPNEq on all CVs"}): '
-                     'share of each CV group in the per-step motion of the score', fontsize=9)
-        ax.grid(axis='y', visible=False)
-    axes[-1, 0].set_xlabel('share of E[(∂z/∂x_i · Δx_i)²], steps with 1e-3 < q_exact < 0.99 (test paths)')
+        for ax, key, what in ((row[0], 'attribution', 'per-step motion (jitter)'),
+                              (row[1], 'static', 'dependence (static)')):
+            left = np.zeros(len(es))
+            for g in GROUP_ORDER:
+                val = np.array([r[key][e][g] for e in es])
+                ax.barh(yy, val, left=left, color=GROUP_COLOR[g], height=0.7, edgecolor='white', linewidth=1)
+                left += val
+            ax.set_yticks(yy, [CAND[e]['label'] for e in es] if ax is row[0] else [], fontsize=8)
+            ax.set_xlim(0, 1)
+            ax.set_title(f'{r["system"]} ({"2D q_np" if r["labels"] == "base" else "NPNEq on all CVs"}): {what}',
+                         fontsize=9)
+            ax.grid(axis='y', visible=False)
+    axes[-1, 0].set_xlabel('share of E[(∂z/∂x_i · Δx_i)²] per lag-1 step')
+    axes[-1, 1].set_xlabel('share of E[(∂z/∂x_i · SD(x_i))²]')
     handles = [plt.Rectangle((0, 0), 1, 1, color=GROUP_COLOR[g]) for g in GROUP_ORDER]
     fig.legend(handles, GROUP_ORDER, loc='lower center', ncol=6, fontsize=8)
     fig.tight_layout(rect=(0, 0.05, 1, 1))
@@ -215,25 +239,37 @@ def fig_attribution(res, path):
 
 
 def fig_traces(res, path):
+    """Per system: the calibrated committor along one test piece (logit scale), and below it the deviation from
+    the exact committor, logit lambda - logit q_exact (the jitter of the noisy inputs shows there)."""
     plt = _plt()
     rs = [r for r in res if r['trace']]
-    fig, axes = plt.subplots(len(rs), 1, figsize=(9, 3.2 * len(rs)), squeeze=False)
-    for ax, r in zip(axes[:, 0], rs):
+    fig, axes = plt.subplots(2 * len(rs), 1, figsize=(9, 5.2 * len(rs)), squeeze=False,
+                             gridspec_kw=dict(height_ratios=[1.3, 1] * len(rs)))
+    for k, r in enumerate(rs):
+        ax, ad = axes[2 * k, 0], axes[2 * k + 1, 0]
         tr = r['trace']
         t = np.arange(len(tr['exact']))
+        qx = np.clip(np.asarray(tr['exact'], float), 1e-5, 1 - 1e-5)
+        inside = ~np.asarray(tr['A']) & ~np.asarray(tr['B'])
         for ent in ('exact', 'base M3', 'M3 cvs', 'M3 noclean', 'M1-gam'):
-            if ent in tr:
-                q = np.clip(np.asarray(tr[ent], float), 1e-5, 1 - 1e-5)
-                ax.plot(t, q, color=CAND[ent]['color'], ls=CAND[ent]['ls'], lw=1.2 if ent != 'exact' else 1.6,
-                        label=CAND[ent]['label'], zorder=3 if ent == 'exact' else 2)
+            if ent not in tr:
+                continue
+            q = np.clip(np.asarray(tr[ent], float), 1e-5, 1 - 1e-5)
+            st = dict(color=CAND[ent]['color'], ls=CAND[ent]['ls'], label=CAND[ent]['label'])
+            ax.plot(t, q, lw=1.6 if ent == 'exact' else 1.1, zorder=3 if ent == 'exact' else 2, **st)
+            if ent != 'exact':
+                dev = np.where(inside, common.logit(q) - common.logit(qx), np.nan)
+                ad.plot(t, dev, lw=1.0, **st)
         ax.set_yscale('logit')
         ax.set_ylim(1e-5, 1 - 1e-5)
         ax.set_ylabel('committor (calibrated λ)')
-        ax.set_title(f'{r["system"]}: one reactive test piece', fontsize=9)
-    axes[-1, 0].set_xlabel('frame along the piece')
+        ax.set_title(f'{r["system"]}: one test piece', fontsize=9)
+        ad.axhline(0, color='#0b0b0b', lw=0.8, ls='--')
+        ad.set_ylabel('logit λ − logit q_exact')
+        ad.set_xlabel('frame along the piece')
     h, l = axes[0, 0].get_legend_handles_labels()
     fig.legend(h, l, loc='lower center', ncol=3, fontsize=8)
-    fig.tight_layout(rect=(0, 0.07, 1, 1))
+    fig.tight_layout(rect=(0, 0.04, 1, 1))
     fig.savefig(path, dpi=130)
     plt.close(fig)
 
@@ -307,7 +343,8 @@ def _f(v, nd=3):
 
 def table(r):
     lines = ['| candidate | features | model | spread vs exact | SD(Z_q) | zqs_z | step ratio | turns / exact | '
-             'share: relevant / copies / fast / w | µs/frame | train s |', '|' + '---|' * 11]
+             'jitter share: relevant / copies / fast | w: static share, RMS effect on logit λ | µs/frame | train s |',
+             '|' + '---|' * 12]
     for ent in ('exact', 'q_np', 'base M3', 'M1-logit', 'M1-gam', 'M3 cvs', 'M3-fast cvs', 'M3 noclean',
                 'M3-fast noclean'):
         row = r['rows'].get(ent)
@@ -316,10 +353,12 @@ def table(r):
         a = r['attribution'].get(ent)
         share = '–' if a is None else (f'{a["relevant (y, x)"]:.2f} / '
                                        f'{sum(a[g] for g in GROUP_ORDER if g.startswith("copy")):.2f} / '
-                                       f'{a["fast irrelevant"]:.3f} / {a["slow w"]:.3f}')
+                                       f'{a["fast irrelevant"]:.3f}')
+        wcol = '–' if a is None else f'{r["static"][ent]["slow w"]:.4f}, {r["w_effect"][ent]:.3f}'
         label = CAND[ent]['label'] if ent in CAND else 'q_np (labels)'
         lines.append(f'| {label} | {row.get("features", "")} | {row.get("model", "")} | {_f(row["spread"], 4)} | '
                      f'{_f(row["sdzqs"])} | {_f(row["zqs_z"], 2)} | {_f(row["step"])} | {_f(row["turns"])} | {share} | '
+                     f'{wcol} | '
                      f'{_f(row.get("us_one"), 1)} | {_f(row.get("train_s"), 0)} |')
     return '\n'.join(lines)
 
@@ -336,8 +375,10 @@ def write(res):
     lines = [open(INTRO).read().rstrip() if os.path.isfile(INTRO) else '# Embedding test', '']
     lines += ['## Results (test paths)', '',
               'Spread: mean isosurface spread against the exact committor over the report\'s level set. '
-              '"share": the share of each CV group in the per-step motion of the score along the test paths '
-              '(E[(∂z/∂x_i · Δx_i)²], 1e-3 < q_exact < 0.99). µs/frame: one-frame calls, single-threaded BLAS.', '',
+              '"jitter share": the share of each CV group in the per-step motion of the score along the test paths '
+              '(E[(∂z/∂x_i · Δx_i)²], 1e-3 < q_exact < 0.99). "w": its static share E[(∂z/∂w · SD(w))²] and the RMS '
+              'change of logit λ over the spread of w (w hardly moves along a path, so it has no jitter share). '
+              'µs/frame: one-frame calls, single-threaded BLAS.', '',
               f'![summary]({rel(figs["summary"])})', '']
     for r in res:
         lines += [f'### {r["system"]} (base {r["base"]}; labels: '

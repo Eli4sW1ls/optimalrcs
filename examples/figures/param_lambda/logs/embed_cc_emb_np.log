@@ -1,0 +1,1 @@
+cc_emb_np: 2700402 frames x 31 CVs (y, x, cy1, cy3, cy10, cx1, cx3, cx10, cu3, cv3, f01, f02, f03, f04, f05, f06, f07, f08, f09, f10, f11, f12, f13, f14, f15, f16, f17, f18, f19, f20, w); labels /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures/param_lambda/cc_emb_np/qnp/committor.npz; 468623 frames shared by two pieces (checked)
