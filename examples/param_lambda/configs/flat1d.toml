@@ -7,12 +7,12 @@ seed = 0
 [data]
 tis_dir = "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/PyRETIS3/toytis/simulations/sim_istar0br10intf"
 loader_args = ["--reversed", "--paths-per-ensemble", "1000"]
-q_np = "examples/figures/param_lambda/flat1d/qnp/committor.npz"
+q_np = "examples/figures_by_potential/1d_flat/brownian_staple/param_lambda/qnp/committor.npz"
 qnp_fit_args = ["--max-iter", "3000", "--lazy-basis", "--gamma", "0.1", "--no-potential"]
 cv_names = ["x"]
 state_cv = 0
 exact = "1d"
-exact_file = "examples/figures/exact_committors/brownian1d/q_exact_staple_flat_br10.npz"
+exact_file = "examples/figures_by_potential/1d_flat/exact/q_exact_staple_flat_br10.npz"
 
 [split]
 ood_from = 0.85

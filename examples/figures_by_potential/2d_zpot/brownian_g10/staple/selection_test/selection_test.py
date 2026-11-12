@@ -19,7 +19,7 @@ REPO = '/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs
 sys.path.insert(0, REPO + '/optimalrcs-cupy/'); sys.path.insert(0, REPO + '/examples/')
 import optimalrcs, plots, seed_runs, tis_data, toy2d
 plt.show = lambda *a, **k: None
-OUT = REPO + '/examples/figures/selection_test/'
+OUT = REPO + '/examples/figures_by_potential/2d_zpot/brownian_g10/staple/selection_test/'
 SIM = '/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/PyRETIS3/toytis/simulations/sim_istarz_br_g10'
 N_BINS = 30
 
@@ -31,12 +31,12 @@ A, B = data.boundary0, data.boundary1
 b = A | B
 free = ~b
 it, grp, w0, t_traj = data.i_traj, data.group_traj, data.path_weights, data.t_traj
-ref = np.load(REPO + '/examples/figures/z_brownian/committor_reference_h0.001.npz')
+ref = np.load(REPO + '/examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/committor_reference_h0.001.npz')
 f_ref = RegularGridInterpolator((ref['y'], ref['x']), ref['q'], bounds_error=False, fill_value=None)
 q_exact = np.clip(f_ref(np.c_[y, x]), 0, 1); q_exact[A] = 0; q_exact[B] = 1
 
 # natural coordinate of a first fit on these data
-r_first = np.load(REPO + '/examples/figures/istarz_br_g10_reversed/r_continued.npy')
+r_first = np.load(REPO + '/examples/figures_by_potential/2d_zpot/brownian_g10/staple/reversed/r_continued.npy')
 assert len(r_first) == len(y)
 qn = plots.transform_q2qn(cp.asarray(r_first), i_traj=cp.asarray(it), t_traj=cp.asarray(t_traj),
                           w_traj=cp.asarray(w0), dt_sim=0.002)

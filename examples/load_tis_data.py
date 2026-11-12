@@ -66,7 +66,7 @@ def parse_args():
                         help="frames per block (default: "
                              f"{nonparametrics.npneq_chunk}); lower it to save GPU memory")
     tis_data.add_plot_arguments(
-        parser, os.path.join(os.path.dirname(os.path.abspath(__file__)), "figures"))
+        parser, os.path.join(os.path.dirname(os.path.abspath(__file__)), "figures_by_potential", "_unsorted", "load_tis_data"))
     return parser.parse_args()
 
 

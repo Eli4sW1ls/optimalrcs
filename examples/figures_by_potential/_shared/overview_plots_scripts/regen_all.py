@@ -14,15 +14,26 @@ REPO = '/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs
 sys.path.insert(0, f'{REPO}/optimalrcs-cupy/'); sys.path.insert(0, f'{REPO}/examples/')
 import optimalrcs, tis_data
 plt.show = lambda *a, **k: None
-FIG = f'{REPO}/examples/figures/'
-OUT = FIG + 'overview_plots/'
+FIG = f'{REPO}/examples/figures_by_potential/'
+OVERVIEW_DIRS = [('flat', '1d_flat/brownian_staple'), ('md_well', '1d_cos_well/langevin_md'),
+                 ('wellpath', '1d_cos_well/langevin_staple'), ('zmd', '2d_zpot/brownian_g10'),
+                 ('zstaple', '2d_zpot/brownian_g10'), ('zlgv', '2d_zpot/langevin_g2')]
+
+
+def overview_out(name):
+    """Path of an overview plot: overview_plots/ of its potential, chosen by the start of the file name."""
+    sub = next((d for p, d in OVERVIEW_DIRS if name.startswith(p)), '_shared')
+    os.makedirs(f'{FIG}{sub}/overview_plots', exist_ok=True)
+    return f'{FIG}{sub}/overview_plots/{name}'
+
+
 SIM = '/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/PyRETIS3/toytis/simulations/'
 PATH_METRICS = ('iter', 'cross_entropy', 'mse', 'auc', 'delta_r2', 'max_sd_zq', 'max_z_zq_stopped', 'delta_x')
 MD_METRICS = ('iter', 'cross_entropy', 'mse', 'auc', 'delta_r2', 'max_sd_zq', 'delta_x')
 
 
 def save(name):
-    plt.gcf().savefig(OUT + name, dpi=100); plt.close('all')
+    plt.gcf().savefig(overview_out(name), dpi=100); plt.close('all')
 
 
 def all_plots(q, tag, path_data, dt_sim=1):
@@ -90,7 +101,7 @@ elif which == 'wellpath':
     q = fit_paths(data, data.X[:, :2], 4000)
     all_plots(q, 'wellpath', True, dt_sim=0.005)
     r = cp.asnumpy(q.r_traj); x, v = data.X[:, 0], data.X[:, 1]
-    ref = np.load(FIG + 'well_check/reference.npz')
+    ref = np.load(FIG + '1d_cos_well/langevin_staple/checks/reference.npz')
     f = RegularGridInterpolator((ref['xs'], ref['vs']), ref['q'], bounds_error=False, fill_value=None)
     qx = np.clip(f(np.c_[np.clip(x, ref['xs'][0], ref['xs'][-1]), np.clip(v, ref['vs'][0], ref['vs'][-1])]), 0, 1)
     free = ~(data.boundary0 | data.boundary1)
@@ -118,7 +129,7 @@ elif which == 'hist01':
     ax.set_title('history [0, 1] fit (v not used in training)'); save('md_well_hist01_q_x_v.png')
 elif which == 'zlgv_extra':
     # 2D underdamped Z staple, saved lag-4 fit with ridge-normal CVs
-    f = np.load(FIG + 'zlgv_fd/frames.npz'); r = np.load(FIG + 'zlgv_fd/q_diag_lag4.npy')
+    f = np.load(FIG + '2d_zpot/langevin_g2/fd_velocity/frames.npz'); r = np.load(FIG + '2d_zpot/langevin_g2/fd_velocity/q_diag_lag4.npy')
     lam, x, vy, vx = f['lam'], f['x'], f['vy'] / 0.002, f['vx'] / 0.002
     free = ~(f['b0'] | f['b1'])
     el = np.linspace(0.05, 0.85, 81); vmax = 4 * np.sqrt(0.05)
@@ -138,7 +149,7 @@ elif which == 'zlgv_extra':
     ax.scatter(lam[show], r[show], s=1, alpha=0.2, edgecolors='none'); ax.set(xlabel='y (order parameter)', ylabel='q')
     save('zlgv_committor_vs_order.png')
 elif which == 'zstaple_extra':
-    d = np.load(FIG + 'istarz_br_g10/committor.npz')
+    d = np.load(FIG + '2d_zpot/brownian_g10/staple/original/committor.npz')
     keep = d['i_traj'] % 2 == 0
     q = optimalrcs.CommittorNE(boundary0=d['boundary0'][keep], boundary1=d['boundary1'][keep], i_traj=d['i_traj'][keep],
                                t_traj=d['t_traj'][keep], path_weights=d['path_weights'][keep])

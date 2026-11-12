@@ -9,11 +9,11 @@
 # and the toytis runs named in the configs. Long: launch it as its own unit, e.g.
 #   systemd-run --user --unit=pl-all --collect -p MemoryMax=12G -p MemorySwapMax=0 \
 #       --working-directory=$PWD ./run_all.sh
-# Logs: examples/figures/param_lambda/<system>/logs/steps.log and examples/figures/param_lambda/logs/.
+# Logs: <system folder>/logs/steps.log (common.out_dir, below examples/figures_by_potential/) and examples/figures_by_potential/_shared/param_lambda/logs/.
 set -euo pipefail
 cd "$(dirname "$0")"
 PY=${PY:-/home/elias/anaconda3/envs/test/bin/python}
-LOGS=../figures/param_lambda/logs
+LOGS=../figures_by_potential/_shared/param_lambda/logs
 mkdir -p "$LOGS"
 SYSTEMS=${*:-"z_br cc_br flat1d bumps1d"}
 for s in $SYSTEMS; do

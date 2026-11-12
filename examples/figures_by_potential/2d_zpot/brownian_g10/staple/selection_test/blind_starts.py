@@ -20,7 +20,7 @@ REPO = '/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs
 sys.path.insert(0, REPO + '/optimalrcs-cupy/'); sys.path.insert(0, REPO + '/examples/')
 import tis_data
 plt.show = lambda *a, **k: None
-OUT = REPO + '/examples/figures/selection_test/'
+OUT = REPO + '/examples/figures_by_potential/2d_zpot/brownian_g10/staple/selection_test/'
 SIM = '/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/PyRETIS3/toytis/simulations/sim_istarz_br_g10'
 MODE = sys.argv[1]
 PPE = int(sys.argv[2]) if len(sys.argv) > 2 else 3000
@@ -72,7 +72,7 @@ flag = flag[ix]
 print(f'{flag.sum():,} starts ({flag.sum() / can.sum():.1%} of {can.sum():,} possible), {len(ix):,} frames in {seg.max() + 1:,} segments; '
       f'probability per y bin: min {p_b.min():.3f}, max {p_b.max():.3f}', flush=True)
 
-ref = np.load(REPO + '/examples/figures/z_brownian/committor_reference_h0.001.npz')
+ref = np.load(REPO + '/examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/committor_reference_h0.001.npz')
 f_ref = RegularGridInterpolator((ref['y'], ref['x']), ref['q'], bounds_error=False, fill_value=None)
 q_exact = np.clip(f_ref(np.c_[y, x]), 0, 1); q_exact[A] = 0; q_exact[B] = 1
 band = np.abs(y + x - 0.6) < 0.05 * np.sqrt(2)

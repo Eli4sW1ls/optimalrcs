@@ -10,3 +10,5 @@ examples/figures_by_potential/**/*.np*
 examples/figures_by_potential/**/*.pyc
 examples/figures_by_potential/2d_zpot/brownian_g10/staple/subset_test/sim_istarz_subset/
 !examples/figures_by_potential/*/exact/**/*np*
+# examples/figures/ is now only symlinks into examples/figures_by_potential/ (reorganize_figures.sh links)
+examples/figures/

@@ -1,7 +1,7 @@
 """2D Langevin Z staple run (sim_istarz_2603), positions only: finite-difference velocities of y and x
 (change over one frame, computed on the whole path before the cut) as extra CVs, no history.
 A: standard lag-1 NPNEq fit. B: lag-4 fit (stopped windows: sum_t f_k(t)[q(min(t+4, tau_t)) - q(t)] = 0),
-as in examples/figures/well_check/well_test.py. Same data and settings as base_documented_2d_langevin.ipynb
+as in examples/figures_by_potential/1d_cos_well/langevin_staple/checks/well_test.py. Same data and settings as base_documented_2d_langevin.ipynb
 otherwise (1000 paths/ensemble, no mirrored pieces, gamma 0.2, envelope 0.001, ny 6)."""
 import argparse, io, contextlib, os, sys, time
 import numpy as np, cupy as cp

@@ -5,8 +5,8 @@ from scipy.interpolate import RegularGridInterpolator
 REPO = '/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs'
 sys.path.insert(0, REPO + '/optimalrcs-cupy/'); sys.path.insert(0, REPO + '/examples/')
 import tis_data
-F = REPO + '/examples/figures/'
-ref = np.load(F + 'z_brownian/committor_reference_h0.001.npz')
+F = REPO + '/examples/figures_by_potential/'
+ref = np.load(F + '2d_zpot/brownian_g10/reference_and_analyses/committor_reference_h0.001.npz')
 fref = RegularGridInterpolator((ref['y'], ref['x']), ref['q'], bounds_error=False, fill_value=None)
 p = argparse.ArgumentParser(); tis_data.add_data_arguments(p)
 with contextlib.redirect_stdout(io.StringIO()):
@@ -15,7 +15,7 @@ with contextlib.redirect_stdout(io.StringIO()):
 y, x, it = d.X_all[:, 0], d.X_all[:, 1], d.i_traj
 b0, b1 = d.boundary0, d.boundary1; b = b0 | b1; n = len(y)
 qe = np.clip(fref(np.c_[y, x]), 0, 1); qe[b0] = 0; qe[b1] = 1
-qf = np.load(F + 'istarz_br_g10_reversed/r_continued.npy')
+qf = np.load(F + '2d_zpot/brownian_g10/staple/reversed/r_continued.npy')
 ends = np.r_[np.flatnonzero(it[1:] != it[:-1]), n - 1]; starts = np.r_[0, ends[:-1] + 1]
 nxt = np.minimum.accumulate(np.where(b, np.arange(n), n)[::-1])[::-1]
 stop = np.minimum(nxt, np.repeat(ends, ends - starts + 1))

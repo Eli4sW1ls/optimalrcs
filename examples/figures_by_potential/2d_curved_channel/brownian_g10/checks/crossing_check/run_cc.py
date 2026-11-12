@@ -7,7 +7,7 @@ REPO = '/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs
 sys.path.insert(0, REPO + '/examples/')
 import crossing_check as cc, toy2d
 SIM = '/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/PyRETIS3/toytis/simulations/test_cc_br'
-f = sorted(glob.glob(REPO + '/examples/figures/nb_toy2d_staple/test_cc_br/committor_*.npz'))[-1]
+f = sorted(glob.glob(REPO + '/examples/figures_by_potential/2d_curved_channel/brownian_g10/staple_test/committor_*.npz'))[-1]
 d = np.load(f)
 run = toy2d.read_full_settings(SIM); intf = run['interfaces']; pot = toy2d.potential_from_settings(run)
 y, x = d['X_all'][:, 0].astype(float), d['X_all'][:, 1].astype(float)

@@ -6,12 +6,12 @@ seed = 0
 [data]
 tis_dir = "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/PyRETIS3/toytis/simulations/test_cc_br"
 loader_args = ["--reversed"]
-q_np = "examples/figures/param_lambda/cc_br/qnp/committor.npz"
+q_np = "examples/figures_by_potential/2d_curved_channel/brownian_g10/param_lambda/cc_br/qnp/committor.npz"
 qnp_fit_args = ["--max-iter", "4000", "--lazy-basis", "--gamma", "0.1"]
 cv_names = ["y", "x"]
 state_cv = 0
 exact = "cc"                        # exact_tools grid of the discrete chain (cc_exact.py)
-exact_file = "examples/figures/exact_committors/cc/q_exact_h0.0015.npz"
+exact_file = "examples/figures_by_potential/2d_curved_channel/exact/q_exact_h0.0015.npz"
 
 [split]
 ood_from = 0.85

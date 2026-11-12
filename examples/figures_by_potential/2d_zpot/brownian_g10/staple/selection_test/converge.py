@@ -106,7 +106,7 @@ def log(msg):
 # ------------------------------------------------------------------------------------------------
 # exact committor (reference grid; computed with toy2d if the file is not there)
 # ------------------------------------------------------------------------------------------------
-ref_file = os.path.join(REPO, 'examples', 'figures', 'z_brownian', 'committor_reference_h0.001.npz')
+ref_file = os.path.join(REPO, 'examples', 'figures_by_potential', '2d_zpot', 'brownian_g10', 'reference_and_analyses', 'committor_reference_h0.001.npz')
 if os.path.exists(ref_file):
     ref = dict(np.load(ref_file))
 else:

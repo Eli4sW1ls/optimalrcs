@@ -10,7 +10,7 @@ Input: committor.npz from tis_data.plot_committor (key 'r') or from toy2d_staple
 (key 'q_fit'); both hold boundary0/1, i_traj, t_traj and path_weights. Saves feps_weighted.png
 (or feps_weighted_<npz name>.png) next to each npz.
 
-    python feps_weighted.py figures/istarz_br_g10_reversed/committor.npz [more.npz ...]
+    python feps_weighted.py figures_by_potential/2d_zpot/brownian_g10/staple/reversed/committor.npz [more.npz ...]
 
 Run one file per process for the large runs (20M frames need ~10 GB host memory), memory-capped:
     systemd-run --user --wait --pipe -p MemoryMax=16G -p MemorySwapMax=0 python feps_weighted.py <npz>

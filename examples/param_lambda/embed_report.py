@@ -101,7 +101,7 @@ def analyse(system):
     f = ctx.f
     with open(os.path.join(cfg['out_dir'], 'eval', 'metrics.json')) as fh:
         metrics = json.load(fh)
-    with open(os.path.join(common.OUT_ROOT, base, 'eval', 'metrics.json')) as fh:
+    with open(os.path.join(common.out_dir(base), 'eval', 'metrics.json')) as fh:
         base_metrics = json.load(fh)
     with open(os.path.join(cfg['out_dir'], 'screen', 'importance.json')) as fh:
         screen = json.load(fh)
@@ -398,7 +398,7 @@ def main():
     systems = sys.argv[1:] or ['z_emb', 'cc_emb', 'cc_emb_np']
     res = []
     for s in systems:
-        cache = os.path.join(common.OUT_ROOT, s, 'report_embed', 'analysis.json')
+        cache = os.path.join(common.out_dir(s), 'report_embed', 'analysis.json')
         if os.environ.get('EMBED_REPORT_CACHED') and os.path.isfile(cache):
             res.append(json.load(open(cache)))
         else:

@@ -76,9 +76,9 @@ seed 0, rejection weights. Every run, with its script: notes §14.
 - **RMS against exact: 0.0022 (flat), 0.0054 (two bumps).**
 - Z_q is flat at ≈ 380–405 for all lags; N_AB of the block is ≈ 395. AUC 98.0%.
 
-![NPq vs exact](../examples/figures/longmd_npq/npq_longmd.png)
-![feps, two bumps](../examples/figures/longmd_plots/two_bumps_feps.png)
-![obs_pred, two bumps](../examples/figures/longmd_plots/two_bumps_obs_pred.png)
+![NPq vs exact](../examples/figures_by_potential/1d_flat/brownian_long_md/npq/npq_longmd.png)
+![feps, two bumps](../examples/figures_by_potential/1d_two_bumps/brownian_long_md/plots/two_bumps_feps.png)
+![obs_pred, two bumps](../examples/figures_by_potential/1d_two_bumps/brownian_long_md/plots/two_bumps_obs_pred.png)
 
 ## Staple — NPNEq ✅ (`sim_istar0br10intf`, flat)
 
@@ -88,10 +88,10 @@ seed 0, rejection weights. Every run, with its script: notes §14.
 - **Key test:** the original Z_q swings by ±100–250 at lags 2–8, even though the fit is
   right. Path data need the stopped Z_q.
 
-![feps](../examples/figures/overview_plots/flat_staple_feps.png)
-![obs_pred](../examples/figures/overview_plots/flat_staple_obs_pred.png)
-![TIS diagnostics](../examples/figures/overview_plots/flat_staple_tis_diagnostics.png)
-![vs exact](../examples/figures/overview_plots/flat_staple_vs_exact.png)
+![feps](../examples/figures_by_potential/1d_flat/brownian_staple/overview_plots/flat_staple_feps.png)
+![obs_pred](../examples/figures_by_potential/1d_flat/brownian_staple/overview_plots/flat_staple_obs_pred.png)
+![TIS diagnostics](../examples/figures_by_potential/1d_flat/brownian_staple/overview_plots/flat_staple_tis_diagnostics.png)
+![vs exact](../examples/figures_by_potential/1d_flat/brownian_staple/overview_plots/flat_staple_vs_exact.png)
 
 ---
 
@@ -116,10 +116,10 @@ seed 0, rejection weights. Every run, with its script: notes §14.
 - Lag 1 can also work, but depends on the random start: RMS 0.019–0.052 per frame over
   seeds; a warm-up along v only gives 0.020–0.026 (notes §10.3).
 
-![feps](../examples/figures/well_md_fit/lag_xv_plots/feps.png)
-![obs_pred](../examples/figures/well_md_fit/lag_xv_plots/obs_pred.png)
-![q(x, v)](../examples/figures/well_md_fit/lag_xv_plots/q_lambda_v.png)
-![convergence vs exact](../examples/figures/well_md_fit/lag_xv/long_xv_progress.png)
+![feps](../examples/figures_by_potential/1d_cos_well/langevin_md/fits/lag_xv_plots/feps.png)
+![obs_pred](../examples/figures_by_potential/1d_cos_well/langevin_md/fits/lag_xv_plots/obs_pred.png)
+![q(x, v)](../examples/figures_by_potential/1d_cos_well/langevin_md/fits/lag_xv_plots/q_lambda_v.png)
+![convergence vs exact](../examples/figures_by_potential/1d_cos_well/langevin_md/fits/lag_xv/long_xv_progress.png)
 
 ## Staple — NPNEq on (x, v), recorded v ⚠️ (`sim_istarwell2rv`)
 
@@ -132,8 +132,8 @@ seed 0, rejection weights. Every run, with its script: notes §14.
 - A lag-4 fit is the best so far (RMS 0.015). Notebook for further tests:
   `examples/base_documented_1d_langevin_staple.ipynb`.
 
-![TIS diagnostics](../examples/figures/overview_plots/wellpath_tis_diagnostics.png)
-![fit, exact and error in (x, v)](../examples/figures/overview_plots/wellpath_q_x_v.png)
+![TIS diagnostics](../examples/figures_by_potential/1d_cos_well/langevin_staple/overview_plots/wellpath_tis_diagnostics.png)
+![fit, exact and error in (x, v)](../examples/figures_by_potential/1d_cos_well/langevin_staple/overview_plots/wellpath_q_x_v.png)
 
 ---
 
@@ -144,7 +144,7 @@ seed 0, rejection weights. Every run, with its script: notes §14.
 - The exact committor is ≈ 0 up to the ridge, jumps to ≈ 0.64 across it, then rises to 1
   over a flat "plateau".
 
-![exact committor](../examples/figures/z_brownian/committor_reference_h0.001.png)
+![exact committor](../examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/committor_reference_h0.001.png)
 
 ## MD — NPq ✅ (shape right, plateau +0.06 from the data)
 
@@ -159,10 +159,10 @@ seed 0, rejection weights. Every run, with its script: notes §14.
   - A second, independent MD run (16 transitions) comes out *below* the exact committor
     on the plateau (RMS 0.084): the sign of the error follows the sample.
 
-![feps](../examples/figures/z_brownian/npq_md/feps.png)
-![obs_pred](../examples/figures/z_brownian/npq_md/obs_pred.png)
-![Z_q with traps](../examples/figures/z_brownian/npq_md/zq_traps.png)
-![vs exact](../examples/figures/z_brownian/cases/md_npq_all/map.png)
+![feps](../examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/npq_md/feps.png)
+![obs_pred](../examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/npq_md/obs_pred.png)
+![Z_q with traps](../examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/npq_md/zq_traps.png)
+![vs exact](../examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/cases/md_npq_all/map.png)
 
 ## Staple — NPNEq with forward + mirrored pieces ✅ (`sim_istarz_br_g10`, `--reversed`)
 
@@ -171,10 +171,10 @@ seed 0, rejection weights. Every run, with its script: notes §14.
 - Data: rejection weights, 1500 paths per ensemble (20.9M frames), 25000 iterations.
 - **`zqs_z` 1.36, plateau +0.031, RMS 0.030.**
 
-![feps](../examples/figures/z_brownian/cases/staple_both_all/feps.png)
-![obs_pred](../examples/figures/z_brownian/cases/staple_both_all/obs_pred.png)
-![TIS diagnostics](../examples/figures/z_brownian/cases/staple_both_all/tis_diagnostics.png)
-![vs exact](../examples/figures/z_brownian/cases/staple_both_all/map.png)
+![feps](../examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/cases/staple_both_all/feps.png)
+![obs_pred](../examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/cases/staple_both_all/obs_pred.png)
+![TIS diagnostics](../examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/cases/staple_both_all/tis_diagnostics.png)
+![vs exact](../examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/cases/staple_both_all/map.png)
 
 **Key test 1: are the data unbiased?** This test puts the *exact* committor into the
 stopped Z_q of the data, with no fit. Worst z on the plateau at lags 1, 16, 256 and 4096:
@@ -193,7 +193,7 @@ fits of two disjoint halves of the same data are joined by a line.
   halves.
 - The staple fits scatter the same way, around +0.02.
 
-![plateau level of every fit](../examples/figures/z_brownian/summary_offsets.png)
+![plateau level of every fit](../examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/summary_offsets.png)
 
 Why the cut pieces scatter:
 - Only 3–19% of the pieces entering the plateau reach A or B; the rest end at an
@@ -203,7 +203,7 @@ Why the cut pieces scatter:
 - The martingale test (left) shows the data with rejection weights are unbiased. But the
   fitted q passes it too, so neither test can detect a plateau shift.
 
-![martingale test and absorbed fraction](../examples/figures/z_brownian/summary_tests.png)
+![martingale test and absorbed fraction](../examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/summary_tests.png)
 
 **Result: plateau +0.02 ± 0.015, mostly statistical.** It shrinks as 1/√N with more paths.
 Estimate it from independent halves of the paths.
@@ -240,5 +240,5 @@ fit's own data.
   (`examples/base_documented_2d_langevin.ipynb`, now set up for it).
 - Next step: record velocities and fit (y, x, v) at lag Δ.
 
-![TIS diagnostics](../examples/figures/zlgv_fd/tis_diag_lag4.png)
-![committor planes](../examples/figures/overview_plots/zlgv_planes.png)
+![TIS diagnostics](../examples/figures_by_potential/2d_zpot/langevin_g2/fd_velocity/tis_diag_lag4.png)
+![committor planes](../examples/figures_by_potential/2d_zpot/langevin_g2/overview_plots/zlgv_planes.png)

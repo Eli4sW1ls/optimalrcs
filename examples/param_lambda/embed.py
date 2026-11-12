@@ -102,7 +102,7 @@ def groups(names):
 
 
 def _base_frames(cfg):
-    return np.load(os.path.join(common.OUT_ROOT, cfg['embed']['base'], 'frames.npz'))
+    return np.load(os.path.join(common.out_dir(cfg['embed']['base']), 'frames.npz'))
 
 
 def _labels(cfg, fz):

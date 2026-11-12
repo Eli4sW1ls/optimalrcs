@@ -18,7 +18,7 @@ from scipy.interpolate import RegularGridInterpolator
 sys.path.insert(0, '/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/optimalrcs-cupy/')
 import optimalrcs
 
-OUT = '/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures/well_md_fit/lag_xv/'
+OUT = '/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/1d_cos_well/langevin_md/fits/lag_xv/'
 EX = '/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/'
 N_FRAMES = int(sys.argv[1]) if len(sys.argv) > 1 else 6_000_000
 CHUNK = int(sys.argv[2]) if len(sys.argv) > 2 else 5000
@@ -41,7 +41,7 @@ has = nxt_idx < N_FRAMES
 outcome = np.where(has, B[np.minimum(nxt_idx, N_FRAMES - 1)].astype(float), np.nan)
 ok = free & has
 
-ref = np.load(EX + 'figures/well_check/reference.npz')
+ref = np.load(EX + 'figures_by_potential/1d_cos_well/langevin_staple/checks/reference.npz')
 f = RegularGridInterpolator((ref['xs'], ref['vs']), ref['q'], bounds_error=False, fill_value=None)
 qx = np.clip(f(np.c_[np.clip(lam, ref['xs'][0], ref['xs'][-1]), np.clip(v, ref['vs'][0], ref['vs'][-1])]), 0, 1)
 E = 0.5 * v ** 2   # + V(lambda): only used to locate the separatrix band below
@@ -66,7 +66,7 @@ print(f'{N_FRAMES} frames, {int((A[:-1] & ~A[1:]).sum())} departures from A; RMS
       f'{rms(X - Emd):.4f} (noise yardstick)', flush=True)
 
 
-# ---- lag-LAG NPNEq update (as examples/figures/zlgv_fd/fd_test.py) ----
+# ---- lag-LAG NPNEq update (as examples/figures_by_potential/2d_zpot/langevin_g2/fd_velocity/fd_test.py) ----
 import nonparametrics
 tau_np = np.where(A | B, np.arange(N_FRAMES), nxt_idx)          # first A/B frame at or after t
 tau_np = np.minimum(tau_np, N_FRAMES - 1)

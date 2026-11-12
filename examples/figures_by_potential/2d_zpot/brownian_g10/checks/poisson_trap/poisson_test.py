@@ -3,9 +3,9 @@ import matplotlib; matplotlib.use('Agg'); import matplotlib.pyplot as plt
 from scipy.interpolate import RegularGridInterpolator
 R='/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs'
 sys.path.insert(0,R+'/optimalrcs-cupy/'); import optimalrcs, cut_profiles, metrics_tis as mt
-OUT=R+'/examples/figures/poisson_trap/'
-d=np.load(R+'/examples/figures/istarz_br_g10_reversed/committor.npz')
-ref=np.load(R+'/examples/figures/z_brownian/committor_reference_h0.001.npz')
+OUT=R+'/examples/figures_by_potential/2d_zpot/brownian_g10/checks/poisson_trap/'
+d=np.load(R+'/examples/figures_by_potential/2d_zpot/brownian_g10/staple/reversed/committor.npz')
+ref=np.load(R+'/examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/committor_reference_h0.001.npz')
 b0,b1=d['boundary0'],d['boundary1']
 q=np.clip(RegularGridInterpolator((ref['y'],ref['x']),ref['q'],bounds_error=False,fill_value=None)(d['X_all']),0,1)
 q[b0]=0; q[b1]=1

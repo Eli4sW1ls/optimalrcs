@@ -7,14 +7,14 @@ For the Z potential (sim_istarz_br_g10) and the curved channel (test_cc_br):
    N_SHOTS trajectories each; residual PDE - shooting with its binomial error.
     python check_reference.py z|cc [N_SHOTS]
 """
-import sys, time, glob, numpy as np, cupy as cp
+import os, sys, time, glob, numpy as np, cupy as cp
 import matplotlib; matplotlib.use('Agg'); import matplotlib.pyplot as plt
 from scipy.interpolate import RegularGridInterpolator
 from scipy.stats import chi2
 REPO = '/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs'
 sys.path.insert(0, REPO + '/examples')
 import toy2d
-OUT = REPO + '/examples/figures/reference_check/'
+OUT = os.path.dirname(os.path.abspath(__file__)) + '/'          # this folder
 CASE = sys.argv[1]
 N_SHOTS = int(sys.argv[2]) if len(sys.argv) > 2 else 2000
 rng = np.random.default_rng(0)
@@ -24,8 +24,8 @@ if CASE == 'z':
     from potentials.sjoelbak_angle import RectangularGridWithAngledBarrierPotential
     pot = RectangularGridWithAngledBarrierPotential(Lx=0.3, angle=45)
     KT, GAMMA, DT, LA, LB = 0.05, 10.0, 0.002, 0.05, 0.85
-    d = np.load(REPO + '/examples/figures/istarz_br_g10/committor.npz')
-    grids = {h: np.load(REPO + f'/examples/figures/z_brownian/committor_reference_h{h}.npz') for h in ('0.002', '0.001')}
+    d = np.load(REPO + '/examples/figures_by_potential/2d_zpot/brownian_g10/staple/original/committor.npz')
+    grids = {h: np.load(REPO + f'/examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/committor_reference_h{h}.npz') for h in ('0.002', '0.001')}
     def interp(g, y, x):
         return np.clip(RegularGridInterpolator((g['y'], g['x']), g['q'], bounds_error=False, fill_value=None)(np.c_[y, x]), 0, 1)
 
@@ -53,7 +53,7 @@ else:
     pot = toy2d.potential_from_settings(run)
     KT, GAMMA, DT = run['temperature'], run['friction'], run['dt']
     LA, LB = run['interfaces'][0], run['interfaces'][-1]
-    d = np.load(glob.glob(REPO + '/examples/figures/nb_toy2d_staple/test_cc_br/committor_*.npz')[0])
+    d = np.load(glob.glob(REPO + '/examples/figures_by_potential/2d_curved_channel/brownian_g10/staple_test/committor_*.npz')[0])
     yy, xx = d['X_all'][:, 0], d['X_all'][:, 1]
     yr = (np.percentile(yy, 0.1) - 0.05, np.percentile(yy, 99.9) + 0.05)
     xr = (np.percentile(xx, 0.1) - 0.1, np.percentile(xx, 99.9) + 0.1)

@@ -191,10 +191,9 @@ data, `md` = plain MD, `exact` = reference committors, `checks` = method checks)
 
 Each potential folder has its own README with the old folder of every subfolder.
 
-**Old paths.** `MANIFEST.tsv` (per machine, not in git) lists every file as `old path (under figures/)` and `new path (under figures_by_potential/)`.
-Notebooks, scripts and docs still use the old paths (`figures/z_brownian/committor_reference_h0.001.npz` etc.). After
-deleting `figures/`, `bash reorganize_figures.sh links` rebuilds it as symlinks into this tree, so they keep working.
-Scripts copied here still write their output to their old folder, not next to themselves.
+**Old paths.** `examples/figures/` is gone: notebooks, scripts and docs use the paths in this tree. `MANIFEST.tsv`
+(per machine, not in git) lists every file as `old path (under figures/)` and `new path (under figures_by_potential/)`,
+for finding where an old path went.
 
 **Git.** As in `figures/`, numpy files (`*.np*`) are not tracked except under `*/exact/`; see `.gitignore`. The
 workstation and the laptop therefore hold different files in the same folders; run the script on each machine.

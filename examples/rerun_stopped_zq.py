@@ -6,7 +6,7 @@ future and biases Z_q even for the exact committor. Here every piece end that is
 (`FutureBoundary.set_stopped_end`: a window passing it uses q there) and the A/B ends get a trap longer
 than the longest piece plus the longest lag, so no window is dropped: Z_q tests q(min(t + dt, tau)) - q(t).
 
-For every saved fit found under the given folders (default: examples/figures) one figure is written to
+For every saved fit found under the given folders (default: examples/figures_by_potential) one figure is written to
 <out>/<path of the fit>.png with four panels: F(q), F(q_n), the stopped Z_q of plots_feps (not normalised)
 and the same test divided by its standard error (metrics_tis, about 2 or less for the committor).
 A summary table goes to <out>/summary.csv. Path weights are not used unless --weights is given.
@@ -17,15 +17,15 @@ What is found:
   (lam, y, X_all[:, 0] or cv[:, 0]) and lambda_a/lambda_b stored in the file.
 - q alone (q_traj.npy, q_*.npy, r_*.npy, or an npz holding only r): the frames are taken from the nearest
   frames file (any npz above with segments and A/B) with the same number of frames, else from re-reading
-  the paths for staple_compare/<sim>_p<P>_s<S>/<config>/ and nb_toy2d_staple/<run>/<fit tag>/ runs, else
+  the paths for staple_compare_p<P>_s<S>/<config>/ and toy2d staple[_test]/<fit tag>/ runs, else
   from a frames file anywhere under the folders, if exactly one has that number of frames.
   A match by frame count does not prove the frames are in the same order: check that the F(q) looks
   like the original plot.
 - MANUAL below: (q file, frames file, extra) for anything else.
 
 Usage (on the GPU machine, in the rctis environment):
-    python rerun_stopped_zq.py                       # everything under examples/figures
-    python rerun_stopped_zq.py figures/staple_compare --dry-run
+    python rerun_stopped_zq.py                       # everything under examples/figures_by_potential
+    python rerun_stopped_zq.py figures_by_potential/2d_zpot --dry-run
     python rerun_stopped_zq.py --only zpot --weights
 """
 import argparse
@@ -45,51 +45,52 @@ REPO = os.path.dirname(EXAMPLES)
 sys.path.insert(0, f'{REPO}/optimalrcs-cupy')
 sys.path.insert(0, EXAMPLES)
 
+FIGURES = os.path.join(EXAMPLES, 'figures_by_potential')
 Q_KEYS = ('r', 'q_fit', 'q_traj', 'q_np', 'q_npq', 'q_exact')
-SKIP_DIRS = ('exact_committors', 'stopped_zq', '__pycache__')
+SKIP_DIRS = ('exact_committors', 'exact', 'stopped_zq', '__pycache__')
 SIMS = '/home/staff7/fbsskr/Notebooks/Students/elias/data/simulations'
 LAMBDAS = {'sim_istar0br10intf': (-0.1, 0.8), 'sim_istarz_br_g10': (0.05, 0.85)}   # staple_compare presets
 
 # Fits that saved q only, with the tis_data arguments of the script that made them (in the same folder):
-# (pattern of the q file below figures/, simulation folder name, tis_data arguments, half). half: None, or
+# (pattern of the q file below figures_by_potential/, simulation folder name, tis_data arguments, half). half: None, or
 # 'even'/'odd' for fits on the paths with an even/odd group number (half_fits.py, lag_halves.py).
 # The frames are checked by their number; older runs drew --seed-dependent subsets, which tis_data no longer
 # does, so those fail the check instead of giving wrong frames.
 _LGV = ['--seed', '0', '--fd-velocity']
 _ZREV = ['--reversed', '--seed', '0']
 KNOWN = [
-    ('lgv_check/fit_basis_*.npz', 'sim_istar0lgv15intf', ['--paths-per-ensemble', '30'] + _LGV, None),
-    ('lgv_check/fit_lag1.npz', 'sim_istar0lgv15intf', ['--paths-per-ensemble', '30'] + _LGV, None),
-    ('lgv_check/fit_lag4.npz', 'sim_istar0lgv15intf', ['--paths-per-ensemble', '30'] + _LGV, None),
-    ('lgv_check/fit_lag16.npz', 'sim_istar0lgv15intf', ['--paths-per-ensemble', '30'] + _LGV, None),
-    ('lgv_check/fit_g0.1_p100*.npz', 'sim_istar0lgv15intf', ['--paths-per-ensemble', '100'] + _LGV, None),
-    ('lgv_check/fit_lag4_p100_s0.npz', 'sim_istar0lgv15intf', ['--paths-per-ensemble', '100'] + _LGV, None),
-    ('lgv_check/fit_lag4_p30_s1.npz', 'sim_istar0lgv15intf', ['--paths-per-ensemble', '30', '--seed', '1', '--fd-velocity'], None),
-    ('lgv_check/fit_lag4_p30_s2.npz', 'sim_istar0lgv15intf', ['--paths-per-ensemble', '30', '--seed', '2', '--fd-velocity'], None),
-    ('well_check/fit_fd_lag*.npz', 'sim_istarwell2rv', ['--paths-per-ensemble', '2000'] + _LGV, None),
-    ('well_check/fit_recorded_lag*.npz', 'sim_istarwell2rv', ['--paths-per-ensemble', '2000'] + _LGV, None),
-    ('well_check/fit_rev_*_lag*.npz', 'sim_istarwell2rv', ['--paths-per-ensemble', '2000', '--reversed'] + _LGV, None),
-    ('selection_test/base/*/q_traj.npy', 'sim_istarz_br_g10', ['--paths-per-ensemble', '1500'] + _ZREV, None),
-    ('selection_test/flat_qn/*/q_traj.npy', 'sim_istarz_br_g10', ['--paths-per-ensemble', '1500'] + _ZREV, None),
-    ('istarz_br_g10_reversed/r_half_even.npy', 'sim_istarz_br_g10', ['--paths-per-ensemble', '1500'] + _ZREV, 'even'),
-    ('istarz_br_g10_reversed/r_half_odd.npy', 'sim_istarz_br_g10', ['--paths-per-ensemble', '1500'] + _ZREV, 'odd'),
-    ('istarz_br_g10_reversed/r_lag50_even_ppe1500.npy', 'sim_istarz_br_g10', ['--paths-per-ensemble', '1500'] + _ZREV, 'even'),
-    ('istarz_br_g10_reversed/r_lag50_odd.npy', 'sim_istarz_br_g10', ['--paths-per-ensemble', '1500'] + _ZREV, 'odd'),
-    ('istarz_br_g10_reversed/r_lag50_all_ppe2250.npy', 'sim_istarz_br_g10', ['--paths-per-ensemble', '2250'] + _ZREV, None),
+    ('1d_flat/langevin_staple/lgv_check/fit_basis_*.npz', 'sim_istar0lgv15intf', ['--paths-per-ensemble', '30'] + _LGV, None),
+    ('1d_flat/langevin_staple/lgv_check/fit_lag1.npz', 'sim_istar0lgv15intf', ['--paths-per-ensemble', '30'] + _LGV, None),
+    ('1d_flat/langevin_staple/lgv_check/fit_lag4.npz', 'sim_istar0lgv15intf', ['--paths-per-ensemble', '30'] + _LGV, None),
+    ('1d_flat/langevin_staple/lgv_check/fit_lag16.npz', 'sim_istar0lgv15intf', ['--paths-per-ensemble', '30'] + _LGV, None),
+    ('1d_flat/langevin_staple/lgv_check/fit_g0.1_p100*.npz', 'sim_istar0lgv15intf', ['--paths-per-ensemble', '100'] + _LGV, None),
+    ('1d_flat/langevin_staple/lgv_check/fit_lag4_p100_s0.npz', 'sim_istar0lgv15intf', ['--paths-per-ensemble', '100'] + _LGV, None),
+    ('1d_flat/langevin_staple/lgv_check/fit_lag4_p30_s1.npz', 'sim_istar0lgv15intf', ['--paths-per-ensemble', '30', '--seed', '1', '--fd-velocity'], None),
+    ('1d_flat/langevin_staple/lgv_check/fit_lag4_p30_s2.npz', 'sim_istar0lgv15intf', ['--paths-per-ensemble', '30', '--seed', '2', '--fd-velocity'], None),
+    ('1d_cos_well/langevin_staple/checks/fit_fd_lag*.npz', 'sim_istarwell2rv', ['--paths-per-ensemble', '2000'] + _LGV, None),
+    ('1d_cos_well/langevin_staple/checks/fit_recorded_lag*.npz', 'sim_istarwell2rv', ['--paths-per-ensemble', '2000'] + _LGV, None),
+    ('1d_cos_well/langevin_staple/checks/fit_rev_*_lag*.npz', 'sim_istarwell2rv', ['--paths-per-ensemble', '2000', '--reversed'] + _LGV, None),
+    ('2d_zpot/brownian_g10/staple/selection_test/base/*/q_traj.npy', 'sim_istarz_br_g10', ['--paths-per-ensemble', '1500'] + _ZREV, None),
+    ('2d_zpot/brownian_g10/staple/selection_test/flat_qn/*/q_traj.npy', 'sim_istarz_br_g10', ['--paths-per-ensemble', '1500'] + _ZREV, None),
+    ('2d_zpot/brownian_g10/staple/reversed/r_half_even.npy', 'sim_istarz_br_g10', ['--paths-per-ensemble', '1500'] + _ZREV, 'even'),
+    ('2d_zpot/brownian_g10/staple/reversed/r_half_odd.npy', 'sim_istarz_br_g10', ['--paths-per-ensemble', '1500'] + _ZREV, 'odd'),
+    ('2d_zpot/brownian_g10/staple/reversed/r_lag50_even_ppe1500.npy', 'sim_istarz_br_g10', ['--paths-per-ensemble', '1500'] + _ZREV, 'even'),
+    ('2d_zpot/brownian_g10/staple/reversed/r_lag50_odd.npy', 'sim_istarz_br_g10', ['--paths-per-ensemble', '1500'] + _ZREV, 'odd'),
+    ('2d_zpot/brownian_g10/staple/reversed/r_lag50_all_ppe2250.npy', 'sim_istarz_br_g10', ['--paths-per-ensemble', '2250'] + _ZREV, None),
 ]
 
 # Fits on the first N frames of one long MD run (md_path.npy of the simulation folder: columns position,
 # velocity): (pattern, simulation folder name, N, lambda_A, lambda_B). One trajectory, so the stopped and
 # the dropped-window Z_q differ only at its end.
 KNOWN_MD = [
-    ('well_md_fit/*.npy', 'md_istarwell2_100M', 6_000_000, -0.35, 0.35),
-    ('well_md_fit/*/q_*.npy', 'md_istarwell2_100M', 6_000_000, -0.35, 0.35),
-    ('langevin_seeds/*/q_traj.npy', 'md_istarwell2_100M', 6_000_000, -0.35, 0.35),
+    ('1d_cos_well/langevin_md/fits/*.npy', 'md_istarwell2_100M', 6_000_000, -0.35, 0.35),
+    ('1d_cos_well/langevin_md/fits/*/q_*.npy', 'md_istarwell2_100M', 6_000_000, -0.35, 0.35),
+    ('1d_cos_well/langevin_md/seeds/*/q_traj.npy', 'md_istarwell2_100M', 6_000_000, -0.35, 0.35),
 ]
 
 # (q file, frames file, extra) for anything else, paths relative to examples/; extra may hold
 # lambda_a/lambda_b for frames files without A/B, e.g.
-# ('figures/z_brownian/npq_md/npq_md.npz', 'figures/z_brownian/npq_md/npq_md.npz', dict(lambda_a=0.1, lambda_b=0.85)),
+# ('figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/npq_md/npq_md.npz', 'figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/npq_md/npq_md.npz', dict(lambda_a=0.1, lambda_b=0.85)),
 MANUAL = []
 
 
@@ -168,7 +169,7 @@ def known_source(q_path):
     """('reread', argv, half) of a fit listed in KNOWN, ('md', md_path.npy, (N, lambda_A, lambda_B)) of one
     in KNOWN_MD, or None."""
     import fnmatch
-    rel = os.path.relpath(q_path, os.path.join(EXAMPLES, 'figures'))
+    rel = os.path.relpath(q_path, FIGURES)
     for pattern, sim, args, half in KNOWN:
         if fnmatch.fnmatch(rel, pattern):
             d = sim_dir(sim)
@@ -187,16 +188,22 @@ def md_frames(path, n, la, lb):
                 group=None, w=None)
 
 
+# where the staple_compare_* folders and the toy2d staple fits of each simulation are (below figures_by_potential/)
+STAPLE_COMPARE_SIMS = {'1d_flat/brownian_staple': 'sim_istar0br10intf', '2d_zpot/brownian_g10/staple': 'sim_istarz_br_g10',
+                       '2d_curved_channel/brownian_g10': 'sim_istar_cc_br'}
+TOY2D_STAPLE_RUNS = {'2d_curved_channel/brownian_g10/staple': 'sim_istar_cc_br', '2d_curved_channel/brownian_g10/staple_test': 'test_cc_br',
+                     '2d_curved_channel/langevin_g2/staple': 'sim_istar_cc_lgv', '2d_curved_channel/langevin_g2/staple_test': 'test_cc_lgv'}
+
+
 def reread_argv(q_path):
-    """tis_data arguments that rebuild the frames of a staple_compare or nb_toy2d_staple fit, or None."""
-    parts = q_path.split(os.sep)
-    if 'staple_compare' in parts:
-        i = parts.index('staple_compare')
-        m = re.match(r'(.+)_p(\d+|None)_s(\d+)$', parts[i + 1])
-        summary = os.path.join(os.sep.join(parts[:i + 3]), 'summary.npz')
-        if not m or not os.path.exists(summary):
+    """tis_data arguments that rebuild the frames of a staple_compare or toy2d staple fit, or None."""
+    rel = os.path.relpath(q_path, FIGURES)
+    m = re.match(r'(.+)/staple_compare_p(\d+|None)_s(\d+)/([^/]+)/', rel)
+    if m and m.group(1) in STAPLE_COMPARE_SIMS:
+        sim, P, S = STAPLE_COMPARE_SIMS[m.group(1)], m.group(2), m.group(3)
+        summary = os.path.join(FIGURES, m.group(1), f'staple_compare_p{P}_s{S}', m.group(4), 'summary.npz')
+        if not os.path.exists(summary):
             return None
-        sim, P, S = m.groups()
         cfg = json.loads(str(np.load(summary)['cfg']))
         tis_dir = sim_dir(sim)
         if tis_dir is None:
@@ -210,20 +217,20 @@ def reread_argv(q_path):
         argv += [] if cfg.get('cut', True) else ['--no-cut']
         argv += ['--max-length', str(cfg['max_length'])] if cfg.get('max_length') else []
         return argv
-    if 'nb_toy2d_staple' in parts:
-        i = parts.index('nb_toy2d_staple')
-        run, tag = parts[i + 1], parts[i + 2]
-        m = re.match(r'(rev|fwd)_(rejections|staple|none)_p(\d+|None)_s(\d+)(?:_len(\d+))?_([a-z\-]+)_lag', tag)
-        tis_dir = sim_dir(run)
-        if not m or tis_dir is None:
-            return None
-        rev, weights, P, S, length, cvs = m.groups()
-        argv = [tis_dir, '--weights', weights]
-        argv += ['--paths-per-ensemble', P, '--seed', S] if P != 'None' else []
-        argv += ['--reversed'] if rev == 'rev' else []
-        argv += ['--max-length', length] if length else []
-        argv += ['--fd-velocity'] if ('dy' in cvs.split('-') or 'dx' in cvs.split('-')) else []
-        return argv
+    for folder, run in TOY2D_STAPLE_RUNS.items():
+        if rel.startswith(folder + '/'):
+            tag = rel[len(folder) + 1:].split('/')[0]
+            m = re.match(r'(rev|fwd)_(rejections|staple|none)_p(\d+|None)_s(\d+)(?:_len(\d+))?_([a-z\-]+)_lag', tag)
+            tis_dir = sim_dir(run)
+            if not m or tis_dir is None:
+                return None
+            rev, weights, P, S, length, cvs = m.groups()
+            argv = [tis_dir, '--weights', weights]
+            argv += ['--paths-per-ensemble', P, '--seed', S] if P != 'None' else []
+            argv += ['--reversed'] if rev == 'rev' else []
+            argv += ['--max-length', length] if length else []
+            argv += ['--fd-velocity'] if ('dy' in cvs.split('-') or 'dx' in cvs.split('-')) else []
+            return argv
     return None
 
 
@@ -425,8 +432,8 @@ def get_frames(src, cache):
 
 def main():
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    p.add_argument('roots', nargs='*', default=[os.path.join(EXAMPLES, 'figures')], help='folders to search')
-    p.add_argument('--out', default=os.path.join(EXAMPLES, 'figures', 'stopped_zq'), help='output folder')
+    p.add_argument('roots', nargs='*', default=[FIGURES], help='folders to search')
+    p.add_argument('--out', default=os.path.join(FIGURES, '_shared', 'stopped_zq'), help='output folder')
     p.add_argument('--only', help='only fits whose path contains this text')
     p.add_argument('--weights', action='store_true', help='use the path weights of the frames (default: none)')
     p.add_argument('--max-lag-exp', type=int, default=15, help='lags 2^0 .. 2^N (default 15, as plots_feps)')

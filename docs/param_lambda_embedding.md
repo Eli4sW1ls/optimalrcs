@@ -83,7 +83,7 @@ Both need new runs.
 
 Spread: mean isosurface spread against the exact committor over the report's level set. "jitter share": the share of each CV group in the per-step motion of the score along the test paths (E[(∂z/∂x_i · Δx_i)²], 1e-3 < q_exact < 0.99). "w": its static share E[(∂z/∂w · SD(w))²] and the RMS change of logit λ over the spread of w (w hardly moves along a path, so it has no jitter share). µs/frame: one-frame calls, single-threaded BLAS.
 
-![summary](../examples/figures/param_lambda/embedding/summary.png)
+![summary](../examples/figures_by_potential/_shared/param_lambda/embedding/summary.png)
 
 ### z_emb (base z_br; labels: the 2D q_np of z_br)
 
@@ -133,11 +133,11 @@ Largest single-CV shares: M1 L1-logistic (best set): y 0.92, x 0.08, cy1 0.00; M
 
 Largest single-CV shares: M1 L1-logistic (best set): y 0.91, x 0.08, f07 0.00; M1 GAM (best set): y 0.91, x 0.07, cv3 0.01; M3, all 31 CVs: y 0.81, x 0.18, cy3 0.00; M3-fast, all 31 CVs: y 0.81, x 0.18, f16 0.00; M3, without clean y, x: cy1 0.70, cx1 0.16, cy3 0.05; M3-fast, without clean y, x: cy1 0.69, cx1 0.17, cu3 0.05
 
-![attribution](../examples/figures/param_lambda/embedding/attribution.png)
+![attribution](../examples/figures_by_potential/_shared/param_lambda/embedding/attribution.png)
 
-![screening](../examples/figures/param_lambda/embedding/screening.png)
+![screening](../examples/figures_by_potential/_shared/param_lambda/embedding/screening.png)
 
-![traces](../examples/figures/param_lambda/embedding/traces.png)
+![traces](../examples/figures_by_potential/_shared/param_lambda/embedding/traces.png)
 
-![maps](../examples/figures/param_lambda/embedding/maps.png)
+![maps](../examples/figures_by_potential/_shared/param_lambda/embedding/maps.png)
 

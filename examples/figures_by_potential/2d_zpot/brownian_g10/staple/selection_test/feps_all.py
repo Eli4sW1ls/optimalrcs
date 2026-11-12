@@ -3,7 +3,7 @@
 import sys
 import numpy as np, cupy as cp
 import matplotlib; matplotlib.use('Agg'); import matplotlib.pyplot as plt
-HERE = '/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures/selection_test/'
+HERE = '/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/2d_zpot/brownian_g10/staple/selection_test/'
 name = sys.argv[1]
 if name.startswith('blind_'):
     mode = name[len('blind_'):]

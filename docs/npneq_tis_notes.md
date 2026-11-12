@@ -328,7 +328,7 @@ cut by the clock; the Poisson trap gives them a random exponential continuation 
 thinned at the same rate. For TIS pieces the other ends (69% of the pieces on the 2D Z) are
 stopping times of the dynamics (the M cut, the path end), so by optional stopping the windows
 dropped there carry E[(q(τ) − q(t)) 1{τ ≤ t+Δt, free end}] ≠ 0, and the trap only changes the A/B
-ends. Test with the exact committor on `istarz_br_g10_reversed` (`examples/figures/poisson_trap/`),
+ends. Test with the exact committor on `istarz_br_g10_reversed` (`examples/figures_by_potential/2d_zpot/brownian_g10/checks/poisson_trap/`),
 max_q |Z(Δt) − Z(1)| at Δt = 4, 16, 64, 256, 1024, 4096:
 
 | | 4 | 16 | 64 | 256 | 1024 | 4096 |
@@ -401,7 +401,7 @@ on a plateau.
    the crossing frames against the mean of C. Errors: bootstrap over paths for the means;
    for the MSM, 4 blocks of MC cycles. Summary: χ² of (mean q − MSM) over the cells.
 
-**Results** (`examples/figures/crossing_check/`):
+**Results** (`crossing_check/` in `examples/figures_by_potential/1d_flat/brownian_staple/`, `2d_zpot/brownian_g10/checks/` and `2d_curved_channel/brownian_g10/checks/`):
 
 | Run | Exact committor − MSM | What the check can tell |
 |---|---|---|
@@ -459,7 +459,7 @@ the F(q) panels as well. Effect on the saved fits (`examples/feps_weighted.py`, 
 q ≈ 0.85 disappears; on the curved channel the lag 1-8 hump of +80 (Brownian) / +100 (Langevin)
 drops to about 0 (±10 / ±25); F(q) hardly changes. With the exact q on the 2D Z data, max |Z| at
 Δt = 1 is 69 without and 21 with weights, and the weighted `comp_zq` equals the stopped Z_q at
-Δt = 1 (figure `examples/figures/zq_weights/zpot_exact_q.png`). The long lags (≳ 64) stay large
+Δt = 1 (figure `examples/figures_by_potential/2d_zpot/brownian_g10/checks/zq_weights/zpot_exact_q.png`). The long lags (≳ 64) stay large
 with or without weights, because of the dropped windows: read those from the stopped Z_q.
 
 ### 8.1 Which value Z_q converges to: N_AB, 0, or something else
@@ -509,7 +509,7 @@ target of 0, the spread is all there is to judge, which is why path data use the
 
 **Evidence** (2D Brownian Z potential, 16-seed long MD, A: y ≤ 0.1, B: y ≥ 0.85, 37 A→B and
 37 B→A transitions, 4.6M rows in 205k excursions;
-`examples/figures/z_brownian/npq_md/zq_traps.png`):
+`examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/npq_md/zq_traps.png`):
 
 - Without traps the plotted Z_q sat at 9–36 depending on Δt and dropped towards 0 above
   q ≈ 0.7 for Δt = 4–256.
@@ -573,7 +573,7 @@ stopped Z_q sat at ≈ −3 at the longest lags for every q below the plateau.
 **Diagnosis: test the data with the exact committor.** Put the exact committor into the
 stopped Z_q z-score of the *data*. If the exact committor fails, the data (weights, cut,
 pieces) are biased and no fit can be right. This takes about a minute and needs no fit
-(`examples/figures/z_brownian/staple_check.py`, `staple_split.py`, `staple_wscan.py`,
+(`examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/staple_check.py`, `staple_split.py`, `staple_wscan.py`,
 `staple_reversed.py`).
 
 | Exact committor on the staple data | Worst z, plateau (lags 1, 16, 256, 4096) | Worst z, next to A/B |
@@ -598,7 +598,7 @@ pieces) are biased and no fit can be right. This takes about a minute and needs 
   +3.7 at lag 1 right next to A). Staple weights fail either way (+6 to +9).
 
 **Refit** with `--reversed`, rejection weights, 1500 paths per ensemble (20.9M frames),
-otherwise the same settings (`examples/figures/istarz_br_g10_reversed/`). Settings of both
+otherwise the same settings (`examples/figures_by_potential/2d_zpot/brownian_g10/staple/reversed/`). Settings of both
 fits: CVs (y, x), library lag-1 update, gamma 0.1, envelope 0.01, ny 6, A/B traps;
 `load_tis_data_cupy.py`, no random seed (forward only: 3000 paths/ens.; mirrored: subset
 seed 0). The forward-only fit ran twice; 3.23 is the first run, whose q was lost; the q
@@ -618,11 +618,11 @@ the cause is the data: 32768 independent GPU walkers give 4.30·10⁷ ± 4% step
 transition, matching the reference (4.4·10⁷), while the 16-seed MD had 37 A→B transitions
 where ~25 were expected (+2.5σ). Fits on the two halves of the MD give +0.031 and +0.079,
 independent of the fit lag (1, 10, 50 rows) and of the envelope schedule
-(`examples/figures/z_brownian/lag_md.py`, `rate_walkers.py`). With 37 transitions the
+(`examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/lag_md.py`, `rate_walkers.py`). With 37 transitions the
 plateau level is uncertain by several hundredths.
 
 **Reproduced from scratch with other seeds (5 Nov,
-`examples/base_documented_2d_brownian_staple.ipynb`, figures `examples/figures/nb_brownian_staple/`).**
+`examples/base_documented_2d_brownian_staple.ipynb`, figures `examples/figures_by_potential/2d_zpot/brownian_g10/staple/notebook/`).**
 Forward pieces only (3000 paths/ens.), 1000 warm-up iterations at envelope 1, then 15000 at
 envelope 0.01, gamma 0.1: q at the shooting points 0.718 / 0.749 / 0.763 / 0.807 (shooting
 0.639 / 0.664 / 0.698 / 0.747), RMS 0.061 per row: the forward-only overshoot does not
@@ -633,7 +633,7 @@ draws its 2000 paths from the same ~3000-path copy as the other fits, so it is *
 independent data set**.
 
 **Long MD with NPq, longer and at a smaller envelope (5 Nov,
-`examples/base_documented_2d_brownian_md.ipynb`, `examples/figures/nb_zbrownian_md/seeds/`).**
+`examples/base_documented_2d_brownian_md.ipynb`, `examples/figures_by_potential/2d_zpot/brownian_g10/md/seeds/`).**
 Same 16 seeds and kept rows as before (4.62M rows, 37 A→B), `set_boundary_traps`, ny 6;
 1000 warm-up iterations at envelope 1, then 15000 at envelope 0.001, gamma 0.1 (NPq ignores
 gamma). RMS(fit − exact) per row for 0.05 < q < 0.95: 0.053 after the warm-up, 0.062 at
@@ -660,7 +660,7 @@ pin the plateau level only to about ±0.05–0.1. This confirms the statistical 
 
 ### 9.2 How well do cut path pieces determine the committor? (2D Brownian Z)
 
-Overnight tests (`examples/figures/z_brownian/synth*`, `martingale_*.py`,
+Overnight tests (`examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/synth*`, `martingale_*.py`,
 `istarz_br_g10_reversed/half_fits.py`, `lag_halves.py`). Summary first:
 
 - **The method works:** on clean synthetic data (30000 GPU walkers started uniformly between A
@@ -725,10 +725,10 @@ expected statistical uncertainty of about ±0.015–0.02. So the remaining offse
 bias of order +0.01 (for instance the slight lean of the forward pieces in the martingale
 test, +0.004 ± 0.002) cannot be excluded at this sample size.
 
-Figures of all these fits and tests: `examples/figures/z_brownian/summary_*.png`, per-case
+Figures of all these fits and tests: `examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/summary_*.png`, per-case
 plots in `cases/` (results overview, II.3 "The plateau investigation in figures").
 
-**Per-ensemble and per-block z-scores** (`examples/figures/z_brownian/staple_cycle_blocks.py`,
+**Per-ensemble and per-block z-scores** (`examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/staple_cycle_blocks.py`,
 `.log`; exact committor on the forward-only data, 29975 paths, rejection weights; no fit).
 Stopped Z_q z-score at q = 0.3 / 0.63 / 0.75: all data +1.0 / +1.9 / +2.7 at lag 16
 (−1.3 / +1.1 / +3.1 at lag 4096). Per ensemble and per quarter of the MC cycles, single
@@ -757,7 +757,7 @@ Same paths, same fit settings and seed for every preparation; only the weights, 
 mirrored pieces, the cut at M and a piece-length limit differ. Settings: `CommittorNE`,
 warm-up 1000 iterations at envelope 10⁶ (a flat envelope), then envelope 0.01, gamma 0, ny 6,
 lazy basis, A/B traps, fit seed 0. RMS of fit − exact over frames with 0.05 < q_exact <
-0.95 (path-weighted) and per bin. Results: `examples/figures/staple_compare/*/comparison.csv`.
+0.95 (path-weighted) and per bin. Results: `comparison.csv` in the `staple_compare_*` folders of `examples/figures_by_potential/` (`1d_flat/brownian_staple/`, `2d_zpot/brownian_g10/staple/`, `2d_curved_channel/brownian_g10/`).
 
 | Preparation | 1D flat `sim_istar0br10intf` (1000 paths/ens., seed 0, 4000 it.): `zqs_z` / RMS frames | 2D Z `sim_istarz_br_g10` (1000 paths/ens., seed 12, 15000 it.): `zqs_z` / RMS frames / RMS bins |
 |---|---|---|
@@ -801,7 +801,7 @@ table: `CommittorNE`, gamma 0.1, envelope 0.01, ny 6, 4000 iterations, fit seed 
 subset seed 0, rejection weights. `sim_istar0lgv15intf`: CVs x and Δx; the lag-1 row is the
 library update (non-lazy basis, A/B traps, 100 paths/ens.), the lag-4 rows the stopped-window
 update (no traps; 100 or 30 paths/ens.); the history rows' settings were not recorded.
-`sim_istarwell2rv` (`figures/well_check/well_test.py`): 2000 paths/ens., stopped-window update
+`sim_istarwell2rv` (`figures_by_potential/1d_cos_well/langevin_staple/checks/well_test.py`): 2000 paths/ens., stopped-window update
 also at lag 1, full basis, no traps.
 
 | Run | Setup | Result |
@@ -817,7 +817,7 @@ also at lag 1, full basis, no traps.
 | same, + mirrored pieces | `--fd-velocity`, lag 1 and 4 | not run yet (`examples/base_documented_1d_langevin_staple.ipynb`) |
 | same, + mirrored pieces, notebook (6 Nov) | recorded velocity, library lag-1 update, gamma 0, envelope 0.01, warm-up 2000 at envelope 10⁶, 10000 it., seed 1 | RMS 0.033 (near A +0.009, near B +0.025); RMS 0.030–0.052 and worst \|z\| 1.2–20 from chunk to chunk, not monotone; the exact q on these data: 19.1 17.6 15.1 4.2 2.5 1.3 at lags 1–256 |
 
-**Mirrored pieces on the well** (`figures/well_check/run_rev_recorded.log`). Unlike on the 2D
+**Mirrored pieces on the well** (`figures_by_potential/1d_cos_well/langevin_staple/checks/run_rev_recorded.log`). Unlike on the 2D
 Brownian Z (§9.1), they do not help here. The data test with the exact committor shows no
 bias of the forward pieces to remove: it fails at short lags with and without them
 (lags 1, 2, 4, 16, 64, 256: 12.0 11.1 9.6 3.5 2.5 2.1 forward only; 15.4 14.2 12.2 5.2 2.4
@@ -855,7 +855,7 @@ the short-lag test resolves q on scales finer than the grid. Judge references at
 
 ### 10.1 Full state (x, v): why lag 1 converges so slowly, and the lag-Δ fit
 
-**Test** (`examples/figures/well_md_fit/`): long equilibrium MD of the cosine well
+**Test** (`examples/figures_by_potential/1d_cos_well/langevin_md/fits/`): long equilibrium MD of the cosine well
 (`md_istarwell2_100M`, γ = 1, kT = m = 1, Δt = 0.005, one frame per step, recorded
 velocities), first 6M frames (5007 A→B transitions), A: x ≤ −0.35, B: x ≥ 0.35. CVs (x, v),
 `CommittorNE`, ny 6, envelope 0.001, lazy basis. Compared per (x, v) bin with the
@@ -935,13 +935,13 @@ recorded, in a worse form than v itself (a difference of nearly equal numbers, h
 or more stale); it does not touch the conditioning. The cure for the slow convergence is
 the lag of the *fit*, not the lag of the *features*. Coarser histories (d = 4, 8, 16, or
 0 1 4 16) on the 2D Langevin Z staple run did not help either: `zqs_z` 30–37 vs 33 for
-`[0, 1]` (`examples/figures/zlgv_history/`).
+`[0, 1]` (`examples/figures_by_potential/2d_zpot/langevin_g2/history/`).
 
 ### 10.3 Seed and start dependence of the lag-1 (x, v) fit (1D well MD)
 
 Notebooks `examples/base_documented_1d_langevin.ipynb`, `-diff.ipynb`,
 `_dt5e-4.ipynb` with the shared loop `examples/seed_runs.py`; figures
-`examples/figures/langevin_seeds/`, `langevin_seeds_dt5e-4/`. All: `CommittorNE`, CVs
+`examples/figures_by_potential/1d_cos_well/langevin_md/seeds/`, `langevin_seeds_dt5e-4/`. All: `CommittorNE`, CVs
 (λ, recorded v), library lag-1 update, gamma 0.1, envelope 0.01, ny 6, lazy basis, 15000
 iterations; the seed sets which CV and envelope centre each iteration draws. RMS per frame
 against the brute-force reference:
@@ -954,7 +954,7 @@ against the brute-force reference:
 | dt 0.005, 6M frames, **gamma 0** in the main run | 1000 or 2000 it. | 99: 0.035 / 0.033 (RMS rises again after 6000 it. with the 1000-it. warm-up: 0.026 → 0.035) |
 
 - **The lag-1 result depends on the start.** Seed 1, whose first iterations drew v, reached
-  RMS 0.014 per bin and 0.025 on the E ≈ 0.15 band (`examples/figures/well_md_fit/compare_seed.py`,
+  RMS 0.014 per bin and 0.025 on the E ≈ 0.15 band (`examples/figures_by_potential/1d_cos_well/langevin_md/fits/compare_seed.py`,
   `compare_seed1.png`): as good as the lag-16 fit (0.011 / 0.027), cross-entropy 0.3949
   (exact 0.3948). Seeds that drew λ first keep the sharp edges at λ ≈ ±0.29 and stall.
 - A warm-up that updates only along v narrows the spread to RMS 0.020–0.026.
@@ -968,9 +968,9 @@ against the brute-force reference:
 - **10× smaller time step:** a new BBK run with dt 0.0005 (`md_istarwell2_dt5e-4_10M`,
   saved every 10 steps) gives the same MD-outcome committor as dt 0.005: RMS per bin
   0.016 against a combined noise of 0.017 (4211 vs 4162 A→B in 5M rows;
-  `examples/figures/langevin_dt5e-4/md_committor_check.png`). The integrator step does not
+  `examples/figures_by_potential/1d_cos_well/langevin_md/dt5e-4_check/md_committor_check.png`). The integrator step does not
   cause the stalled seeds.
-- **Euler–Maruyama vs BBK** (`examples/figures/well_md_fit/compare_md_committors.py`,
+- **Euler–Maruyama vs BBK** (`examples/figures_by_potential/1d_cos_well/langevin_md/fits/compare_md_committors.py`,
   `md_committor_euler_vs_bbk.png`, 3M rows each): MD-outcome committors agree within noise
   (EM − BBK RMS 0.020 vs noise 0.023; each − reference 0.017).
 - **Why histories work on Euler–Maruyama data but not on BBK data:** in Euler–Maruyama,
@@ -1005,9 +1005,9 @@ and Langevin, launch commands in the notebook header) have not been analysed yet
 ### 10.2 2D Langevin Z potential, staple paths, positions only
 
 `sim_istarz_2603` (γ = 2, kT = 0.05, Δt = 0.002, no velocities in `order.txt`), 1000 paths per
-ensemble (8M frames), no mirrored pieces, `examples/figures/zlgv_fd/`. Settings: gamma 0.2,
+ensemble (8M frames), no mirrored pieces, `examples/figures_by_potential/2d_zpot/langevin_g2/fd_velocity/`. Settings: gamma 0.2,
 envelope 0.001, ny 6, A/B traps, seed 0; history rows: library update, lazy, 10000
-(`[0, 1]`, notebook) or 2000 iterations (coarser, `figures/zlgv_history/history_test.py`);
+(`[0, 1]`, notebook) or 2000 iterations (coarser, `figures_by_potential/2d_zpot/langevin_g2/history/history_test.py`);
 finite-difference rows: 3000 iterations, lag 1 library update, lag 4 stopped-window update
 (`fd_test.py`):
 
@@ -1040,8 +1040,8 @@ lag with the last row of the table.
    now adds one per position column), with a lag-Δ fit; no histories. In 2D, add CVs aligned
    with sharp features (ridge-normal coordinate and velocity).
 4. The lag-Δ fit (Σ f_k(t)[q(min(t+Δ, τ_t)) − q(t)] = 0) is not in the library yet: it
-   exists only in test scripts (`examples/figures/well_md_fit/lag_xv.py`,
-   `examples/figures/zlgv_fd/fd_test.py`, `examples/figures/well_check/well_test.py`).
+   exists only in test scripts (`examples/figures_by_potential/1d_cos_well/langevin_md/fits/lag_xv.py`,
+   `examples/figures_by_potential/2d_zpot/langevin_g2/fd_velocity/fd_test.py`, `examples/figures_by_potential/1d_cos_well/langevin_staple/checks/well_test.py`).
 5. Not helpful (tested): smaller friction γ, higher basis degree, a joint (r, x, v) basis,
    extra CVs (x + v/γ, arrival time at A), coarser histories, envelope 0.01, lowering the
    `gamma` regularization (§10.1).
@@ -1201,7 +1201,7 @@ make V large there anyway).
   errors are not computed. They are measured below by shooting with the chain itself.
 - The TPT rate k_AB = (kT/γ) Σ e^{−V/kT} |∇q|² / Σ e^{−V/kT}(1 − q) comes from the same grid.
 
-**How exact it is: shooting with the engine's own update** (`examples/figures/reference_check/`,
+**How exact it is: shooting with the engine's own update** (`reference_check/` in `examples/figures_by_potential/2d_zpot/brownian_g10/checks/` and `2d_curved_channel/brownian_g10/checks/`,
 2026-11-09). 200 path frames, 20 in each of 10 bins of the PDE committor, 2000 trajectories
 each with the Euler–Maruyama step and the run's absorption, run until A or B (vectorized force,
 checked against the potential class). Grid convergence: the PDE committor at the path frames
@@ -1270,8 +1270,8 @@ worst (levels), or the MSM level check (§6.5) where its memory-loss assumption 
 
 ### 13.3 High-accuracy exact committors of the discrete-time dynamics (2026-11-10)
 
-Code: `examples/figures/exact_committors/` (`exact_tools.py`, one script per system); figures,
-logs and solved grids in its subfolders `brownian1d/`, `well/`, `zpot/`, `cc/` (curved channel, `cc_exact.py`).
+Code: one script per system in the `exact/` folder of each potential in `examples/figures_by_potential/` (`1d_flat/`, `1d_two_bumps/`, `1d_cos_well/`, `2d_zpot/`, `2d_curved_channel/`), with its figures,
+logs and solved grids; the shared helpers `exact_tools.py` are in `_shared/exact_committors/`.
 
 **What is computed.** The committor of the Markov chain the engine actually runs, not of the
 continuous dynamics: q(s) = P(the chain from state s reaches B before A), with A and B checked
@@ -1360,18 +1360,18 @@ of each ensemble drawn with seed 0 unless noted.
 
 | Run (section) | Data | CVs | Update, lag | gamma | Envelope | ny | Iterations | Basis | Traps | Seed | Source |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| 1D overdamped MD, flat / two bumps (overview I.1) | 50M frames, 5M-frame blocks | λ | NPq library, 1 | – | 0.01 | 6 | 1500 per block | full | – | block | `figures/longmd_npq/npq_longmd.py` |
-| 1D flat staple `sim_istar0br10intf` (II.1) | 12000 paths/ens., rej., fwd | λ | library, 1 | 0.1 | 0.01 | 6 | 3000 | lazy | FTL | 0 | `figures/overview_plots/regen_all.py flat` |
+| 1D overdamped MD, flat / two bumps (overview I.1) | 50M frames, 5M-frame blocks | λ | NPq library, 1 | – | 0.01 | 6 | 1500 per block | full | – | block | `figures_by_potential/1d_flat/brownian_long_md/npq/npq_longmd.py` |
+| 1D flat staple `sim_istar0br10intf` (II.1) | 12000 paths/ens., rej., fwd | λ | library, 1 | 0.1 | 0.01 | 6 | 3000 | lazy | FTL | 0 | `figures_by_potential/_shared/overview_plots_scripts/regen_all.py flat` |
 | 1D flat staple, §3/§4 fits; REPPTIS and small staple subsets (§9 table) | not recorded | | | | | | | | | | no script found |
 | 1D well MD, x + history `[0, 1]` (§10.1) | 6M frames | x, `y(t-d),y(t)` | library, 1 | 0.2 | 0.001 | 6 | 1500 (overview) / 3000 (§10.1, not recorded) | lazy | – | 0 | `regen_all.py hist01` |
 | 1D well MD, (x, v) (§10.1) | 6M frames | (x, v) | library, 1 | 0.2 | 0.001 | not recorded | 10000 | not recorded | – | not recorded | earlier `base_documented_1d_langevin.ipynb` |
-| 1D well MD, (x, v, E) (§10.1) | 6M frames | (x, v, E) | library, 1 | 0.2, then 0.05 | 0.001 | 6 | 10000 + 5000 | lazy | – | 0 per stage | `figures/well_md_fit/energy_cv.py` |
+| 1D well MD, (x, v, E) (§10.1) | 6M frames | (x, v, E) | library, 1 | 0.2, then 0.05 | 0.001 | 6 | 10000 + 5000 | lazy | – | 0 per stage | `figures_by_potential/1d_cos_well/langevin_md/fits/energy_cv.py` |
 | 1D well MD, (x, v), long (§10.1) | 6M frames | (x, v) | library, 1 | 0.1 | 0.001 | 6 | 95000 (stop: cross-entropy gain < 3e-5 over 3 × 5000) | lazy | – | chunk | `long_xv.py` |
 | **1D well MD, (x, v), lag 16** (§10.1) | 6M frames | (x, v) | stopped Δ = 16 frames | 0.1 | 0.001 | 6 | 12000 | chunked | – | chunk | `lag_xv.py` |
-| Flat low-friction staple `sim_istar0lgv15intf` (§10 table) | 100 or 30 paths/ens., rej., fwd | x, Δx | library, 1 / stopped Δ = 4 | 0.1 | 0.01 | 6 | 4000 | full | FTL / – | 0 | `figures/lgv_check/fit_and_test.py`, `lag_fit.py`, `lag4_stats.py` |
-| 1D well staple `sim_istarwell2rv` (§10 table) | 2000 paths/ens., rej., fwd or +mir | (x, v) recorded or fd | stopped Δ = 1 or 4 | 0.1 | 0.01 | 6 | 4000 | full | – | 0 | `figures/well_check/well_test.py` |
+| Flat low-friction staple `sim_istar0lgv15intf` (§10 table) | 100 or 30 paths/ens., rej., fwd | x, Δx | library, 1 / stopped Δ = 4 | 0.1 | 0.01 | 6 | 4000 | full | FTL / – | 0 | `figures_by_potential/1d_flat/langevin_staple/lgv_check/fit_and_test.py`, `lag_fit.py`, `lag4_stats.py` |
+| 1D well staple `sim_istarwell2rv` (§10 table) | 2000 paths/ens., rej., fwd or +mir | (x, v) recorded or fd | stopped Δ = 1 or 4 | 0.1 | 0.01 | 6 | 4000 | full | – | 0 | `figures_by_potential/1d_cos_well/langevin_staple/checks/well_test.py` |
 | 1D well staple, library refit (overview II.2) | 2000 paths/ens., rej., fwd | (x, v) recorded | library, 1 | 0.1 | 0.01 | 6 | 4000 | lazy | FTL | 0 | `regen_all.py wellpath` |
-| 2D Brownian Z MD, NPq (overview I.2) | 16 seeds, rows every 20 steps, excursions (4.6M rows) | (y, x) | NPq library, 1 row | – | 0.01 | 6 | 8000 | full | BT | 0 (halves 1, 2) | `figures/z_brownian/npq_md.py` |
+| 2D Brownian Z MD, NPq (overview I.2) | 16 seeds, rows every 20 steps, excursions (4.6M rows) | (y, x) | NPq library, 1 row | – | 0.01 | 6 | 8000 | full | BT | 0 (halves 1, 2) | `figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/npq_md.py` |
 | 2D Brownian Z MD, NPNEq lag fits (I.2) | seeds 1–8 (2.4M rows) or 9–16 | (y, x) | stopped Δ = 1, 10, 50 rows | 0.1 | 0.01 | 6 | 5000 (seeds 9–16: not logged) | chunked | – | chunk | `lag_md.py` |
 | 2D Brownian Z MD, envelope schedule (I.2) | seeds 1–8 | (y, x) | stopped Δ, value not logged | 0.1 | 1 → 0.1 → 0.01 → 0.001 | 6 | 1000 + 1000 + 1000 + 2000 | chunked | – | stage | `lag_md.py`, `env_sched.log` |
 | 2D Brownian Z staple, fwd (§9.1, II.3) | 3000 paths/ens. (subset seed not recorded), rej., fwd, 20.8M frames | (y, x) | library, 1 | 0.1 | 0.01 | 6 | 10000 | not recorded | FTL | none | `load_tis_data_cupy.py`, `istarz_br_g10/run.log` |
@@ -1379,9 +1379,9 @@ of each ensemble drawn with seed 0 unless noted.
 | **2D Brownian Z staple, +mir** (§9.1, §9.2, II.3) | 1500 paths/ens., rej., +mir, 20.9M frames | (y, x) | library, 1 | 0.1 | 0.01 | 6 | 10000 + 15000 | not recorded, then lazy | FTL | none, then 100 + chunk | `load_tis_data_cupy.py`, `istarz_br_g10_reversed/continue_fit.py` |
 | 2D Brownian Z staple halves, lag 1 (§9.2) | even / odd paths of the +mir data | (y, x) | library, 1 | 0.1 | 0.01 | 6 | 25000 / 22500 (stop: plateau change < 0.001 and \|dx\| < 2e-4) | lazy | FTL | chunk | `half_fits.py` |
 | 2D Brownian Z staple, lag 50 (§9.2) | halves of 1500 paths/ens., or 2250 paths/ens. (31.5M frames) | (y, x) | stopped Δ = 50 frames | 0.1 | 0.01 | 6 | 3000 | chunked | – | chunk | `lag_halves.py` |
-| Synthetic walkers (§9.2) | 30000 walkers, every 50 steps (5.2M frames), uncut or cut at interfaces (0.5M) | (y, x) | library, 1 / stopped Δ = 10 rows | 0.1 | 0.01 | 6 | uncut 2500, cut 10000, lag 10 7500 | lazy / chunked | FTL | chunk | `figures/z_brownian/synth_fit.py` |
-| 2D underdamped Z staple, history (§10.2) | 1000 paths/ens., rej. (`[0, 1]`: possibly +mir, see II.4) | y, x, history | library, 1 | 0.2 | 0.001 | 6 | 10000 (`[0, 1]`), 2000 (coarser) | lazy | FTL | 0 | `base_documented_2d_langevin.ipynb`, `figures/zlgv_history/history_test.py` |
-| 2D underdamped Z staple, fd (§10.2) | 1000 paths/ens., rej., fwd, 8M frames | y, x, Δy, Δx (+ y + x, Δy + Δx) | library, 1 / stopped Δ = 4 | 0.2 | 0.001 | 6 | 3000 | lazy / chunked | FTL | 0 | `figures/zlgv_fd/fd_test.py` |
+| Synthetic walkers (§9.2) | 30000 walkers, every 50 steps (5.2M frames), uncut or cut at interfaces (0.5M) | (y, x) | library, 1 / stopped Δ = 10 rows | 0.1 | 0.01 | 6 | uncut 2500, cut 10000, lag 10 7500 | lazy / chunked | FTL | chunk | `figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/synth_fit.py` |
+| 2D underdamped Z staple, history (§10.2) | 1000 paths/ens., rej. (`[0, 1]`: possibly +mir, see II.4) | y, x, history | library, 1 | 0.2 | 0.001 | 6 | 10000 (`[0, 1]`), 2000 (coarser) | lazy | FTL | 0 | `base_documented_2d_langevin.ipynb`, `figures_by_potential/2d_zpot/langevin_g2/history/history_test.py` |
+| 2D underdamped Z staple, fd (§10.2) | 1000 paths/ens., rej., fwd, 8M frames | y, x, Δy, Δx (+ y + x, Δy + Δx) | library, 1 / stopped Δ = 4 | 0.2 | 0.001 | 6 | 3000 | lazy / chunked | FTL | 0 | `figures_by_potential/2d_zpot/langevin_g2/fd_velocity/fd_test.py` |
 | 1D well MD, seed runs (§10.3) | 6M frames (dt 0.005) or 5–7M rows (dt 0.0005) | (λ, v) | library, 1 | 0.1 (warm-up 0.1) | 0.01 (warm-up 1) | 6 | 15000 (+ 1000 warm-up) | lazy | – | 0–10 | `base_documented_1d_langevin*.ipynb`, `seed_runs.py` |
 | 2D Brownian Z MD, NPq seed runs (§9.1) | as NPq above | (y, x) | NPq library, 1 row | – | 0.001 (warm-up 1) | 6 | 15000 + 1000 | full | BT | 3, 6 | `base_documented_2d_brownian_md.ipynb` |
 | 2D Brownian Z staple, notebook seed runs (§9.1) | fwd 3000 paths/ens., or +mir 2000 paths/ens. (path seed 1) | (y, x) | library, 1 | 0.1 | 0.01 (warm-up 1) | 6 | 15000 + 1000 | lazy | FTL | 0, 3 | `base_documented_2d_brownian_staple.ipynb` |

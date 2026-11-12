@@ -7,7 +7,7 @@ import metrics_tis as M, tis_data
 p = argparse.ArgumentParser(); tis_data.add_data_arguments(p)
 with contextlib.redirect_stdout(io.StringIO()):
     ds = tis_data.prepare_data(p.parse_args(['/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/PyRETIS3/toytis/simulations/sim_istarz_br_g10', '--weights', 'staple']))
-old = np.load(REPO + '/examples/figures/istarz_br_g10/committor.npz')
+old = np.load(REPO + '/examples/figures_by_potential/2d_zpot/brownian_g10/staple/original/committor.npz')
 assert np.array_equal(old['lam'], ds.lam)
 w_rej, it = old['path_weights'], old['i_traj']
 ratio = ds.path_weights / w_rej
@@ -20,7 +20,7 @@ for k in range(1, 11):
     m = first & (ens == k)
     print(f'  ensemble {k:03d}: {ha[m].mean():.2f} of paths HA, their share of the rejection weight {np.sum(w_rej[m & ha]) / np.sum(w_rej[m]):.2f}', flush=True)
 y, x = old['X_all'][:, 0], old['X_all'][:, 1]; b0, b1 = old['boundary0'], old['boundary1']; b = b0 | b1
-ref = np.load(REPO + '/examples/figures/z_brownian/committor_reference_h0.001.npz')
+ref = np.load(REPO + '/examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/committor_reference_h0.001.npz')
 q = np.clip(RegularGridInterpolator((ref['y'], ref['x']), ref['q'], bounds_error=False, fill_value=None)(np.c_[y, x]), 0, 1)
 q[b0] = 0; q[b1] = 1
 tau = M.stop_index(cp.asarray(it), cp.asarray(b)); Q, B, I = cp.asarray(q), cp.asarray(b), cp.asarray(it)

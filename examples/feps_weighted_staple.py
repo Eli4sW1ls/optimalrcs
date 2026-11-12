@@ -1,6 +1,6 @@
 """Regenerate the weighted feps plots of the staple_compare fits from their saved q_traj.npy.
 
-    python feps_weighted_staple.py figures/staple_compare/sim_istar_cc_br_p2000_s0 [name ...]
+    python feps_weighted_staple.py figures_by_potential/2d_curved_channel/brownian_g10/staple_compare_p2000_s0 [name ...]
 
 q_traj.npy holds only q, so the frames are re-read with the OLD tis_data (random subset, seed 0),
 taken from git; the current tis_data (burn-in + thinning) selects other paths and the length check fails.

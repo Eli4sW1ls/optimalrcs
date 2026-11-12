@@ -10,7 +10,7 @@ from scipy.interpolate import RegularGridInterpolator
 REPO = '/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs'
 sys.path.insert(0, REPO + '/optimalrcs-cupy/'); sys.path.insert(0, REPO + '/examples/')
 import optimalrcs, tis_data
-OUT = REPO + '/examples/figures/istarz_br_g10_reversed/'
+OUT = REPO + '/examples/figures_by_potential/2d_zpot/brownian_g10/staple/reversed/'
 N_ITER = int(sys.argv[1]) if len(sys.argv) > 1 else 10000
 CONTINUE = len(sys.argv) > 2 and sys.argv[2] == 'continue'
 START_IT = 10000   # iterations already done by the saved halves
@@ -20,7 +20,7 @@ with contextlib.redirect_stdout(io.StringIO()):
     data = tis_data.prepare_data(p.parse_args([
         '/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/PyRETIS3/toytis/simulations/sim_istarz_br_g10',
         '--reversed', '--paths-per-ensemble', '1500', '--seed', '0']))
-ref = np.load(REPO + '/examples/figures/z_brownian/committor_reference_h0.001.npz')
+ref = np.load(REPO + '/examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/committor_reference_h0.001.npz')
 f_ref = RegularGridInterpolator((ref['y'], ref['x']), ref['q'], bounds_error=False, fill_value=None)
 PTS = [(0.50, 0.25), (0.55, 0.10), (0.62, 0.15), (0.70, 0.15)]
 

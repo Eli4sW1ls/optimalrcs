@@ -10,7 +10,7 @@ with contextlib.redirect_stdout(io.StringIO()):
     d = tis_data.prepare_data(p.parse_args(['/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/PyRETIS3/toytis/simulations/sim_istarz_br_g10',
                                              '--reversed', '--paths-per-ensemble', '1500', '--seed', '0']))
 b = d.boundary0 | d.boundary1
-ref = np.load(REPO + '/examples/figures/z_brownian/committor_reference_h0.001.npz')
+ref = np.load(REPO + '/examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/committor_reference_h0.001.npz')
 q = np.clip(RegularGridInterpolator((ref['y'], ref['x']), ref['q'], bounds_error=False, fill_value=None)(np.c_[d.X_all[:, 0], d.X_all[:, 1]]), 0, 1)
 q[d.boundary0] = 0; q[d.boundary1] = 1
 counts = [2983] + [3000] * 9                                   # pieces per ensemble 001..010 (run.log)

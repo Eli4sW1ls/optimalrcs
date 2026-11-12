@@ -14,16 +14,16 @@ sys.path.insert(0, REPO + '/examples/')
 import tis_data, crossing_check as cc
 OUT = os.path.dirname(os.path.abspath(__file__))
 SIM = '/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/PyRETIS3/toytis/simulations/sim_istarz_br_g10'
-FIG = REPO + '/examples/figures/'
+FIG = REPO + '/examples/figures_by_potential/'
 
 p = argparse.ArgumentParser(); tis_data.add_data_arguments(p)
 with contextlib.redirect_stdout(io.StringIO()):
     data = tis_data.prepare_data(p.parse_args([SIM, '--reversed', '--paths-per-ensemble', '1500', '--seed', '0']))
     interfaces = tis_data.read_interfaces(SIM)
 y, x = data.X_all[:, 0], data.X_all[:, 1]
-ref = np.load(FIG + 'z_brownian/committor_reference_h0.001.npz')
+ref = np.load(FIG + '2d_zpot/brownian_g10/reference_and_analyses/committor_reference_h0.001.npz')
 q_exact = np.clip(RegularGridInterpolator((ref['y'], ref['x']), ref['q'], bounds_error=False, fill_value=None)(np.c_[y, x]), 0, 1)
-q_fit = np.load(FIG + 'istarz_br_g10_reversed/r_continued.npy')
+q_fit = np.load(FIG + '2d_zpot/brownian_g10/staple/reversed/r_continued.npy')
 assert len(q_fit) == len(y)
 print(f'{len(y)} frames; interfaces {interfaces}', flush=True)
 

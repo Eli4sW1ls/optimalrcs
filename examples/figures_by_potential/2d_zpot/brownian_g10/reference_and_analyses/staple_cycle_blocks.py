@@ -3,10 +3,10 @@ import sys, numpy as np, cupy as cp
 from scipy.interpolate import RegularGridInterpolator
 sys.path.insert(0, '/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/optimalrcs-cupy')
 import metrics_tis
-F = '/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures'
-d = np.load(f'{F}/istarz_br_g10/committor.npz')
+F = '/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential'
+d = np.load(f'{F}/2d_zpot/brownian_g10/staple/original/committor.npz')
 X = d['X_all']; i_traj = d['i_traj']; w = d['path_weights']; b = d['boundary0'] | d['boundary1']; b1 = d['boundary1']
-ref = np.load(f'{F}/z_brownian/committor_reference_h0.001.npz')
+ref = np.load(f'{F}/2d_zpot/brownian_g10/reference_and_analyses/committor_reference_h0.001.npz')
 q = np.clip(RegularGridInterpolator((ref['y'], ref['x']), ref['q'], bounds_error=False, fill_value=None)(X), 0, 1)
 del X
 q[b] = b1[b].astype(float)

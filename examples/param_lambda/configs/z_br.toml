@@ -7,14 +7,14 @@ seed = 0
 tis_dir = "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/PyRETIS3/toytis/simulations/sim_istarz_br_g10"
 loader_args = ["--reversed", "--paths-per-ensemble", "1500", "--seed", "0"]
 tis_data_rev = "f18c794"            # q_np was fitted before the path selection changed (random subset, seed 0)
-q_np = "examples/figures/istarz_br_g10_reversed/r_continued.npy"
-check_against = "examples/figures/istarz_br_g10_reversed/committor.npz"   # its lam and i_traj must match
+q_np = "examples/figures_by_potential/2d_zpot/brownian_g10/staple/reversed/r_continued.npy"
+check_against = "examples/figures_by_potential/2d_zpot/brownian_g10/staple/reversed/committor.npz"   # its lam and i_traj must match
 cv_names = ["y", "x"]
 state_cv = 0                        # the CV the states (and the sampler's op[0] today) are defined on
 exact = "zpot"                      # exact_tools grid of the discrete chain
 potential = "sjoelbak_angle:RectangularGridWithAngledBarrierPotential"   # for the map contours (logged without its arguments)
 potential_kwargs = {Lx = 0.3, angle = 45}
-exact_file = "examples/figures/exact_committors/zpot/q_exact_staple_h0.001.npz"
+exact_file = "examples/figures_by_potential/2d_zpot/exact/q_exact_staple_h0.001.npz"
 
 [split]
 id_from = 0.4                       # paths of earlier cycles are not used (the old loader had no burn-in)

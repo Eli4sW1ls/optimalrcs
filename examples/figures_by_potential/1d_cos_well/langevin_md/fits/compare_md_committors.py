@@ -4,7 +4,7 @@ All on the same number of rows (= same physical time, 0.005 per row). Noise of e
 import numpy as np
 import matplotlib; matplotlib.use('Agg'); import matplotlib.pyplot as plt
 from scipy.interpolate import RegularGridInterpolator
-W = '/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures/well_md_fit/'
+W = '/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/1d_cos_well/langevin_md/fits/'
 SIM = '/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/PyRETIS3/toytis/simulations/'
 N = 3_000_000
 LA, LB = -0.35, 0.35

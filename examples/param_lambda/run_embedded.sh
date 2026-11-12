@@ -6,7 +6,7 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 PY=${PY:-/home/elias/anaconda3/envs/test/bin/python}
-LOGS=../figures/param_lambda/logs
+LOGS=../figures_by_potential/_shared/param_lambda/logs
 mkdir -p "$LOGS"
 for s in "$@"; do
     if grep -q '^qnp_fit_args' "configs/$s.toml"; then

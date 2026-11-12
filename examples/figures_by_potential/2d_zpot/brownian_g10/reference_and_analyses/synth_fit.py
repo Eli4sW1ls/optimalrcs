@@ -9,7 +9,7 @@ from scipy.interpolate import RegularGridInterpolator
 REPO = '/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs'
 sys.path.insert(0, REPO + '/optimalrcs-cupy/')
 import optimalrcs, metrics_tis as M
-HERE = REPO + '/examples/figures/z_brownian/'
+HERE = REPO + '/examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/'
 DATA, MODE, N_ITER = sys.argv[1], sys.argv[2], int(sys.argv[3])
 ENV = float(sys.argv[4]) if len(sys.argv) > 4 else 0.01
 TAG = sys.argv[5] if len(sys.argv) > 5 else f'{MODE}_env{ENV}'

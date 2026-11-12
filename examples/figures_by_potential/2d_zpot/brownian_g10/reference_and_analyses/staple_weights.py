@@ -8,10 +8,10 @@ p = argparse.ArgumentParser(); tis_data.add_data_arguments(p)
 with contextlib.redirect_stdout(io.StringIO()):
     data = tis_data.prepare_data(p.parse_args(['/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/PyRETIS3/toytis/simulations/sim_istarz_br_g10', '--weights', 'staple']))
 y, x = data.X_all[:, 0], data.X_all[:, 1]; b = data.boundary0 | data.boundary1
-old = np.load(REPO + '/examples/figures/istarz_br_g10/committor.npz')
+old = np.load(REPO + '/examples/figures_by_potential/2d_zpot/brownian_g10/staple/original/committor.npz')
 assert np.array_equal(old['lam'], data.lam), 'different frames'
 print('same frames as the fit; weights differ in', int((np.abs(old['path_weights'] - data.path_weights) > 1e-9).sum()), 'frames', flush=True)
-ref = np.load(REPO + '/examples/figures/z_brownian/committor_reference_h0.001.npz')
+ref = np.load(REPO + '/examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/committor_reference_h0.001.npz')
 q = np.clip(RegularGridInterpolator((ref['y'], ref['x']), ref['q'], bounds_error=False, fill_value=None)(np.c_[y, x]), 0, 1)
 q[data.boundary0] = 0; q[data.boundary1] = 1
 tau = M.stop_index(cp.asarray(data.i_traj), cp.asarray(b))

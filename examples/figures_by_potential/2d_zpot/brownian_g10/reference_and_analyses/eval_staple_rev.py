@@ -1,8 +1,8 @@
 """Staple refit with mirrored pieces vs the exact committor, as for the original fit."""
 import numpy as np
 from scipy.interpolate import RegularGridInterpolator
-F = '/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures/'
-ref = np.load(F + 'z_brownian/committor_reference_h0.001.npz')
+F = '/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/'
+ref = np.load(F + '2d_zpot/brownian_g10/reference_and_analyses/committor_reference_h0.001.npz')
 f = RegularGridInterpolator((ref['y'], ref['x']), ref['q'], bounds_error=False, fill_value=None)
 for name, path in (('original fit (forward only)', 'istarz_br_g10/committor.npz'),
                    ('refit, forward + mirrored', 'istarz_br_g10_reversed/committor.npz')):

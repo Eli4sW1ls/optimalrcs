@@ -94,8 +94,8 @@ def _exact_q(cfg, cv, A, B, lambda_a, lambda_b):
         ref = np.load(d['exact_file'])
         q = np.interp(cv[:, 0], ref['x'], ref['q'])
     elif kind in ('zpot', 'cc'):
-        # discrete-chain grid solutions of figures/exact_committors (zpot_exact.py, cc_exact.py)
-        sys.path.insert(0, os.path.join(common.EXAMPLES, 'figures', 'exact_committors'))
+        # discrete-chain grid solutions (figures_by_potential/<potential>/exact/; exact_tools in _shared/exact_committors)
+        sys.path.insert(0, os.path.join(common.FIGURES, '_shared', 'exact_committors'))
         import exact_tools
         if kind == 'zpot':
             force = exact_tools.zpot_force

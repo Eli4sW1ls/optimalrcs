@@ -12,13 +12,15 @@ import os, sys, time
 import numpy as np
 import matplotlib; matplotlib.use('Agg'); import matplotlib.pyplot as plt
 from scipy.interpolate import RegularGridInterpolator
-HERE = os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0, HERE)
+HERE = os.path.dirname(os.path.abspath(__file__))
+FIGROOT = os.path.dirname(os.path.dirname(HERE))                    # examples/figures_by_potential
+sys.path.insert(0, f'{FIGROOT}/_shared/exact_committors')           # exact_tools
 import exact_tools as E
-OUT = f'{HERE}/zpot/'; os.makedirs(OUT, exist_ok=True)
-FIG = os.path.dirname(HERE)
+OUT = f'{HERE}/'; os.makedirs(OUT, exist_ok=True)
+FIG = FIGROOT
 KT, GAMMA, DT = 0.05, 10.0, 0.002
 DEFS = {'staple': dict(A=0.05, B=0.85, stride=1, levels=(0.004, 0.002, 0.001),
-                       old=FIG + '/z_brownian/committor_reference_h0.001.npz')}
+                       old=FIG + '/2d_zpot/brownian_g10/reference_and_analyses/committor_reference_h0.001.npz')}
 POINTS = [(0.30, 0.15), (0.40, 0.05), (0.45, 0.15), (0.50, 0.25), (0.55, 0.10), (0.62, 0.15), (0.70, 0.15)]
 N_SHOOT = 1_000_000
 log = open(OUT + 'zpot_exact.log', 'w')
@@ -78,7 +80,7 @@ def bin_mean(y, x, val, m, min_n=20):
     n = np.histogram2d(y[m], x[m], bins=(ey, ex))[0]; s = np.histogram2d(y[m], x[m], bins=(ey, ex), weights=val[m])[0]
     return np.where(n >= min_n, s / np.maximum(n, 1), np.nan)
 fits = {}
-d = np.load(FIG + '/istarz_br_g10/committor.npz', mmap_mode='r')
+d = np.load(FIG + '/2d_zpot/brownian_g10/staple/original/committor.npz', mmap_mode='r')
 sub = slice(None, None, 4)                                     # every 4th frame (memory)
 ys_, xs_ = np.array(d['X_all'][sub, 0]), np.array(d['X_all'][sub, 1]); r_ = np.array(d['r'][sub])
 free_ = ~(np.array(d['boundary0'][sub]) | np.array(d['boundary1'][sub]))

@@ -15,10 +15,12 @@ import os, sys, time
 import numpy as np
 from scipy.special import erf
 import matplotlib; matplotlib.use('Agg'); import matplotlib.pyplot as plt
-HERE = os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0, HERE)
+HERE = os.path.dirname(os.path.abspath(__file__))
+FIGROOT = os.path.dirname(os.path.dirname(HERE))                    # examples/figures_by_potential
+sys.path.insert(0, f'{FIGROOT}/_shared/exact_committors')           # exact_tools
 import exact_tools as E
 import cupy as cp
-OUT = f'{HERE}/brownian1d/'; os.makedirs(OUT, exist_ok=True)
+OUT = f'{HERE}/'; os.makedirs(OUT, exist_ok=True)
 log = open(OUT + 'brownian1d_exact.log', 'w')
 def say(*a):
     s = ' '.join(str(x) for x in a); print(s, flush=True); log.write(s + '\n'); log.flush()

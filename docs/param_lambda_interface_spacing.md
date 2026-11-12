@@ -64,7 +64,9 @@ the skip rate is already 0 at a gap of about 1.8δ.
 ## What the rule gives (prototype, M3)
 
 Placement uses the training paths; the check below is on the test paths. The prototype is at
-`examples/figures/param_lambda/<system>/eval/interface_spacing_m3.json`.
+`eval/interface_spacing_m3.json` in each system's `param_lambda` folder of `examples/figures_by_potential/`
+(e.g. `2d_zpot/brownian_g10/staple/param_lambda/z_br/eval/`; flat1d and bumps1d: `1d_flat/brownian_staple/param_lambda/eval/`,
+`1d_two_bumps/brownian_staple/param_lambda/eval/`).
 
 | | planned | placed | largest skip (test) | smallest gap / δ (test) | first interface: distance to A |
 |---|---|---|---|---|---|

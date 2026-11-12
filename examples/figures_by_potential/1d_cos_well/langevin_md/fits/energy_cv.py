@@ -6,7 +6,7 @@ import matplotlib; matplotlib.use('Agg'); import matplotlib.pyplot as plt
 from scipy.interpolate import RegularGridInterpolator
 sys.path.insert(0, '/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/optimalrcs-cupy/')
 import optimalrcs
-OUT = '/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures/well_md_fit/'
+OUT = '/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/1d_cos_well/langevin_md/fits/'
 EX = '/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/'
 MAX_ITER = int(sys.argv[1]) if len(sys.argv) > 1 else 3000
 GAMMA = float(sys.argv[2]) if len(sys.argv) > 2 else 0.2
@@ -52,7 +52,7 @@ for i in range(N - 1, -1, -1):
     elif B[i]: last = 1.0
     nxt[i] = last
 free = ~A & ~B; ok = free & (nxt >= 0)
-ref = np.load(EX + 'figures/well_check/reference.npz')
+ref = np.load(EX + 'figures_by_potential/1d_cos_well/langevin_staple/checks/reference.npz')
 f = RegularGridInterpolator((ref['xs'], ref['vs']), ref['q'], bounds_error=False, fill_value=None)
 qx = np.clip(f(np.c_[np.clip(lam, ref['xs'][0], ref['xs'][-1]), np.clip(v, ref['vs'][0], ref['vs'][-1])]), 0, 1)
 r_lv = np.load(EX + 'q_traj_langevin_env0.001g0.2.npy')

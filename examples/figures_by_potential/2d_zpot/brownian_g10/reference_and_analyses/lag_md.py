@@ -8,7 +8,7 @@ import sys, time, numpy as np, cupy as cp
 from scipy.interpolate import RegularGridInterpolator
 sys.path.insert(0, '/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/optimalrcs-cupy/')
 import optimalrcs
-HERE = '/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures/z_brownian/'
+HERE = '/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/'
 LAG = int(sys.argv[1]); ENV = float(sys.argv[2]) if len(sys.argv) > 2 else 0.01
 N_ITER = int(sys.argv[3]) if len(sys.argv) > 3 else 3000
 SEED_R = (sys.argv[4] or None) if len(sys.argv) > 4 else None

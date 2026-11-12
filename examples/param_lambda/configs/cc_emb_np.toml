@@ -4,5 +4,5 @@ inherit = "cc_emb"
 name = "cc_emb_np"
 
 [embed]
-labels = "examples/figures/param_lambda/cc_emb_np/qnp/committor.npz"
+labels = "examples/figures_by_potential/2d_curved_channel/brownian_g10/param_lambda/cc_emb_np/qnp/committor.npz"
 qnp_fit_args = ["--max-iter", "40000", "--lazy-basis", "--gamma", "0.1", "--print-step", "2000"]

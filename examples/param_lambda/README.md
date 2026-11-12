@@ -57,13 +57,14 @@ Run long steps in their own unit:
    pip install -e /path/to/tistools              # only for extract
    ```
 2. Data. The frame caches hold everything that `screen`, `fit`, `evaluate` and `export` need. They are git-ignored,
-   so copy them, together with the exact committors used by the report's maps:
+   so copy them:
    ```bash
    rsync -a --include='*/' --include='frames.npz' --include='importance.json' --exclude='*' \
-       laptop:.../examples/figures/param_lambda/ examples/figures/param_lambda/
-   rsync -a laptop:.../examples/figures/exact_committors/{zpot,cc,brownian1d} examples/figures/exact_committors/
+       laptop:.../examples/figures_by_potential/ examples/figures_by_potential/
    ```
-   `extract` and `fit-qnp` also need the toytis runs and, for Z, `examples/figures/istarz_br_g10_reversed/`:
+   (each system's folder is `common.out_dir(<system>)`, e.g. `2d_zpot/brownian_g10/staple/param_lambda/z_br/`; the exact
+   committors are in each potential's `exact/` folder and are in git)
+   `extract` and `fit-qnp` also need the toytis runs and, for Z, `examples/figures_by_potential/2d_zpot/brownian_g10/staple/reversed/`:
    set `tis_dir` in the configs.
 3. Run: `PY=$(which python) ./run_all.sh z_br`, or the steps above, from `examples/param_lambda`.
    `MLP` picks `cuda` automatically.

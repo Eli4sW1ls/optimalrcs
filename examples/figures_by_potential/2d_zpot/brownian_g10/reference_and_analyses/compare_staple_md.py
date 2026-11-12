@@ -1,8 +1,8 @@
 """Committor of the Brownian Z potential on the potential: staple NPNEq (forward pieces only, and
 forward + mirrored pieces) vs long-MD NPq vs exact.
 
-- staple, forward only: figures/istarz_br_g10/committor.npz (3000 paths per ensemble, rejection weights)
-- staple, forward + mirrored: figures/istarz_br_g10_reversed/committor.npz (--reversed, 1500 paths per
+- staple, forward only: figures_by_potential/2d_zpot/brownian_g10/staple/original/committor.npz (3000 paths per ensemble, rejection weights)
+- staple, forward + mirrored: figures_by_potential/2d_zpot/brownian_g10/staple/reversed/committor.npz (--reversed, 1500 paths per
   ensemble); q from r_continued.npy if the longer run has written it, else the 10000-iteration fit
 - MD: npq_md/npq_md.npz (16 seeds, A: y <= 0.1, B: y >= 0.85, one row per 20 steps)
 - exact: committor_reference.py, solved for each data set's own A, B and saving stride

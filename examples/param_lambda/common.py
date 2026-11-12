@@ -20,7 +20,17 @@ import numpy as np
 REPO = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 EXAMPLES = os.path.join(REPO, 'examples')
 HERE = os.path.dirname(os.path.abspath(__file__))
-OUT_ROOT = os.path.join(EXAMPLES, 'figures', 'param_lambda')
+FIGURES = os.path.join(EXAMPLES, 'figures_by_potential')
+OUT_ROOT = os.path.join(FIGURES, '_shared', 'param_lambda')     # outputs that cover several systems
+OUT_DIRS = {'flat1d': '1d_flat/brownian_staple/param_lambda', 'bumps1d': '1d_two_bumps/brownian_staple/param_lambda',
+            'z_br': '2d_zpot/brownian_g10/staple/param_lambda/z_br', 'z_emb': '2d_zpot/brownian_g10/staple/param_lambda/z_emb',
+            'cc_br': '2d_curved_channel/brownian_g10/param_lambda/cc_br', 'cc_emb': '2d_curved_channel/brownian_g10/param_lambda/cc_emb',
+            'cc_emb_np': '2d_curved_channel/brownian_g10/param_lambda/cc_emb_np'}
+
+
+def out_dir(name):
+    """Output folder of a system (config name), below figures_by_potential/; others in _shared/param_lambda/."""
+    return os.path.join(FIGURES, OUT_DIRS[name]) if name in OUT_DIRS else os.path.join(OUT_ROOT, name)
 TOYTIS = '/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/PyRETIS3/toytis'
 
 Q_CLIP = 1e-6
@@ -56,7 +66,7 @@ def load_config(name_or_path):
     emb = cfg.get('embed', {})
     if emb.get('labels', 'base') != 'base' and not os.path.isabs(emb['labels']):
         emb['labels'] = os.path.join(REPO, emb['labels'])
-    cfg['out_dir'] = os.path.join(OUT_ROOT, cfg['name'])
+    cfg['out_dir'] = out_dir(cfg['name'])
     os.makedirs(cfg['out_dir'], exist_ok=True)
     return cfg
 

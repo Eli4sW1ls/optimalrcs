@@ -6,9 +6,9 @@ segment: unbiased dynamics from an arbitrary starting distribution, the ideal in
     python synth_shoot.py N_WALKERS STRIDE MAX_STEPS OUT.npz
 """
 import sys, time, numpy as np, cupy as cp
-sys.path.insert(0, '/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures/z_brownian')
+sys.path.insert(0, '/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses')
 import importlib.util
-spec = importlib.util.spec_from_file_location('rw', '/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures/z_brownian/rate_walkers.py')
+spec = importlib.util.spec_from_file_location('rw', '/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/rate_walkers.py')
 src = open(spec.origin).read()
 # reuse the checked force function without running the rate test
 exec(src[:src.index('cp.random.seed(0)')].replace("NW = int(sys.argv[1]) if len(sys.argv) > 1 else 32768", "NW = 1")

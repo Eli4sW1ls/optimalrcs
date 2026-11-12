@@ -8,7 +8,7 @@ from scipy.interpolate import RegularGridInterpolator
 REPO = '/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs'
 sys.path.insert(0, REPO + '/optimalrcs-cupy/'); sys.path.insert(0, REPO + '/examples/')
 import tis_data
-HERE = REPO + '/examples/figures/z_brownian/'
+HERE = REPO + '/examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/'
 ref = np.load(HERE + 'committor_reference_h0.001.npz')
 fref = RegularGridInterpolator((ref['y'], ref['x']), ref['q'], bounds_error=False, fill_value=None)
 BANDS = [(0.05, 0.3), (0.3, 0.55), (0.55, 0.7), (0.7, 0.85)]

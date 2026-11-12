@@ -11,8 +11,8 @@ REPO = '/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs
 sys.path.insert(0, REPO + '/optimalrcs-cupy/'); sys.path.insert(0, REPO + '/examples/')
 import optimalrcs, tis_data
 plt.show = lambda *a, **k: None
-F = REPO + '/examples/figures/'
-Z = F + 'z_brownian/'; R = F + 'istarz_br_g10_reversed/'
+F = REPO + '/examples/figures_by_potential/'
+Z = F + '2d_zpot/brownian_g10/reference_and_analyses/'; R = F + '2d_zpot/brownian_g10/staple/reversed/'
 OUT = Z + 'cases/'
 SIM = '/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/PyRETIS3/toytis/simulations/sim_istarz_br_g10'
 ref_st = np.load(Z + 'committor_reference_h0.001.npz')                     # A 0.05, B 0.85, every step
@@ -144,7 +144,7 @@ elif which in ('staple1500', 'staple2250'):
         del q; cp.get_default_memory_pool().free_all_blocks()
 elif which == 'forward':      # the first staple fit: forward pieces only, 3000 paths per ensemble (istarz_br_g10/)
     case = 'staple_forward'
-    d = np.load(F + 'istarz_br_g10/committor.npz')
+    d = np.load(F + '2d_zpot/brownian_g10/staple/original/committor.npz')
     y, x, b0, b1 = d['X_all'][:, 0], d['X_all'][:, 1], d['boundary0'], d['boundary1']
     q = optimalrcs.CommittorNE(boundary0=b0, boundary1=b1, i_traj=d['i_traj'], t_traj=d['t_traj'], path_weights=d['path_weights'])
     q.set_fixed_traj_length_trap(b0 | b1, 2 ** 16)

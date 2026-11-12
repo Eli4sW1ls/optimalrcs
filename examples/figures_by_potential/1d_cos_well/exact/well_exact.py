@@ -4,7 +4,7 @@ A: x <= -0.35, B: x >= 0.35, checked every step) for the toytis BBK integrator a
 1. Grid solve (exact_tools.solve_underdamped_1d) at four resolutions, two quadrature orders and two v ranges;
    error estimate = change between the two finest grids, on MD frames.
 2. Independent check: GPU shooting, N_SHOOT trajectories at each of POINTS (binomial standard errors).
-3. Comparison with the old reference (figures/well_check/reference.npz, 600 trajectories per grid point) and with
+3. Comparison with the old reference (figures_by_potential/1d_cos_well/langevin_staple/checks/reference.npz, 600 trajectories per grid point) and with
    the model-free MD-outcome committor of the BBK and EM MDs.
 4. Figures in well/.
 """
@@ -12,10 +12,12 @@ import os, sys, time
 import numpy as np
 import matplotlib; matplotlib.use('Agg'); import matplotlib.pyplot as plt
 from scipy.interpolate import RegularGridInterpolator
-HERE = os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0, HERE)
+HERE = os.path.dirname(os.path.abspath(__file__))
+FIGROOT = os.path.dirname(os.path.dirname(HERE))                    # examples/figures_by_potential
+sys.path.insert(0, f'{FIGROOT}/_shared/exact_committors')           # exact_tools
 import exact_tools as E
-OUT = f'{HERE}/well/'; os.makedirs(OUT, exist_ok=True)
-FIG = os.path.dirname(HERE)
+OUT = f'{HERE}/'; os.makedirs(OUT, exist_ok=True)
+FIG = FIGROOT
 SIM = '/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/PyRETIS3/toytis/simulations/'
 A, B, DT, GAMMA = -0.35, 0.35, 0.005, 1.0
 POINTS = [(-0.349, -0.2), (-0.30, 0.0), (-0.28, 0.6), (-0.20, -0.5), (-0.20, 0.3), (-0.10, 0.8), (0.0, 0.0),
@@ -27,7 +29,7 @@ def say(*a):
     s = ' '.join(str(x) for x in a); print(s, flush=True); log.write(s + '\n'); log.flush()
 
 md = {'BBK': np.load(SIM + 'md_istarwell2_100M/md_path.npy', mmap_mode='r')[:6_000_000],
-      'EM': np.load(FIG + '/well_md_fit/euler_md_wel_lgv_3M.npy', mmap_mode='r')[:3_000_000]}
+      'EM': np.load(FIG + '/1d_cos_well/langevin_md/fits/euler_md_wel_lgv_3M.npy', mmap_mode='r')[:3_000_000]}
 frames = {k: (np.array(a[:, 0]), np.array(a[:, 1])) for k, a in md.items()}
 schemes = {'BBK': (E.bbk_step, E.bbk_coefficients(DT, GAMMA)), 'EM': (E.em_step, E.em_coefficients(DT, GAMMA))}
 rms = lambda a: np.sqrt(np.nanmean(np.asarray(a) ** 2))
@@ -80,7 +82,7 @@ d_em = results['EM']['qev'](results['EM']['sol'], xb[sub], vb[sub]) - results['B
 say(f'EM exact - BBK exact on BBK MD frames: max {np.abs(d_em).max():.4f}, RMS {rms(d_em):.4f}, mean {d_em.mean():+.5f}')
 
 # old reference and MD outcome vs new exact
-ref = np.load(FIG + '/well_check/reference.npz')
+ref = np.load(FIG + '/1d_cos_well/langevin_staple/checks/reference.npz')
 f_old = RegularGridInterpolator((ref['xs'], ref['vs']), ref['q'], bounds_error=False, fill_value=None)
 el, evb = np.linspace(A, B, 36), np.linspace(-3, 3, 31)
 def bmap(x, v, val, m, min_n=200):

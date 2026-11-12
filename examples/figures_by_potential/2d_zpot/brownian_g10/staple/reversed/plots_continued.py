@@ -7,7 +7,7 @@ REPO = '/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs
 sys.path.insert(0, REPO + '/optimalrcs-cupy/'); sys.path.insert(0, REPO + '/examples/')
 import optimalrcs, tis_data
 plt.show = lambda *a, **k: None
-D = REPO + '/examples/figures/istarz_br_g10_reversed/'
+D = REPO + '/examples/figures_by_potential/2d_zpot/brownian_g10/staple/reversed/'
 OUT = D + 'continued/'
 
 p = argparse.ArgumentParser(); tis_data.add_data_arguments(p)

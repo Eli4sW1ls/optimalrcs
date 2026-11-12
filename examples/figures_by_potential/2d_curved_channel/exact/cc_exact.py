@@ -11,11 +11,13 @@ import os, sys, time
 import numpy as np
 import matplotlib; matplotlib.use('Agg'); import matplotlib.pyplot as plt
 from scipy.interpolate import RegularGridInterpolator
-HERE = os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0, HERE)
-sys.path.insert(0, os.path.dirname(os.path.dirname(HERE)))          # examples/ (toy2d)
+HERE = os.path.dirname(os.path.abspath(__file__))
+FIGROOT = os.path.dirname(os.path.dirname(HERE))                    # examples/figures_by_potential
+sys.path.insert(0, f'{FIGROOT}/_shared/exact_committors')           # exact_tools
+sys.path.insert(0, os.path.dirname(FIGROOT))                        # examples/ (toy2d)
 import exact_tools as E
 import toy2d
-OUT = f'{HERE}/cc/'; os.makedirs(OUT, exist_ok=True)
+OUT = f'{HERE}/'; os.makedirs(OUT, exist_ok=True)
 KT, GAMMA, DT = 0.05, 10.0, 0.005
 A, B = 0.15, 0.85
 LEVELS = [float(h) for h in os.environ.get('CC_LEVELS', '0.004,0.002,0.0015').split(',')]

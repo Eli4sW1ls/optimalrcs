@@ -102,7 +102,7 @@ A/B are identical to those of the fit.
 | 1D flat | `sim_istar0br10intf`, 1000 paths/ens. | x | 1.3M | new fit, 3000 iterations | 0.013 |
 | 1D two bumps | `sim_istar2cosbr_2108`, 2000 paths/ens. | x | 3.3M | new fit, 3000 iterations | 0.005 |
 
-The exact committors (discrete-chain grid solutions in `examples/figures/exact_committors/`) are used for
+The exact committors (discrete-chain grid solutions in the `exact/` folder of each potential in `examples/figures_by_potential/`) are used for
 validation only: never to fit or select.
 
 **Splits.** All splits are whole paths: a path's forward and mirrored pieces stay together. They are made by
@@ -258,17 +258,17 @@ Selection sensitivity: the rule selects by validation SD(Z_q); a selection by va
 
 Recommendation: **M3 MLP**. M1 L1-logistic vs M3 on the test paths: spread 1.244 vs 0.0535 (outside +10%), zqs_z 12.25 vs 10.55 (outside +0.5).
 
-![committor_maps.png](../examples/figures/param_lambda/z_br/report/committor_maps.png)
+![committor_maps.png](../examples/figures_by_potential/2d_zpot/brownian_g10/staple/param_lambda/z_br/report/committor_maps.png)
 
-![interfaces_map.png](../examples/figures/param_lambda/z_br/report/interfaces_map.png)
+![interfaces_map.png](../examples/figures_by_potential/2d_zpot/brownian_g10/staple/param_lambda/z_br/report/interfaces_map.png)
 
-![spread_per_interface.png](../examples/figures/param_lambda/z_br/report/spread_per_interface.png)
+![spread_per_interface.png](../examples/figures_by_potential/2d_zpot/brownian_g10/staple/param_lambda/z_br/report/spread_per_interface.png)
 
-![zq_lags.png](../examples/figures/param_lambda/z_br/report/zq_lags.png)
+![zq_lags.png](../examples/figures_by_potential/2d_zpot/brownian_g10/staple/param_lambda/z_br/report/zq_lags.png)
 
-![m3_checkpoints.png](../examples/figures/param_lambda/z_br/report/m3_checkpoints.png)
+![m3_checkpoints.png](../examples/figures_by_potential/2d_zpot/brownian_g10/staple/param_lambda/z_br/report/m3_checkpoints.png)
 
-TIS diagnostics (plots_tis) and path-weighted feps of every row: [`../examples/figures/param_lambda/z_br/eval/tis_plots`](../examples/figures/param_lambda/z_br/eval/tis_plots).
+TIS diagnostics (plots_tis) and path-weighted feps of every row: [`../examples/figures_by_potential/2d_zpot/brownian_g10/staple/param_lambda/z_br/eval/tis_plots`](../examples/figures_by_potential/2d_zpot/brownian_g10/staple/param_lambda/z_br/eval/tis_plots).
 
 <details><summary>All runs (test paths)</summary>
 
@@ -386,17 +386,17 @@ Selection sensitivity: the rule selects by validation SD(Z_q); a selection by va
 
 Recommendation: **M3 MLP**. M1 spline GAM vs M3 on the test paths: spread 0.12 vs 0.06306 (outside +10%), zqs_z 2.27 vs 1.98 (within +0.5).
 
-![committor_maps.png](../examples/figures/param_lambda/cc_br/report/committor_maps.png)
+![committor_maps.png](../examples/figures_by_potential/2d_curved_channel/brownian_g10/param_lambda/cc_br/report/committor_maps.png)
 
-![interfaces_map.png](../examples/figures/param_lambda/cc_br/report/interfaces_map.png)
+![interfaces_map.png](../examples/figures_by_potential/2d_curved_channel/brownian_g10/param_lambda/cc_br/report/interfaces_map.png)
 
-![spread_per_interface.png](../examples/figures/param_lambda/cc_br/report/spread_per_interface.png)
+![spread_per_interface.png](../examples/figures_by_potential/2d_curved_channel/brownian_g10/param_lambda/cc_br/report/spread_per_interface.png)
 
-![zq_lags.png](../examples/figures/param_lambda/cc_br/report/zq_lags.png)
+![zq_lags.png](../examples/figures_by_potential/2d_curved_channel/brownian_g10/param_lambda/cc_br/report/zq_lags.png)
 
-![m3_checkpoints.png](../examples/figures/param_lambda/cc_br/report/m3_checkpoints.png)
+![m3_checkpoints.png](../examples/figures_by_potential/2d_curved_channel/brownian_g10/param_lambda/cc_br/report/m3_checkpoints.png)
 
-TIS diagnostics (plots_tis) and path-weighted feps of every row: [`../examples/figures/param_lambda/cc_br/eval/tis_plots`](../examples/figures/param_lambda/cc_br/eval/tis_plots).
+TIS diagnostics (plots_tis) and path-weighted feps of every row: [`../examples/figures_by_potential/2d_curved_channel/brownian_g10/param_lambda/cc_br/eval/tis_plots`](../examples/figures_by_potential/2d_curved_channel/brownian_g10/param_lambda/cc_br/eval/tis_plots).
 
 <details><summary>All runs (test paths)</summary>
 
@@ -514,15 +514,15 @@ Selection sensitivity: the rule selects by validation SD(Z_q); a selection by va
 
 Recommendation: **M1 spline GAM**. M1 spline GAM vs M3 on the test paths: spread 0.0125 vs 0.01208 (within +10%), zqs_z 2.56 vs 2.56 (within +0.5).
 
-![committor_profiles.png](../examples/figures/param_lambda/flat1d/report/committor_profiles.png)
+![committor_profiles.png](../examples/figures_by_potential/1d_flat/brownian_staple/param_lambda/report/committor_profiles.png)
 
-![spread_per_interface.png](../examples/figures/param_lambda/flat1d/report/spread_per_interface.png)
+![spread_per_interface.png](../examples/figures_by_potential/1d_flat/brownian_staple/param_lambda/report/spread_per_interface.png)
 
-![zq_lags.png](../examples/figures/param_lambda/flat1d/report/zq_lags.png)
+![zq_lags.png](../examples/figures_by_potential/1d_flat/brownian_staple/param_lambda/report/zq_lags.png)
 
-![m3_checkpoints.png](../examples/figures/param_lambda/flat1d/report/m3_checkpoints.png)
+![m3_checkpoints.png](../examples/figures_by_potential/1d_flat/brownian_staple/param_lambda/report/m3_checkpoints.png)
 
-TIS diagnostics (plots_tis) and path-weighted feps of every row: [`../examples/figures/param_lambda/flat1d/eval/tis_plots`](../examples/figures/param_lambda/flat1d/eval/tis_plots).
+TIS diagnostics (plots_tis) and path-weighted feps of every row: [`../examples/figures_by_potential/1d_flat/brownian_staple/param_lambda/eval/tis_plots`](../examples/figures_by_potential/1d_flat/brownian_staple/param_lambda/eval/tis_plots).
 
 <details><summary>All runs (test paths)</summary>
 
@@ -602,15 +602,15 @@ Selection sensitivity: the rule selects by validation SD(Z_q); a selection by va
 
 Recommendation: **M1 L1-logistic**. M1 L1-logistic vs M3 on the test paths: spread 0.01287 vs 0.01288 (within +10%), zqs_z 1.91 vs 1.91 (within +0.5).
 
-![committor_profiles.png](../examples/figures/param_lambda/bumps1d/report/committor_profiles.png)
+![committor_profiles.png](../examples/figures_by_potential/1d_two_bumps/brownian_staple/param_lambda/report/committor_profiles.png)
 
-![spread_per_interface.png](../examples/figures/param_lambda/bumps1d/report/spread_per_interface.png)
+![spread_per_interface.png](../examples/figures_by_potential/1d_two_bumps/brownian_staple/param_lambda/report/spread_per_interface.png)
 
-![zq_lags.png](../examples/figures/param_lambda/bumps1d/report/zq_lags.png)
+![zq_lags.png](../examples/figures_by_potential/1d_two_bumps/brownian_staple/param_lambda/report/zq_lags.png)
 
-![m3_checkpoints.png](../examples/figures/param_lambda/bumps1d/report/m3_checkpoints.png)
+![m3_checkpoints.png](../examples/figures_by_potential/1d_two_bumps/brownian_staple/param_lambda/report/m3_checkpoints.png)
 
-TIS diagnostics (plots_tis) and path-weighted feps of every row: [`../examples/figures/param_lambda/bumps1d/eval/tis_plots`](../examples/figures/param_lambda/bumps1d/eval/tis_plots).
+TIS diagnostics (plots_tis) and path-weighted feps of every row: [`../examples/figures_by_potential/1d_two_bumps/brownian_staple/param_lambda/eval/tis_plots`](../examples/figures_by_potential/1d_two_bumps/brownian_staple/param_lambda/eval/tis_plots).
 
 <details><summary>All runs (test paths)</summary>
 

@@ -3,12 +3,12 @@ import sys, numpy as np, cupy as cp
 from scipy.interpolate import RegularGridInterpolator
 sys.path.insert(0, '/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/optimalrcs-cupy/')
 import metrics_tis as M
-HERE = '/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures/'
-d = np.load(HERE + 'istarz_br_g10/committor.npz')
+HERE = '/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/'
+d = np.load(HERE + '2d_zpot/brownian_g10/staple/original/committor.npz')
 y, x = d['X_all'][:, 0], d['X_all'][:, 1]
 b0, b1, it, w = d['boundary0'], d['boundary1'], d['i_traj'], d['path_weights']
 b = b0 | b1
-ref = np.load(HERE + 'z_brownian/committor_reference_h0.001.npz')
+ref = np.load(HERE + '2d_zpot/brownian_g10/reference_and_analyses/committor_reference_h0.001.npz')
 q = np.clip(RegularGridInterpolator((ref['y'], ref['x']), ref['q'], bounds_error=False, fill_value=None)(np.c_[y, x]), 0, 1)
 q[b0] = 0; q[b1] = 1
 # ensemble of each path, from the loading order (paths per ensemble 001..010, from run.log)

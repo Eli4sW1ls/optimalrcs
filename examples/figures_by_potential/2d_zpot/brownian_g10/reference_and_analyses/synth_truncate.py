@@ -3,7 +3,7 @@ outside a window of three interface intervals around its start ([l_{i-1}, l_{i+2
 [l_i, l_{i+1}]), or at A/B. A stopping rule, so the data stay unbiased; only 'pieces end at interfaces' is new.
 Writes synth/synth_trunc.npz with the same fields as synth_shoot.py."""
 import numpy as np
-HERE = '/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures/z_brownian/'
+HERE = '/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/'
 d = np.load(HERE + 'synth/synth_30k_s50.npz')
 it, t, y, x = d['i_traj'], d['t_traj'], d['y'], d['x']
 lam = np.array([0.05, 0.13, 0.21, 0.29, 0.37, 0.45, 0.53, 0.61, 0.69, 0.77, 0.85])

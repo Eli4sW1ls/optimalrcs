@@ -7,9 +7,9 @@ For every example the usual optimalrcs plots are shown (metrics, free-energy pro
 Z_q, observed vs predicted on linear and log scales), plus, for path data, the path-sampling
 diagnostics and comparisons with the exact committor. Plots marked *(regenerated)* were made
 for this overview from the saved fits, or by refitting with the original settings
-(`examples/figures/overview_plots/regen_all.py`). Details and
+(`examples/figures_by_potential/_shared/overview_plots_scripts/regen_all.py`). Details and
 derivations: [`npneq_tis_notes.md`](npneq_tis_notes.md) ("notes §n"). Figures:
-`examples/figures/` (not in git).
+`examples/figures_by_potential/`, sorted by potential (numpy data not in git).
 
 All systems are toytis simulations. "Exact" committors come from a PDE or brute-force
 reference, checked by shooting with the engine's own integrator.
@@ -115,22 +115,22 @@ Error against the exact committor: **RMS 0.0022 (flat), 0.0054 (two bumps)**.
 
 **Settings:** `Committor` (NPq), CV λ, lag 1 frame, ny 6, envelope 0.01 (library default;
 NPq has no gamma), 1500 iterations per block, no traps, seed = block number
-(`figures/longmd_npq/npq_longmd.py`).
+(`figures_by_potential/1d_flat/brownian_long_md/npq/npq_longmd.py`).
 
-![NPq on the long 1D MD vs exact](../examples/figures/longmd_npq/npq_longmd.png)
+![NPq on the long 1D MD vs exact](../examples/figures_by_potential/1d_flat/brownian_long_md/npq/npq_longmd.png)
 
 Original plots, two bumps (one 5M-frame block):
 
-![metrics](../examples/figures/longmd_plots/two_bumps_metrics.png)
-![feps](../examples/figures/longmd_plots/two_bumps_feps.png)
-![obs_pred](../examples/figures/longmd_plots/two_bumps_obs_pred.png)
+![metrics](../examples/figures_by_potential/1d_two_bumps/brownian_long_md/plots/two_bumps_metrics.png)
+![feps](../examples/figures_by_potential/1d_two_bumps/brownian_long_md/plots/two_bumps_feps.png)
+![obs_pred](../examples/figures_by_potential/1d_two_bumps/brownian_long_md/plots/two_bumps_obs_pred.png)
 
 Flat potential:
 
-![metrics](../examples/figures/longmd_plots/flat_metrics.png)
-![feps](../examples/figures/longmd_plots/flat_feps.png)
-![obs_pred](../examples/figures/longmd_plots/flat_obs_pred.png)
-![q vs lambda](../examples/figures/longmd_plots/flat_q_vs_lambda.png)
+![metrics](../examples/figures_by_potential/1d_flat/brownian_long_md/plots/flat_metrics.png)
+![feps](../examples/figures_by_potential/1d_flat/brownian_long_md/plots/flat_feps.png)
+![obs_pred](../examples/figures_by_potential/1d_flat/brownian_long_md/plots/flat_obs_pred.png)
+![q vs lambda](../examples/figures_by_potential/1d_flat/brownian_long_md/plots/flat_q_vs_lambda.png)
 
 **Observations.** The metrics barely move (changes in the 6th digit): converged. F(q)
 shows the two barriers. Z_q is flat at ≈ 380–405 for all lags (N_AB of the block ≈ 395).
@@ -145,10 +145,10 @@ A/B are kept (4.6M rows), which is exact for NPq. 8000 iterations.
 
 **Settings:**
 - NPq: CVs (y, x), lag 1 saved row (20 steps), ny 6, envelope 0.01, 8000 iterations, A/B as
-  traps (`set_boundary_traps`), seed 0 (halves of the seeds: 1, 2); `figures/z_brownian/npq_md.py`.
+  traps (`set_boundary_traps`), seed 0 (halves of the seeds: 1, 2); `figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/npq_md.py`.
 - NPNEq lag fits on seeds 1–8 (2.4M rows): stopped-window update at lag 1, 10 and 50 rows
   (custom, also at lag 1), gamma 0.1, envelope 0.01, ny 6, 5000 iterations in 1000-iteration
-  chunks, no traps; `figures/z_brownian/lag_md.py`, `lag_md.log`. Seeds 9–16 at lag 10: same
+  chunks, no traps; `figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/lag_md.py`, `lag_md.log`. Seeds 9–16 at lag 10: same
   settings; its iteration count was not logged.
 - Envelope schedule: envelope 1 → 0.1 → 0.01 → 0.001 for 1000 + 1000 + 1000 + 2000
   iterations, otherwise as the lag fits (`env_sched.log`; its fit lag was not logged).
@@ -156,23 +156,23 @@ A/B are kept (4.6M rows), which is exact for NPq. 8000 iterations.
 Exact committor (finite-volume solution of the backward equation): ≈ 0 up to the ridge,
 a jump to ≈ 0.64 across it, then a rise to 1.
 
-![Exact committor](../examples/figures/z_brownian/committor_reference_h0.001.png)
+![Exact committor](../examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/committor_reference_h0.001.png)
 
 Original plots:
 
-![metrics](../examples/figures/overview_plots/zmd_metrics.png)
-![feps](../examples/figures/z_brownian/npq_md/feps.png)
-![obs_pred](../examples/figures/z_brownian/npq_md/obs_pred.png)
-![obs_pred, log scale](../examples/figures/z_brownian/npq_md/obs_pred_log.png)
+![metrics](../examples/figures_by_potential/2d_zpot/brownian_g10/overview_plots/zmd_metrics.png)
+![feps](../examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/npq_md/feps.png)
+![obs_pred](../examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/npq_md/obs_pred.png)
+![obs_pred, log scale](../examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/npq_md/obs_pred_log.png)
 
 Z_q with A/B treated as traps (the excursions start and end in A/B):
 
-![Z_q without and with traps](../examples/figures/z_brownian/npq_md/zq_traps.png)
+![Z_q without and with traps](../examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/npq_md/zq_traps.png)
 
 Comparison with the exact committor:
 
-![MD NPq vs exact](../examples/figures/z_brownian/npq_md/npq_vs_exact_map.png)
-![MD NPq vs exact per frame, and convergence](../examples/figures/z_brownian/npq_md/npq_vs_exact_rows.png)
+![MD NPq vs exact](../examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/npq_md/npq_vs_exact_map.png)
+![MD NPq vs exact per frame, and convergence](../examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/npq_md/npq_vs_exact_rows.png)
 
 **Observations.**
 - The metrics settle within ~500 iterations, with AUC 99.07%.
@@ -205,7 +205,7 @@ The fits are compared with a brute-force q(x, v) and with a model-free committor
 directly from the MD outcomes (which boundary each frame reaches next). The two
 references agree to RMS **0.012**, which is the noise floor.
 
-**Settings** (first 6M frames, one trajectory, no traps, ny 6; `figures/well_md_fit/`):
+**Settings** (first 6M frames, one trajectory, no traps, ny 6; `figures_by_potential/1d_cos_well/langevin_md/fits/`):
 
 | Fit | Update, lag | gamma | Envelope | Iterations | Basis | Script |
 |---|---|---|---|---|---|---|
@@ -226,12 +226,12 @@ references agree to RMS **0.012**, which is the noise floor.
 
 ### History `[0, 1]`, CV x only (the notebook setting, 1500 iterations) *(regenerated)*
 
-![metrics, original](../examples/figures/overview_plots/md_well_hist01_metrics_original.png)
-![metrics, convergence](../examples/figures/overview_plots/md_well_hist01_metrics_convergence.png)
-![feps](../examples/figures/overview_plots/md_well_hist01_feps.png)
-![obs_pred](../examples/figures/overview_plots/md_well_hist01_obs_pred.png)
-![obs_pred, log scale](../examples/figures/overview_plots/md_well_hist01_obs_pred_log.png)
-![q(x, v), with the recorded v used only for plotting](../examples/figures/overview_plots/md_well_hist01_q_x_v.png)
+![metrics, original](../examples/figures_by_potential/1d_cos_well/langevin_md/overview_plots/md_well_hist01_metrics_original.png)
+![metrics, convergence](../examples/figures_by_potential/1d_cos_well/langevin_md/overview_plots/md_well_hist01_metrics_convergence.png)
+![feps](../examples/figures_by_potential/1d_cos_well/langevin_md/overview_plots/md_well_hist01_feps.png)
+![obs_pred](../examples/figures_by_potential/1d_cos_well/langevin_md/overview_plots/md_well_hist01_obs_pred.png)
+![obs_pred, log scale](../examples/figures_by_potential/1d_cos_well/langevin_md/overview_plots/md_well_hist01_obs_pred_log.png)
+![q(x, v), with the recorded v used only for plotting](../examples/figures_by_potential/1d_cos_well/langevin_md/overview_plots/md_well_hist01_q_x_v.png)
 
 Cross-entropy 0.3972 and AUC 0.8732 after 1500 iterations, still decreasing slowly. Z_q is
 strongly lag-dependent (4160–5000 against N_AB = 5007). Observed vs predicted bends away
@@ -240,12 +240,12 @@ already has the right overall structure: the history picks up part of the veloci
 
 ### (x, v), lag-1 fit, 95000 iterations
 
-![metrics](../examples/figures/well_md_fit/long_xv_plots/metrics.png)
-![feps](../examples/figures/well_md_fit/long_xv_plots/feps.png)
-![obs_pred](../examples/figures/well_md_fit/long_xv_plots/obs_pred.png)
-![obs_pred, log scale](../examples/figures/well_md_fit/long_xv_plots/obs_pred_log.png)
-![convergence vs exact and final error](../examples/figures/well_md_fit/long_xv/long_xv_progress.png)
-![lag-1 fit vs MD outcomes vs exact](../examples/figures/well_md_fit/fit_vs_exact_vs_md.png)
+![metrics](../examples/figures_by_potential/1d_cos_well/langevin_md/fits/long_xv_plots/metrics.png)
+![feps](../examples/figures_by_potential/1d_cos_well/langevin_md/fits/long_xv_plots/feps.png)
+![obs_pred](../examples/figures_by_potential/1d_cos_well/langevin_md/fits/long_xv_plots/obs_pred.png)
+![obs_pred, log scale](../examples/figures_by_potential/1d_cos_well/langevin_md/fits/long_xv_plots/obs_pred_log.png)
+![convergence vs exact and final error](../examples/figures_by_potential/1d_cos_well/langevin_md/fits/long_xv/long_xv_progress.png)
+![lag-1 fit vs MD outcomes vs exact](../examples/figures_by_potential/1d_cos_well/langevin_md/fits/fit_vs_exact_vs_md.png)
 
 The metrics creep for 95000 iterations, with no clear plateau. Z_q is 2% low at short lags
 and dips to ~4700 around q ≈ 0.5. Observed vs predicted looks perfect, but the error map
@@ -254,12 +254,12 @@ x ≈ ±0.29. The MD-outcome committor has neither.
 
 ### (x, v), lag-16 fit, 12000 iterations
 
-![metrics](../examples/figures/well_md_fit/lag_xv_plots/metrics.png)
-![feps](../examples/figures/well_md_fit/lag_xv_plots/feps.png)
-![obs_pred](../examples/figures/well_md_fit/lag_xv_plots/obs_pred.png)
-![obs_pred, log scale](../examples/figures/well_md_fit/lag_xv_plots/obs_pred_log.png)
-![q(x, v)](../examples/figures/well_md_fit/lag_xv_plots/q_lambda_v.png)
-![convergence vs exact and final error](../examples/figures/well_md_fit/lag_xv/long_xv_progress.png)
+![metrics](../examples/figures_by_potential/1d_cos_well/langevin_md/fits/lag_xv_plots/metrics.png)
+![feps](../examples/figures_by_potential/1d_cos_well/langevin_md/fits/lag_xv_plots/feps.png)
+![obs_pred](../examples/figures_by_potential/1d_cos_well/langevin_md/fits/lag_xv_plots/obs_pred.png)
+![obs_pred, log scale](../examples/figures_by_potential/1d_cos_well/langevin_md/fits/lag_xv_plots/obs_pred_log.png)
+![q(x, v)](../examples/figures_by_potential/1d_cos_well/langevin_md/fits/lag_xv_plots/q_lambda_v.png)
+![convergence vs exact and final error](../examples/figures_by_potential/1d_cos_well/langevin_md/fits/lag_xv/long_xv_progress.png)
 
 The error reaches the noise floor (0.011) after ~3000 iterations, and the edges are gone.
 Z_q is flat at N_AB for lags ≥ 16, but overshoots at lags 1–8: small wiggles that cancel
@@ -283,8 +283,8 @@ fair bet over any stretch of time, E[q(t+Δ)] = q(t), with the window stopped at
 
 Energy as an extra CV (lag 1), 10000 iterations, then gamma lowered:
 
-![(x, v, E), 10000 iterations](../examples/figures/well_md_fit/energy_cv_g0.2_10000it.png)
-![(x, v, E), then gamma 0.05](../examples/figures/well_md_fit/energy_cv_g0.05_stage2.png)
+![(x, v, E), 10000 iterations](../examples/figures_by_potential/1d_cos_well/langevin_md/fits/energy_cv_g0.2_10000it.png)
+![(x, v, E), then gamma 0.05](../examples/figures_by_potential/1d_cos_well/langevin_md/fits/energy_cv_g0.05_stage2.png)
 
 **Did not help at lag 1:** the `gamma` regularization (it only scales the step), envelope
 0.01 vs 0.001, coarser histories. NPq is invalid for (x, v).
@@ -317,15 +317,15 @@ boundary shift.
 
 **Settings:** `CommittorNE`, CV λ, library lag-1 update, gamma 0.1, envelope 0.01, ny 6,
 3000 iterations, lazy basis, A/B traps (`set_fixed_traj_length_trap`), forward pieces,
-paths subset seed 0, fit seed 0 (`figures/overview_plots/regen_all.py flat`).
+paths subset seed 0, fit seed 0 (`figures_by_potential/_shared/overview_plots_scripts/regen_all.py flat`).
 
-![metrics, original](../examples/figures/overview_plots/flat_staple_metrics_original.png)
-![metrics, convergence](../examples/figures/overview_plots/flat_staple_metrics_convergence.png)
-![feps](../examples/figures/overview_plots/flat_staple_feps.png)
-![obs_pred](../examples/figures/overview_plots/flat_staple_obs_pred.png)
-![obs_pred, log scale](../examples/figures/overview_plots/flat_staple_obs_pred_log.png)
-![TIS diagnostics](../examples/figures/overview_plots/flat_staple_tis_diagnostics.png)
-![committor vs exact](../examples/figures/overview_plots/flat_staple_vs_exact.png)
+![metrics, original](../examples/figures_by_potential/1d_flat/brownian_staple/overview_plots/flat_staple_metrics_original.png)
+![metrics, convergence](../examples/figures_by_potential/1d_flat/brownian_staple/overview_plots/flat_staple_metrics_convergence.png)
+![feps](../examples/figures_by_potential/1d_flat/brownian_staple/overview_plots/flat_staple_feps.png)
+![obs_pred](../examples/figures_by_potential/1d_flat/brownian_staple/overview_plots/flat_staple_obs_pred.png)
+![obs_pred, log scale](../examples/figures_by_potential/1d_flat/brownian_staple/overview_plots/flat_staple_obs_pred_log.png)
+![TIS diagnostics](../examples/figures_by_potential/1d_flat/brownian_staple/overview_plots/flat_staple_tis_diagnostics.png)
+![committor vs exact](../examples/figures_by_potential/1d_flat/brownian_staple/overview_plots/flat_staple_vs_exact.png)
 
 **Observations.**
 - **Converged:** `zqs_z` = 1.97, and the stopped Z_q is within ±2 at every q and lag. RMS
@@ -335,7 +335,7 @@ paths subset seed 0, fit seed 0 (`figures/overview_plots/regen_all.py flat`).
   segment ends.
 - The original obs vs pred is on the diagonal (AUC 98.3%). A version of this plot made on
   8 October with older code was S-shaped and its two halves disagreed
-  (`examples/figures/sim_istar0br10intf/obs_pred.png`); which change made the difference
+  (`examples/figures_by_potential/1d_flat/brownian_staple/first_fits/obs_pred.png`); which change made the difference
   was not checked. The original obs vs pred is in any case not a reliable test for path
   data, because which frames it counts depends on how their segments end.
 
@@ -345,9 +345,9 @@ Same well and dynamics as I.3. 2000 paths per ensemble; CVs (x, v); lag-1 fit.
 
 **Settings** (both: 2000 paths per ensemble, subset seed 0, rejection weights, forward
 pieces, gamma 0.1, envelope 0.01, ny 6, 4000 iterations, fit seed 0):
-- Table below (`figures/well_check/well_test.py`): hand-written stopped-window update at
+- Table below (`figures_by_potential/1d_cos_well/langevin_staple/checks/well_test.py`): hand-written stopped-window update at
   lag 1 or 4, full (non-lazy) basis, no traps.
-- Refit (`figures/overview_plots/regen_all.py wellpath`): library lag-1 update, lazy basis,
+- Refit (`figures_by_potential/_shared/overview_plots_scripts/regen_all.py wellpath`): library lag-1 update, lazy basis,
   A/B traps.
 
 | Setup (notes §10) | RMS vs exact |
@@ -358,13 +358,13 @@ pieces, gamma 0.1, envelope 0.01, ny 6, 4000 iterations, fit seed 0):
 
 Refit with the library (recorded v, lag 1, gamma 0.1, 4000 iterations) *(regenerated)*:
 
-![metrics, original](../examples/figures/overview_plots/wellpath_metrics_original.png)
-![metrics, convergence](../examples/figures/overview_plots/wellpath_metrics_convergence.png)
-![feps](../examples/figures/overview_plots/wellpath_feps.png)
-![obs_pred](../examples/figures/overview_plots/wellpath_obs_pred.png)
-![obs_pred, log scale](../examples/figures/overview_plots/wellpath_obs_pred_log.png)
-![TIS diagnostics](../examples/figures/overview_plots/wellpath_tis_diagnostics.png)
-![fit, exact and error in (x, v)](../examples/figures/overview_plots/wellpath_q_x_v.png)
+![metrics, original](../examples/figures_by_potential/1d_cos_well/langevin_staple/overview_plots/wellpath_metrics_original.png)
+![metrics, convergence](../examples/figures_by_potential/1d_cos_well/langevin_staple/overview_plots/wellpath_metrics_convergence.png)
+![feps](../examples/figures_by_potential/1d_cos_well/langevin_staple/overview_plots/wellpath_feps.png)
+![obs_pred](../examples/figures_by_potential/1d_cos_well/langevin_staple/overview_plots/wellpath_obs_pred.png)
+![obs_pred, log scale](../examples/figures_by_potential/1d_cos_well/langevin_staple/overview_plots/wellpath_obs_pred_log.png)
+![TIS diagnostics](../examples/figures_by_potential/1d_cos_well/langevin_staple/overview_plots/wellpath_tis_diagnostics.png)
+![fit, exact and error in (x, v)](../examples/figures_by_potential/1d_cos_well/langevin_staple/overview_plots/wellpath_q_x_v.png)
 
 **Observations.**
 - **Not converged:** `zqs_z` ≈ 3. The stopped Z_q leaves the ±2 band only at long lags, and
@@ -391,21 +391,21 @@ and comparisons below.
 
 Original plots (obs vs pred on every second path):
 
-![metrics](../examples/figures/istarz_br_g10/metrics.png)
-![feps](../examples/figures/overview_plots/zstaple_feps.png)
-![obs_pred](../examples/figures/overview_plots/zstaple_obs_pred.png)
-![obs_pred, log scale](../examples/figures/overview_plots/zstaple_obs_pred_log.png)
+![metrics](../examples/figures_by_potential/2d_zpot/brownian_g10/staple/original/metrics.png)
+![feps](../examples/figures_by_potential/2d_zpot/brownian_g10/overview_plots/zstaple_feps.png)
+![obs_pred](../examples/figures_by_potential/2d_zpot/brownian_g10/overview_plots/zstaple_obs_pred.png)
+![obs_pred, log scale](../examples/figures_by_potential/2d_zpot/brownian_g10/overview_plots/zstaple_obs_pred_log.png)
 
 Path-data plots and the committor:
 
-![TIS diagnostics](../examples/figures/istarz_br_g10/tis_diagnostics.png)
-![committor vs order parameter](../examples/figures/istarz_br_g10/committor_vs_order.png)
-![committor on the potential](../examples/figures/istarz_br_g10/committor_on_potential.png)
+![TIS diagnostics](../examples/figures_by_potential/2d_zpot/brownian_g10/staple/original/tis_diagnostics.png)
+![committor vs order parameter](../examples/figures_by_potential/2d_zpot/brownian_g10/staple/original/committor_vs_order.png)
+![committor on the potential](../examples/figures_by_potential/2d_zpot/brownian_g10/staple/original/committor_on_potential.png)
 
 Staple NPNEq against MD NPq (I.2) against the exact committor:
 
-![comparison map](../examples/figures/z_brownian/compare_staple_md_map.png)
-![per-frame comparison](../examples/figures/z_brownian/compare_staple_md_rows.png)
+![comparison map](../examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/compare_staple_md_map.png)
+![per-frame comparison](../examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/compare_staple_md_rows.png)
 
 | | RMS fit − exact (per bin, 0.05 < q < 0.95) |
 |---|---|
@@ -440,11 +440,11 @@ Same data. CVs (y, x, y + x), fit from scratch, gamma 0.1, **envelope 1** (the o
 used the default 0.01), stopped by hand at iteration 22752. ny 6, lazy basis, A/B traps,
 seed 0 (`examples/base_documented_2d_brownian_staple_diag.ipynb`).
 
-![metrics](../examples/figures/istarz_br_g10_diag/metrics.png)
-![feps](../examples/figures/istarz_br_g10_diag/feps.png)
-![obs_pred](../examples/figures/istarz_br_g10_diag/obs_pred.png)
-![TIS diagnostics](../examples/figures/istarz_br_g10_diag/tis_diagnostics.png)
-![vs exact, and the original fit vs exact](../examples/figures/istarz_br_g10_diag/vs_exact_map.png)
+![metrics](../examples/figures_by_potential/2d_zpot/brownian_g10/staple/original_diag/metrics.png)
+![feps](../examples/figures_by_potential/2d_zpot/brownian_g10/staple/original_diag/feps.png)
+![obs_pred](../examples/figures_by_potential/2d_zpot/brownian_g10/staple/original_diag/obs_pred.png)
+![TIS diagnostics](../examples/figures_by_potential/2d_zpot/brownian_g10/staple/original_diag/tis_diagnostics.png)
+![vs exact, and the original fit vs exact](../examples/figures_by_potential/2d_zpot/brownian_g10/staple/original_diag/vs_exact_map.png)
 
 | | Original fit (y, x; 10000 it.) | With y + x (22752 it.) |
 |---|---|---|
@@ -505,11 +505,11 @@ lag-1 update, gamma 0.1, envelope 0.01, ny 6, A/B traps. First 10000 iterations 
 `load_tis_data_cupy.py` (no seed, `run.log`), then 15000 more from that q in 5000-iteration
 chunks, lazy basis, seed 100 + chunk (`continue_fit.py`, `continue.log`).
 
-![metrics](../examples/figures/istarz_br_g10_reversed/metrics.png)
-![feps](../examples/figures/istarz_br_g10_reversed/feps.png)
-![TIS diagnostics](../examples/figures/istarz_br_g10_reversed/tis_diagnostics.png)
-![committor vs order parameter](../examples/figures/istarz_br_g10_reversed/committor_vs_order.png)
-![committor on the potential](../examples/figures/istarz_br_g10_reversed/committor_on_potential.png)
+![metrics](../examples/figures_by_potential/2d_zpot/brownian_g10/staple/reversed/metrics.png)
+![feps](../examples/figures_by_potential/2d_zpot/brownian_g10/staple/reversed/feps.png)
+![TIS diagnostics](../examples/figures_by_potential/2d_zpot/brownian_g10/staple/reversed/tis_diagnostics.png)
+![committor vs order parameter](../examples/figures_by_potential/2d_zpot/brownian_g10/staple/reversed/committor_vs_order.png)
+![committor on the potential](../examples/figures_by_potential/2d_zpot/brownian_g10/staple/reversed/committor_on_potential.png)
 
 | | Forward only (3000 paths/ens.) | **Forward + mirrored (1500 paths/ens.)** |
 |---|---|---|
@@ -522,8 +522,8 @@ chunks, lazy basis, seed 100 + chunk (`continue_fit.py`, `continue.log`).
 The stopped Z_q is now within ±1 at every q and lag. Continued to 25000 iterations the
 fit converged at **+0.031** (RMS 0.029).
 
-![continued fit: convergence](../examples/figures/istarz_br_g10_reversed/continued/convergence.png)
-![continued fit: TIS diagnostics](../examples/figures/istarz_br_g10_reversed/continued/tis_diagnostics.png)
+![continued fit: convergence](../examples/figures_by_potential/2d_zpot/brownian_g10/staple/reversed/continued/convergence.png)
+![continued fit: TIS diagnostics](../examples/figures_by_potential/2d_zpot/brownian_g10/staple/reversed/continued/tis_diagnostics.png)
 
 ### Is the remaining +0.03 noise or bias?
 
@@ -569,7 +569,7 @@ longer fit lags and an envelope schedule (I.2).
 
 Same 1000 paths per ensemble (path seed 12), same fit (warm-up at a flat envelope, then
 envelope 0.01, gamma 0, 15000 iterations), only the preparation differs
-(`staple_data_choices.ipynb`, `figures/staple_compare/sim_istarz_br_g10_p1000_s12/`):
+(`staple_data_choices.ipynb`, `figures_by_potential/2d_zpot/brownian_g10/staple/staple_compare_p1000_s12/`):
 
 | Preparation | Frames | `zqs_z` | RMS fit − exact |
 |---|---|---|---|
@@ -592,7 +592,7 @@ over the frames where the exact committor is 0.55–0.85: the flat region betwee
 and B, where the fits overshoot. Open circles joined by a line are fits of two disjoint
 halves of the same data set; their spread shows the statistical uncertainty of one fit.
 
-![plateau level of every fit](../examples/figures/z_brownian/summary_offsets.png)
+![plateau level of every fit](../examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/summary_offsets.png)
 
 - Green: synthetic walkers whose exact committor is known. Run until absorbed, the fit is
   right (−0.007). Cut at interfaces like path pieces, the halves already scatter by ±0.025
@@ -605,11 +605,11 @@ The same fits as maps of fit − exact on the potential (purple = fit too high).
 is a near-uniform shift of the plateau; the ridge and the region near A are right in all
 fits:
 
-![fit minus exact maps](../examples/figures/z_brownian/summary_maps.png)
+![fit minus exact maps](../examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/summary_maps.png)
 
 The two tests behind "statistical, not a bias of the method":
 
-![martingale test and absorbed fraction](../examples/figures/z_brownian/summary_tests.png)
+![martingale test and absorbed fraction](../examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/summary_tests.png)
 
 - Left: martingale test. For each piece entering a q band: (exact q where the piece stops)
   − (exact q at entry). It averages to 0 for unbiased data. The staple data with rejection
@@ -628,155 +628,155 @@ committor, observed vs predicted), the path-data diagnostics (Z_q per lag, stopp
 calibration, as explained at the top), the fit against the exact committor on the
 potential, and the error against the exact committor while fitting (from the run logs).
 The MD cases have no path-data plot (one long trajectory per seed).
-Script: `examples/figures/z_brownian/case_plots.py`; summary figures: `summary_plots.py`.
+Script: `examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/case_plots.py`; summary figures: `summary_plots.py`.
 
 #### Synthetic walkers, run until absorbed (5.2M frames; plateau −0.007)
 
-![feps](../examples/figures/z_brownian/cases/synth_full/feps.png)
-![obs_pred](../examples/figures/z_brownian/cases/synth_full/obs_pred.png)
-![path diagnostics](../examples/figures/z_brownian/cases/synth_full/tis_diagnostics.png)
-![map](../examples/figures/z_brownian/cases/synth_full/map.png)
-![convergence](../examples/figures/z_brownian/cases/synth_full/convergence.png)
+![feps](../examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/cases/synth_full/feps.png)
+![obs_pred](../examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/cases/synth_full/obs_pred.png)
+![path diagnostics](../examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/cases/synth_full/tis_diagnostics.png)
+![map](../examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/cases/synth_full/map.png)
+![convergence](../examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/cases/synth_full/convergence.png)
 
 #### Synthetic walkers cut at interfaces, all 30000 pieces (plateau −0.015)
 
-![feps](../examples/figures/z_brownian/cases/synth_cut_all/feps.png)
-![obs_pred](../examples/figures/z_brownian/cases/synth_cut_all/obs_pred.png)
-![path diagnostics](../examples/figures/z_brownian/cases/synth_cut_all/tis_diagnostics.png)
-![map](../examples/figures/z_brownian/cases/synth_cut_all/map.png)
-![convergence](../examples/figures/z_brownian/cases/synth_cut_all/convergence.png)
+![feps](../examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/cases/synth_cut_all/feps.png)
+![obs_pred](../examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/cases/synth_cut_all/obs_pred.png)
+![path diagnostics](../examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/cases/synth_cut_all/tis_diagnostics.png)
+![map](../examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/cases/synth_cut_all/map.png)
+![convergence](../examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/cases/synth_cut_all/convergence.png)
 
 #### Synthetic cut walkers, even half, lag 1 (plateau −0.040)
 
-![feps](../examples/figures/z_brownian/cases/synth_cut_even/feps.png)
-![obs_pred](../examples/figures/z_brownian/cases/synth_cut_even/obs_pred.png)
-![path diagnostics](../examples/figures/z_brownian/cases/synth_cut_even/tis_diagnostics.png)
-![map](../examples/figures/z_brownian/cases/synth_cut_even/map.png)
-![convergence](../examples/figures/z_brownian/cases/synth_cut_even/convergence.png)
+![feps](../examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/cases/synth_cut_even/feps.png)
+![obs_pred](../examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/cases/synth_cut_even/obs_pred.png)
+![path diagnostics](../examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/cases/synth_cut_even/tis_diagnostics.png)
+![map](../examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/cases/synth_cut_even/map.png)
+![convergence](../examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/cases/synth_cut_even/convergence.png)
 
 #### Synthetic cut walkers, odd half, lag 1 (plateau +0.009)
 
-![feps](../examples/figures/z_brownian/cases/synth_cut_odd/feps.png)
-![obs_pred](../examples/figures/z_brownian/cases/synth_cut_odd/obs_pred.png)
-![path diagnostics](../examples/figures/z_brownian/cases/synth_cut_odd/tis_diagnostics.png)
-![map](../examples/figures/z_brownian/cases/synth_cut_odd/map.png)
-![convergence](../examples/figures/z_brownian/cases/synth_cut_odd/convergence.png)
+![feps](../examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/cases/synth_cut_odd/feps.png)
+![obs_pred](../examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/cases/synth_cut_odd/obs_pred.png)
+![path diagnostics](../examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/cases/synth_cut_odd/tis_diagnostics.png)
+![map](../examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/cases/synth_cut_odd/map.png)
+![convergence](../examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/cases/synth_cut_odd/convergence.png)
 
 #### Synthetic cut walkers, even half, lag 10 (plateau −0.031)
 
-![feps](../examples/figures/z_brownian/cases/synth_cut_even_lag10/feps.png)
-![obs_pred](../examples/figures/z_brownian/cases/synth_cut_even_lag10/obs_pred.png)
-![path diagnostics](../examples/figures/z_brownian/cases/synth_cut_even_lag10/tis_diagnostics.png)
-![map](../examples/figures/z_brownian/cases/synth_cut_even_lag10/map.png)
-![convergence](../examples/figures/z_brownian/cases/synth_cut_even_lag10/convergence.png)
+![feps](../examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/cases/synth_cut_even_lag10/feps.png)
+![obs_pred](../examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/cases/synth_cut_even_lag10/obs_pred.png)
+![path diagnostics](../examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/cases/synth_cut_even_lag10/tis_diagnostics.png)
+![map](../examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/cases/synth_cut_even_lag10/map.png)
+![convergence](../examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/cases/synth_cut_even_lag10/convergence.png)
 
 #### Synthetic cut walkers, odd half, lag 10 (plateau +0.031)
 
-![feps](../examples/figures/z_brownian/cases/synth_cut_odd_lag10/feps.png)
-![obs_pred](../examples/figures/z_brownian/cases/synth_cut_odd_lag10/obs_pred.png)
-![path diagnostics](../examples/figures/z_brownian/cases/synth_cut_odd_lag10/tis_diagnostics.png)
-![map](../examples/figures/z_brownian/cases/synth_cut_odd_lag10/map.png)
-![convergence](../examples/figures/z_brownian/cases/synth_cut_odd_lag10/convergence.png)
+![feps](../examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/cases/synth_cut_odd_lag10/feps.png)
+![obs_pred](../examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/cases/synth_cut_odd_lag10/obs_pred.png)
+![path diagnostics](../examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/cases/synth_cut_odd_lag10/tis_diagnostics.png)
+![map](../examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/cases/synth_cut_odd_lag10/map.png)
+![convergence](../examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/cases/synth_cut_odd_lag10/convergence.png)
 
 #### Staple, forward pieces only, 3000 paths/ens., lag 1 (plateau +0.061)
 
 The first fit (above). Its convergence is in the original metrics plot.
 
-![feps](../examples/figures/z_brownian/cases/staple_forward/feps.png)
-![obs_pred](../examples/figures/z_brownian/cases/staple_forward/obs_pred.png)
-![path diagnostics](../examples/figures/z_brownian/cases/staple_forward/tis_diagnostics.png)
-![map](../examples/figures/z_brownian/cases/staple_forward/map.png)
-![metrics](../examples/figures/istarz_br_g10/metrics.png)
+![feps](../examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/cases/staple_forward/feps.png)
+![obs_pred](../examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/cases/staple_forward/obs_pred.png)
+![path diagnostics](../examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/cases/staple_forward/tis_diagnostics.png)
+![map](../examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/cases/staple_forward/map.png)
+![metrics](../examples/figures_by_potential/2d_zpot/brownian_g10/staple/original/metrics.png)
 
 #### Staple, forward + mirrored pieces, 1500 paths/ens., lag 1, 25000 iterations (plateau +0.031)
 
 The convergence plot covers the continued run (10000 → 25000 iterations); the first 10000 are in `istarz_br_g10_reversed/continued/convergence.png`.
 
-![feps](../examples/figures/z_brownian/cases/staple_both_all/feps.png)
-![obs_pred](../examples/figures/z_brownian/cases/staple_both_all/obs_pred.png)
-![path diagnostics](../examples/figures/z_brownian/cases/staple_both_all/tis_diagnostics.png)
-![map](../examples/figures/z_brownian/cases/staple_both_all/map.png)
-![convergence](../examples/figures/z_brownian/cases/staple_both_all/convergence.png)
+![feps](../examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/cases/staple_both_all/feps.png)
+![obs_pred](../examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/cases/staple_both_all/obs_pred.png)
+![path diagnostics](../examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/cases/staple_both_all/tis_diagnostics.png)
+![map](../examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/cases/staple_both_all/map.png)
+![convergence](../examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/cases/staple_both_all/convergence.png)
 
 #### Staple, both pieces, even half (7500 paths), lag 1 (plateau +0.049)
 
-![feps](../examples/figures/z_brownian/cases/staple_both_even/feps.png)
-![obs_pred](../examples/figures/z_brownian/cases/staple_both_even/obs_pred.png)
-![path diagnostics](../examples/figures/z_brownian/cases/staple_both_even/tis_diagnostics.png)
-![map](../examples/figures/z_brownian/cases/staple_both_even/map.png)
-![convergence](../examples/figures/z_brownian/cases/staple_both_even/convergence.png)
+![feps](../examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/cases/staple_both_even/feps.png)
+![obs_pred](../examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/cases/staple_both_even/obs_pred.png)
+![path diagnostics](../examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/cases/staple_both_even/tis_diagnostics.png)
+![map](../examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/cases/staple_both_even/map.png)
+![convergence](../examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/cases/staple_both_even/convergence.png)
 
 #### Staple, both pieces, odd half (7500 paths), lag 1 (plateau +0.014)
 
-![feps](../examples/figures/z_brownian/cases/staple_both_odd/feps.png)
-![obs_pred](../examples/figures/z_brownian/cases/staple_both_odd/obs_pred.png)
-![path diagnostics](../examples/figures/z_brownian/cases/staple_both_odd/tis_diagnostics.png)
-![map](../examples/figures/z_brownian/cases/staple_both_odd/map.png)
-![convergence](../examples/figures/z_brownian/cases/staple_both_odd/convergence.png)
+![feps](../examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/cases/staple_both_odd/feps.png)
+![obs_pred](../examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/cases/staple_both_odd/obs_pred.png)
+![path diagnostics](../examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/cases/staple_both_odd/tis_diagnostics.png)
+![map](../examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/cases/staple_both_odd/map.png)
+![convergence](../examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/cases/staple_both_odd/convergence.png)
 
 #### Staple, both pieces, even half, lag 50 (plateau +0.034)
 
-![feps](../examples/figures/z_brownian/cases/staple_both_even_lag50/feps.png)
-![obs_pred](../examples/figures/z_brownian/cases/staple_both_even_lag50/obs_pred.png)
-![path diagnostics](../examples/figures/z_brownian/cases/staple_both_even_lag50/tis_diagnostics.png)
-![map](../examples/figures/z_brownian/cases/staple_both_even_lag50/map.png)
-![convergence](../examples/figures/z_brownian/cases/staple_both_even_lag50/convergence.png)
+![feps](../examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/cases/staple_both_even_lag50/feps.png)
+![obs_pred](../examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/cases/staple_both_even_lag50/obs_pred.png)
+![path diagnostics](../examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/cases/staple_both_even_lag50/tis_diagnostics.png)
+![map](../examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/cases/staple_both_even_lag50/map.png)
+![convergence](../examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/cases/staple_both_even_lag50/convergence.png)
 
 #### Staple, both pieces, odd half, lag 50 (plateau +0.016)
 
-![feps](../examples/figures/z_brownian/cases/staple_both_odd_lag50/feps.png)
-![obs_pred](../examples/figures/z_brownian/cases/staple_both_odd_lag50/obs_pred.png)
-![path diagnostics](../examples/figures/z_brownian/cases/staple_both_odd_lag50/tis_diagnostics.png)
-![map](../examples/figures/z_brownian/cases/staple_both_odd_lag50/map.png)
-![convergence](../examples/figures/z_brownian/cases/staple_both_odd_lag50/convergence.png)
+![feps](../examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/cases/staple_both_odd_lag50/feps.png)
+![obs_pred](../examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/cases/staple_both_odd_lag50/obs_pred.png)
+![path diagnostics](../examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/cases/staple_both_odd_lag50/tis_diagnostics.png)
+![map](../examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/cases/staple_both_odd_lag50/map.png)
+![convergence](../examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/cases/staple_both_odd_lag50/convergence.png)
 
 #### Staple, both pieces, 2250 paths/ens. (31.5M frames), lag 50 (plateau +0.022)
 
-![feps](../examples/figures/z_brownian/cases/staple_both_2250_lag50/feps.png)
-![obs_pred](../examples/figures/z_brownian/cases/staple_both_2250_lag50/obs_pred.png)
-![path diagnostics](../examples/figures/z_brownian/cases/staple_both_2250_lag50/tis_diagnostics.png)
-![map](../examples/figures/z_brownian/cases/staple_both_2250_lag50/map.png)
-![convergence](../examples/figures/z_brownian/cases/staple_both_2250_lag50/convergence.png)
+![feps](../examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/cases/staple_both_2250_lag50/feps.png)
+![obs_pred](../examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/cases/staple_both_2250_lag50/obs_pred.png)
+![path diagnostics](../examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/cases/staple_both_2250_lag50/tis_diagnostics.png)
+![map](../examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/cases/staple_both_2250_lag50/map.png)
+![convergence](../examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/cases/staple_both_2250_lag50/convergence.png)
 
 #### Long MD, NPq, all 16 seeds (plateau +0.060)
 
-![feps](../examples/figures/z_brownian/cases/md_npq_all/feps.png)
-![obs_pred](../examples/figures/z_brownian/cases/md_npq_all/obs_pred.png)
-![map](../examples/figures/z_brownian/cases/md_npq_all/map.png)
+![feps](../examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/cases/md_npq_all/feps.png)
+![obs_pred](../examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/cases/md_npq_all/obs_pred.png)
+![map](../examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/cases/md_npq_all/map.png)
 
 #### Long MD, NPNEq, seeds 1–8, lag 1 (plateau +0.029)
 
-![feps](../examples/figures/z_brownian/cases/md_npne_s1-8_lag1/feps.png)
-![obs_pred](../examples/figures/z_brownian/cases/md_npne_s1-8_lag1/obs_pred.png)
-![map](../examples/figures/z_brownian/cases/md_npne_s1-8_lag1/map.png)
-![convergence](../examples/figures/z_brownian/cases/md_npne_s1-8_lag1/convergence.png)
+![feps](../examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/cases/md_npne_s1-8_lag1/feps.png)
+![obs_pred](../examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/cases/md_npne_s1-8_lag1/obs_pred.png)
+![map](../examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/cases/md_npne_s1-8_lag1/map.png)
+![convergence](../examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/cases/md_npne_s1-8_lag1/convergence.png)
 
 #### Long MD, NPNEq, seeds 1–8, lag 10 (plateau +0.031)
 
-![feps](../examples/figures/z_brownian/cases/md_npne_s1-8_lag10/feps.png)
-![obs_pred](../examples/figures/z_brownian/cases/md_npne_s1-8_lag10/obs_pred.png)
-![map](../examples/figures/z_brownian/cases/md_npne_s1-8_lag10/map.png)
-![convergence](../examples/figures/z_brownian/cases/md_npne_s1-8_lag10/convergence.png)
+![feps](../examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/cases/md_npne_s1-8_lag10/feps.png)
+![obs_pred](../examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/cases/md_npne_s1-8_lag10/obs_pred.png)
+![map](../examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/cases/md_npne_s1-8_lag10/map.png)
+![convergence](../examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/cases/md_npne_s1-8_lag10/convergence.png)
 
 #### Long MD, NPNEq, seeds 9–16, lag 10 (plateau +0.079)
 
-![feps](../examples/figures/z_brownian/cases/md_npne_s9-16_lag10/feps.png)
-![obs_pred](../examples/figures/z_brownian/cases/md_npne_s9-16_lag10/obs_pred.png)
-![map](../examples/figures/z_brownian/cases/md_npne_s9-16_lag10/map.png)
+![feps](../examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/cases/md_npne_s9-16_lag10/feps.png)
+![obs_pred](../examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/cases/md_npne_s9-16_lag10/obs_pred.png)
+![map](../examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/cases/md_npne_s9-16_lag10/map.png)
 
 #### Long MD, NPNEq, seeds 1–8, lag 50 (plateau +0.027)
 
-![feps](../examples/figures/z_brownian/cases/md_npne_s1-8_lag50/feps.png)
-![obs_pred](../examples/figures/z_brownian/cases/md_npne_s1-8_lag50/obs_pred.png)
-![map](../examples/figures/z_brownian/cases/md_npne_s1-8_lag50/map.png)
-![convergence](../examples/figures/z_brownian/cases/md_npne_s1-8_lag50/convergence.png)
+![feps](../examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/cases/md_npne_s1-8_lag50/feps.png)
+![obs_pred](../examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/cases/md_npne_s1-8_lag50/obs_pred.png)
+![map](../examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/cases/md_npne_s1-8_lag50/map.png)
+![convergence](../examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/cases/md_npne_s1-8_lag50/convergence.png)
 
 #### Long MD, NPNEq, seeds 1–8, envelope schedule 1 → 0.1 → 0.01 → 0.001 (plateau +0.030)
 
-![feps](../examples/figures/z_brownian/cases/md_npne_s1-8_envsched/feps.png)
-![obs_pred](../examples/figures/z_brownian/cases/md_npne_s1-8_envsched/obs_pred.png)
-![map](../examples/figures/z_brownian/cases/md_npne_s1-8_envsched/map.png)
-![convergence](../examples/figures/z_brownian/cases/md_npne_s1-8_envsched/convergence.png)
+![feps](../examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/cases/md_npne_s1-8_envsched/feps.png)
+![obs_pred](../examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/cases/md_npne_s1-8_envsched/obs_pred.png)
+![map](../examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/cases/md_npne_s1-8_envsched/map.png)
+![convergence](../examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/cases/md_npne_s1-8_envsched/convergence.png)
 
 ## II.4 2D underdamped Z potential, staple, positions only (`sim_istarz_2603`)
 
@@ -787,10 +787,10 @@ envelope 0.001, ny 6, A/B traps, fit seed 0):
 - History `[0, 1]`: library lag-1 update, `y(t-d),y(t)`, shift `r(t)`, lazy basis, 10000
   iterations (`base_documented_2d_langevin.ipynb`; the committed version has `REVERSED = True`,
   so this row may have included the mirrored pieces).
-- Coarser histories: same, 2000 iterations (`figures/zlgv_history/history_test.py`).
+- Coarser histories: same, 2000 iterations (`figures_by_potential/2d_zpot/langevin_g2/history/history_test.py`).
 - Finite-difference velocities (± ridge-normal CVs): 3000 iterations; lag 1 with the library
   update and lazy basis, lag 4 with the stopped-window update and chunked basis
-  (`figures/zlgv_fd/fd_test.py`).
+  (`figures_by_potential/2d_zpot/langevin_g2/fd_velocity/fd_test.py`).
 The one-frame change of a position is only ~4·10⁻⁴ of its range (1D well: 2·10⁻³), so a
 history basis barely reaches the velocity.
 
@@ -804,26 +804,26 @@ history basis barely reaches the velocity.
 
 Original plots (last row of the table):
 
-![metrics (zqs_z)](../examples/figures/overview_plots/zlgv_metrics.png)
-![feps](../examples/figures/overview_plots/zlgv_feps.png)
-![obs_pred](../examples/figures/overview_plots/zlgv_obs_pred.png)
+![metrics (zqs_z)](../examples/figures_by_potential/2d_zpot/langevin_g2/overview_plots/zlgv_metrics.png)
+![feps](../examples/figures_by_potential/2d_zpot/langevin_g2/overview_plots/zlgv_feps.png)
+![obs_pred](../examples/figures_by_potential/2d_zpot/langevin_g2/overview_plots/zlgv_obs_pred.png)
 
 Committor of that fit against the order parameter and in the planes (y, x), (y, v_y),
 (y, v_x), with finite-difference velocities *(regenerated)*:
 
-![committor vs order parameter](../examples/figures/overview_plots/zlgv_committor_vs_order.png)
-![committor planes](../examples/figures/overview_plots/zlgv_planes.png)
+![committor vs order parameter](../examples/figures_by_potential/2d_zpot/langevin_g2/overview_plots/zlgv_committor_vs_order.png)
+![committor planes](../examples/figures_by_potential/2d_zpot/langevin_g2/overview_plots/zlgv_planes.png)
 
 Path-data diagnostics for every setup in the table:
 
-![history [0, 4]](../examples/figures/zlgv_history/tis_h0_4.png)
-![history [0, 8]](../examples/figures/zlgv_history/tis_h0_8.png)
-![history [0, 16]](../examples/figures/zlgv_history/tis_h0_16.png)
-![history [0, 1, 4, 16]](../examples/figures/zlgv_history/tis_h0_1_4_16.png)
-![finite-difference velocities, lag 1](../examples/figures/zlgv_fd/tis_lag1.png)
-![finite-difference velocities, lag 4](../examples/figures/zlgv_fd/tis_lag4.png)
-![plus ridge-normal CVs, lag 1](../examples/figures/zlgv_fd/tis_diag_lag1.png)
-![plus ridge-normal CVs, lag 4](../examples/figures/zlgv_fd/tis_diag_lag4.png)
+![history [0, 4]](../examples/figures_by_potential/2d_zpot/langevin_g2/history/tis_h0_4.png)
+![history [0, 8]](../examples/figures_by_potential/2d_zpot/langevin_g2/history/tis_h0_8.png)
+![history [0, 16]](../examples/figures_by_potential/2d_zpot/langevin_g2/history/tis_h0_16.png)
+![history [0, 1, 4, 16]](../examples/figures_by_potential/2d_zpot/langevin_g2/history/tis_h0_1_4_16.png)
+![finite-difference velocities, lag 1](../examples/figures_by_potential/2d_zpot/langevin_g2/fd_velocity/tis_lag1.png)
+![finite-difference velocities, lag 4](../examples/figures_by_potential/2d_zpot/langevin_g2/fd_velocity/tis_lag4.png)
+![plus ridge-normal CVs, lag 1](../examples/figures_by_potential/2d_zpot/langevin_g2/fd_velocity/tis_diag_lag1.png)
+![plus ridge-normal CVs, lag 4](../examples/figures_by_potential/2d_zpot/langevin_g2/fd_velocity/tis_diag_lag4.png)
 
 **Observations.**
 - The original obs vs pred is on the diagonal (AUC 99.7%), and the original Z_q is ≈ 0
@@ -878,8 +878,8 @@ runs (`toy2d_staple_analysis.ipynb`). MD: NPq (Brownian) RMS 0.007 vs exact; NPN
 | Path-data loader and fit scripts | `examples/tis_data.py`, `examples/load_tis_data(_cupy).py` |
 | Notebooks | `examples/base_documented*.ipynb` |
 | Z_q traps, stopped metrics | `optimalrcs(-cupy)/boundaries.py`, `metrics_tis.py`, `plots_tis.py` |
-| 2D Brownian Z: reference, MD NPq, comparison, shooting | `examples/figures/z_brownian/` |
-| 2D Brownian Z plateau investigation: summary figures, per-case plots | `examples/figures/z_brownian/summary_*.png` (`summary_plots.py`), `cases/<case>/` (`case_plots.py`); synthetic walkers in `synth/` |
-| 1D well MD fits (lag 1, energy CV, lag 16) | `examples/figures/well_md_fit/` |
-| 2D underdamped Z: histories, finite differences, ridge CVs | `examples/figures/zlgv_history/`, `examples/figures/zlgv_fd/` |
-| The original-style plots made for this overview | `examples/figures/overview_plots/` (`make_original_plots.py`) |
+| 2D Brownian Z: reference, MD NPq, comparison, shooting | `examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/` |
+| 2D Brownian Z plateau investigation: summary figures, per-case plots | `examples/figures_by_potential/2d_zpot/brownian_g10/reference_and_analyses/summary_*.png` (`summary_plots.py`), `cases/<case>/` (`case_plots.py`); synthetic walkers in `synth/` |
+| 1D well MD fits (lag 1, energy CV, lag 16) | `examples/figures_by_potential/1d_cos_well/langevin_md/fits/` |
+| 2D underdamped Z: histories, finite differences, ridge CVs | `examples/figures_by_potential/2d_zpot/langevin_g2/history/`, `examples/figures_by_potential/2d_zpot/langevin_g2/fd_velocity/` |
+| The original-style plots made for this overview | `overview_plots/` in each potential's folder of `examples/figures_by_potential/` (scripts `make_original_plots.py`, `regen_all.py` in `_shared/overview_plots_scripts/`) |

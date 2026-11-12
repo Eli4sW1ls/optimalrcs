@@ -102,7 +102,7 @@ A/B are identical to those of the fit.
 | 1D flat | `sim_istar0br10intf`, 1000 paths/ens. | x | 1.3M | new fit, 3000 iterations | 0.013 |
 | 1D two bumps | `sim_istar2cosbr_2108`, 2000 paths/ens. | x | 3.3M | new fit, 3000 iterations | 0.005 |
 
-The exact committors (discrete-chain grid solutions in `examples/figures/exact_committors/`) are used for
+The exact committors (discrete-chain grid solutions in the `exact/` folder of each potential in `examples/figures_by_potential/`) are used for
 validation only: never to fit or select.
 
 **Splits.** All splits are whole paths: a path's forward and mirrored pieces stay together. They are made by
