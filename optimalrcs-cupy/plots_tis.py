@@ -42,7 +42,7 @@ def plot_zq_stopped(ax, r_traj, b_traj, i_traj, w_traj=None, ldt=None, zscore=Tr
 
 
 def plot_zq_short_lags(ax, r_traj, b_traj, i_traj, future_boundary, past_boundary, w_traj=None,
-                       ldt=(1, 2, 4, 8), xlabel='$q$'):
+                       ldt=(1, 2, 4, 8, 16, 32, 64, 128, 256), xlabel='$q$'):
     """
     The standard (not stopped) Z_q of `cut_profiles.comp_zq` at a few short lag times.
 
