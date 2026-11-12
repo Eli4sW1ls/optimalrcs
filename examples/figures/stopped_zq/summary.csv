@@ -1,0 +1,42 @@
+fit,ab_ends,at_lag,error,figure,frames,frames_from,longest,max_abs_z,max_abs_z_per_lag,pieces,stopped_ends,trap,weights
+figures/langevin_seeds/seed0/q_traj.npy,1,128,,figures/stopped_zq/figures__langevin_seeds__seed0__q_traj.npy.png,6000000,"MD md_istarwell2_100M, first 6,000,000 frames, A <= -0.35, B >= 0.35",6000000,1.0,1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0,1,0,6032769,False
+figures/langevin_seeds/seed1/q_traj.npy,1,2,,figures/stopped_zq/figures__langevin_seeds__seed1__q_traj.npy.png,6000000,"MD md_istarwell2_100M, first 6,000,000 frames, A <= -0.35, B >= 0.35",6000000,1.0,1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0,1,0,6032769,False
+figures/langevin_seeds/seed2/q_traj.npy,1,1,,figures/stopped_zq/figures__langevin_seeds__seed2__q_traj.npy.png,6000000,"MD md_istarwell2_100M, first 6,000,000 frames, A <= -0.35, B >= 0.35",6000000,1.01,1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0,1,0,6032769,False
+figures/langevin_seeds/seed21/q_traj.npy,1,32,,figures/stopped_zq/figures__langevin_seeds__seed21__q_traj.npy.png,6000000,"MD md_istarwell2_100M, first 6,000,000 frames, A <= -0.35, B >= 0.35",6000000,1.11,1.0 1.0 1.0 1.0 1.0 1.1 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0,1,0,6032769,False
+figures/langevin_seeds/seed3/q_traj.npy,1,32,,figures/stopped_zq/figures__langevin_seeds__seed3__q_traj.npy.png,6000000,"MD md_istarwell2_100M, first 6,000,000 frames, A <= -0.35, B >= 0.35",6000000,1.1,1.0 1.0 1.0 1.0 1.0 1.1 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0,1,0,6032769,False
+figures/langevin_seeds/seed4/q_traj.npy,1,32,,figures/stopped_zq/figures__langevin_seeds__seed4__q_traj.npy.png,6000000,"MD md_istarwell2_100M, first 6,000,000 frames, A <= -0.35, B >= 0.35",6000000,1.0,1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0,1,0,6032769,False
+figures/langevin_seeds/seed5/q_traj.npy,1,128,,figures/stopped_zq/figures__langevin_seeds__seed5__q_traj.npy.png,6000000,"MD md_istarwell2_100M, first 6,000,000 frames, A <= -0.35, B >= 0.35",6000000,1.0,1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0,1,0,6032769,False
+figures/langevin_seeds/seed6/q_traj.npy,1,4,,figures/stopped_zq/figures__langevin_seeds__seed6__q_traj.npy.png,6000000,"MD md_istarwell2_100M, first 6,000,000 frames, A <= -0.35, B >= 0.35",6000000,1.41,1.0 1.0 1.4 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0,1,0,6032769,False
+figures/langevin_seeds/seed7/q_traj.npy,1,4,,figures/stopped_zq/figures__langevin_seeds__seed7__q_traj.npy.png,6000000,"MD md_istarwell2_100M, first 6,000,000 frames, A <= -0.35, B >= 0.35",6000000,1.0,1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0,1,0,6032769,False
+figures/langevin_seeds/seed99/q_traj.npy,,,ValueError: 1000000 q values but 6000000 frames,,,,,,,,,,
+figures/staple_compare/sim_istar0br10intf_p1000_s0/rev_rej_none200/seed0/q_traj.npy,,,ValueError: 1241665 q values but 1240871 frames,,,,,,,,,,
+figures/staple_compare/sim_istar0br10intf_p1000_s0/rev_none/seed0/q_traj.npy,,,ValueError: 1268754 q values but 1264904 frames,,,,,,,,,,
+figures/staple_compare/sim_istar0br10intf_p1000_s0/fwd_none/seed0/q_traj.npy,,,ValueError: 631092 q values but 630182 frames,,,,,,,,,,
+figures/staple_compare/sim_istar0br10intf_p1000_s0/rev_rej_disc200/seed0/q_traj.npy,,,ValueError: 1119265 q values but 1130671 frames,,,,,,,,,,
+figures/staple_compare/sim_istar0br10intf_p1000_s0/nocut_rej/seed0/q_traj.npy,,,ValueError: 1071498 q values but 1067189 frames,,,,,,,,,,
+figures/staple_compare/sim_istar0br10intf_p1000_s0/rev_rej_trunc200/seed0/q_traj.npy,,,ValueError: 1241665 q values but 1240871 frames,,,,,,,,,,
+figures/staple_compare/sim_istar0br10intf_p1000_s0/rev_rej/seed0/q_traj.npy,,,ValueError: 1268754 q values but 1264904 frames,,,,,,,,,,
+figures/staple_compare/sim_istar0br10intf_p1000_s0/fwd_rej/seed0/q_traj.npy,,,ValueError: 631092 q values but 630182 frames,,,,,,,,,,
+figures/staple_compare/sim_istar0br10intf_p1000_s0/rev_staple/seed0/q_traj.npy,,,ValueError: 1268754 q values but 1264904 frames,,,,,,,,,,
+figures/staple_compare/sim_istar0br10intf_p1000_s0/fwd_staple/seed0/q_traj.npy,,,ValueError: 631092 q values but 630182 frames,,,,,,,,,,
+figures/staple_compare/sim_istarz_br_g10_p1000_s12/rev_none/seed0/q_traj.npy,,,ValueError: 14005396 q values but 13938482 frames,,,,,,,,,,
+figures/staple_compare/sim_istarz_br_g10_p1000_s12/fwd_none/seed0/q_traj.npy,,,ValueError: 6971328 q values but 6968345 frames,,,,,,,,,,
+figures/staple_compare/sim_istarz_br_g10_p1000_s12/rev_rej_disc200/seed0/q_traj.npy,,,ValueError: 310099 q values but 306079 frames,,,,,,,,,,
+figures/staple_compare/sim_istarz_br_g10_p1000_s12/nocut_rej/seed0/q_traj.npy,,,ValueError: 11422534 q values but 11359586 frames,,,,,,,,,,
+figures/staple_compare/sim_istarz_br_g10_p1000_s12/rev_rej_none200/seed0/q_traj.npy,,,ValueError: 3471499 q values but 3471679 frames,,,,,,,,,,
+figures/staple_compare/sim_istarz_br_g10_p1000_s12/rev_rej/seed0/q_traj.npy,,,ValueError: 14005396 q values but 13938482 frames,,,,,,,,,,
+figures/staple_compare/sim_istarz_br_g10_p1000_s12/fwd_rej/seed0/q_traj.npy,,,ValueError: 6971328 q values but 6968345 frames,,,,,,,,,,
+figures/staple_compare/sim_istarz_br_g10_p1000_s12/rev_staple/seed0/q_traj.npy,,,ValueError: 14005396 q values but 13938482 frames,,,,,,,,,,
+figures/staple_compare/sim_istarz_br_g10_p1000_s12/fwd_staple/seed0/q_traj.npy,,,ValueError: 6971328 q values but 6968345 frames,,,,,,,,,,
+figures/staple_compare/sim_istar_cc_br_p2000_s0/rev_none/seed0/q_traj.npy,,,ValueError: 9149938 q values but 9120029 frames,,,,,,,,,,
+figures/staple_compare/sim_istar_cc_br_p2000_s0/fwd_none/seed0/q_traj.npy,,,ValueError: 4577041 q values but 4583235 frames,,,,,,,,,,
+figures/staple_compare/sim_istar_cc_br_p2000_s0/rev_rej_disc500/seed0/q_traj.npy,,,ValueError: 6724421 q values but 6745519 frames,,,,,,,,,,
+figures/staple_compare/sim_istar_cc_br_p2000_s0/nocut_rej/seed0/q_traj.npy,,,ValueError: 7561561 q values but 7546118 frames,,,,,,,,,,
+figures/staple_compare/sim_istar_cc_br_p2000_s0/rev_rej_trunc500/seed0/q_traj.npy,,,ValueError: 8554421 q values but 8534519 frames,,,,,,,,,,
+figures/staple_compare/sim_istar_cc_br_p2000_s0/rev_rej/seed0/q_traj.npy,,,ValueError: 9149938 q values but 9120029 frames,,,,,,,,,,
+figures/staple_compare/sim_istar_cc_br_p2000_s0/fwd_rej/seed0/q_traj.npy,,,ValueError: 4577041 q values but 4583235 frames,,,,,,,,,,
+figures/nb_toy2d_staple/sim_istar_cc_br/rev_rejections_p2000_s0_y-x_lag1_env0.01_g0.1_it10000/seed0/q_traj.npy,,,ValueError: 9149938 q values but 9120029 frames,,,,,,,,,,
+figures/staple_compare/sim_istar_cc_br_p2000_s0/rev_staple/seed0/q_traj.npy,,,ValueError: 9149938 q values but 9120029 frames,,,,,,,,,,
+figures/staple_compare/sim_istar_cc_br_p2000_s0/fwd_staple/seed0/q_traj.npy,,,ValueError: 4577041 q values but 4583235 frames,,,,,,,,,,
+figures/nb_toy2d_staple/sim_istar_cc_lgv/rev_rejections_p2000_s0_y-x-vy-vx_lag5_env0.01_g0.1_it10000/seed0/q_traj.npy,,,ValueError: 10310763 q values but 10307789 frames,,,,,,,,,,
+figures/nb_toy2d_staple/sim_istar_cc_lgv/rev_rejections_p2000_s0_y-x-vy-vx_lag5_env0.01_g0.1_it10000/seed1/q_traj.npy,,,ValueError: 10310763 q values but 10307789 frames,,,,,,,,,,
