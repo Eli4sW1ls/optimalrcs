@@ -1,0 +1,7 @@
+  saved /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures/istarz_br_g10_reversed/continued/committor.npz
+  saved /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures/istarz_br_g10_reversed/continued/committor_vs_order.png
+Potential from --potential: sjoelbak_angle:RectangularGridWithAngledBarrierPotential(Lx=0.3, angle=45)
+order.py does not say which positions the order columns are; assuming [0, 1]
+  saved /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures/istarz_br_g10_reversed/continued/committor_on_potential.png
+saved /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures/istarz_br_g10_reversed/continued/
+118.58 s, peak RSS 6502268 kB

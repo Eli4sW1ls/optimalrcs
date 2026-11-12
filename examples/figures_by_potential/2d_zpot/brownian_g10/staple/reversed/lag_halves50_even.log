@@ -1,0 +1,5 @@
+lag 50, even paths: 10436207 frames, 10421218 windows
+  lag 50 even 1000 it. (850 s, |dx| 3.8e-01): RMS per bin 0.0351 | plateau (fit - exact) +0.0316 | at the points 0.673 0.705 0.724 0.776 (shooting 0.639 0.664 0.698 0.747)
+  lag 50 even 2000 it. (1337 s, |dx| 1.5e-03): RMS per bin 0.0362 | plateau (fit - exact) +0.0335 | at the points 0.675 0.707 0.726 0.778 (shooting 0.639 0.664 0.698 0.747)
+  lag 50 even 3000 it. (1821 s, |dx| 3.4e-04): RMS per bin 0.0365 | plateau (fit - exact) +0.0339 | at the points 0.676 0.708 0.726 0.778 (shooting 0.639 0.664 0.698 0.747)
+ALL DONE

@@ -1,0 +1,5 @@
+20920952 frames, same as the saved fit; continuing for 4 x 5000 iterations
+start (10000 it.): RMS per bin 0.0252 | mean(fit - exact) on plateau +0.0232 | at the shooting points 0.665 0.700 0.715 0.767 (shooting 0.639 0.664 0.698 0.747)
+15000 it. (2527 s, zqs_z 1.33, |dx| 2.1e-04): RMS per bin 0.0294 | mean(fit - exact) on plateau +0.0295 | at the shooting points 0.672 0.706 0.722 0.772 (shooting 0.639 0.664 0.698 0.747)
+20000 it. (4816 s, zqs_z 1.31, |dx| 5.4e-05): RMS per bin 0.0302 | mean(fit - exact) on plateau +0.0308 | at the shooting points 0.673 0.708 0.723 0.773 (shooting 0.639 0.664 0.698 0.747)
+25000 it. (6977 s, zqs_z 1.36, |dx| 5.4e-05): RMS per bin 0.0303 | mean(fit - exact) on plateau +0.0313 | at the shooting points 0.674 0.708 0.723 0.773 (shooting 0.639 0.664 0.698 0.747)

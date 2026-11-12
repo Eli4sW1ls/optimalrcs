@@ -1,0 +1,34 @@
+#=500, dr2=352.658, zqs_z=32.5721, sdzqs=54.5175, |dx|=0.297082, time=182.347
+#=1000, dr2=309.99, zqs_z=18.485, sdzqs=35.6369, |dx|=0.0427383, time=364.379
+--- /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures/selection_test/select_paths/seed0/it1000 ---
+seed 0, 1000 iterations (warm-up: envelope 1, gamma 0.1) | RMS(fit - exact) per bin 0.0969 | fit/shooting: 0.516/0.639 0.549/0.664 0.589/0.698 0.662/0.747
+#=1500, dr2=273.92, zqs_z=5.63738, sdzqs=26.7691, |dx|=0.0145739, time=181.942
+#=2000, dr2=260.779, zqs_z=3.56409, sdzqs=23.334, |dx|=0.0105056, time=365.55
+#=2500, dr2=248.869, zqs_z=3.18578, sdzqs=19.3257, |dx|=0.0103488, time=548.81
+#=3000, dr2=240.129, zqs_z=2.73242, sdzqs=16.0515, |dx|=0.00794107, time=731.901
+#=3500, dr2=231.805, zqs_z=2.31534, sdzqs=13.8282, |dx|=0.00775039, time=914.52
+--- /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures/selection_test/select_paths/seed0/it3500 ---
+seed 0, 3500 iterations (main: envelope 0.01, gamma 0.1) | RMS(fit - exact) per bin 0.0400 | fit/shooting: 0.587/0.639 0.628/0.664 0.650/0.698 0.716/0.747
+#=4000, dr2=225.96, zqs_z=2.00608, sdzqs=12.0251, |dx|=0.00553559, time=182.956
+#=4500, dr2=219.723, zqs_z=1.76931, sdzqs=10.069, |dx|=0.00629688, time=366.897
+#=5000, dr2=214.652, zqs_z=1.56507, sdzqs=8.60948, |dx|=0.00523756, time=549.997
+#=5500, dr2=210.321, zqs_z=1.52648, sdzqs=7.76434, |dx|=0.00443605, time=733.776
+#=6000, dr2=206.493, zqs_z=1.62478, sdzqs=6.35474, |dx|=0.00417765, time=916.539
+--- /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures/selection_test/select_paths/seed0/it6000 ---
+seed 0, 6000 iterations (main: envelope 0.01, gamma 0.1) | RMS(fit - exact) per bin 0.0169 | fit/shooting: 0.625/0.639 0.662/0.664 0.683/0.698 0.743/0.747
+#=6500, dr2=203.62, zqs_z=1.60036, sdzqs=5.46981, |dx|=0.00316849, time=181.152
+#=7000, dr2=201.453, zqs_z=1.57503, sdzqs=4.49795, |dx|=0.00244871, time=363.834
+#=7500, dr2=199.381, zqs_z=1.58685, sdzqs=4.01443, |dx|=0.00233582, time=547.257
+#=8000, dr2=197.741, zqs_z=1.70781, sdzqs=3.29035, |dx|=0.00191046, time=730.321
+#=8500, dr2=196.415, zqs_z=1.70074, sdzqs=2.92647, |dx|=0.00150793, time=913.031
+--- /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures/selection_test/select_paths/seed0/it8500 ---
+seed 0, 8500 iterations (main: envelope 0.01, gamma 0.1) | RMS(fit - exact) per bin 0.0152 | fit/shooting: 0.642/0.639 0.678/0.664 0.698/0.698 0.756/0.747
+#=9000, dr2=195.258, zqs_z=1.76773, sdzqs=2.51373, |dx|=0.00134304, time=182.33
+#=9500, dr2=194.331, zqs_z=1.76057, sdzqs=2.22417, |dx|=0.00112628, time=365.294
+#=10000, dr2=193.452, zqs_z=1.77173, sdzqs=1.94709, |dx|=0.000976349, time=548.562
+#=10500, dr2=192.849, zqs_z=1.67725, sdzqs=1.80524, |dx|=0.000753066, time=732.151
+#=11000, dr2=192.396, zqs_z=1.48742, sdzqs=1.69968, |dx|=0.000481412, time=914.719
+--- /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures/selection_test/select_paths/seed0/it11000 ---
+seed 0, 11000 iterations (main: envelope 0.01, gamma 0.1) | RMS(fit - exact) per bin 0.0174 | fit/shooting: 0.649/0.639 0.684/0.664 0.704/0.698 0.761/0.747
+seed 0: | RMS(fit - exact) per bin 0.0174 | fit/shooting: 0.649/0.639 0.684/0.664 0.704/0.698 0.761/0.747
+done select_paths

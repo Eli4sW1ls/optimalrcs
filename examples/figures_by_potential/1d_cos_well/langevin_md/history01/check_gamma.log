@@ -1,0 +1,11 @@
+#=500, xent=0.398919, mse=0.139637, sdzq=170.655, dzq=435.735, dr2=8756.42, auc=0.872301, |dx|=0.200728, time=171.353
+after 500: -0.3: q 0.270 obs 0.275 | -0.2: q 0.444 obs 0.470 | +0.0: q 0.480 obs 0.510 | +0.2: q 0.502 obs 0.539 | +0.3: q 0.741 obs 0.730
+#=1000, xent=0.398655, mse=0.13942, sdzq=152.351, dzq=357.906, dr2=8927.51, auc=0.87261, |dx|=0.010735, time=170.34
+after 1000: -0.3: q 0.276 obs 0.275 | -0.2: q 0.450 obs 0.470 | +0.0: q 0.487 obs 0.510 | +0.2: q 0.509 obs 0.539 | +0.3: q 0.723 obs 0.730
+#=1500, xent=0.397907, mse=0.139306, sdzq=152.948, dzq=361.348, dr2=8948.71, auc=0.872637, |dx|=0.00582546, time=171.615
+after 1500: -0.3: q 0.280 obs 0.275 | -0.2: q 0.456 obs 0.470 | +0.0: q 0.492 obs 0.510 | +0.2: q 0.515 obs 0.539 | +0.3: q 0.724 obs 0.730
+/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/optimalrcs-cupy/optimalrcs.py:390: UserWarning: Creating legend with loc="best" can be slow with large amounts of data.
+  fig.tight_layout()
+/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures/langevin_hist01/check_gamma.py:24: UserWarning: Creating legend with loc="best" can be slow with large amounts of data.
+  q.plots_obs_pred(); plt.gcf().savefig("gamma02_obs_pred.png", dpi=110, bbox_inches="tight"); plt.close("all")
+GAMMA DONE

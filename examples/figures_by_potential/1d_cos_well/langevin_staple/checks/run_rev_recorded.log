@@ -1,0 +1,6 @@
+2773830 frames; corr(v_rec, v_fd) 0.9981, std(v_fd - v_rec) 0.059
+true q with recorded v      : max|z| lags (1, 2, 4, 16, 64, 256): 15.4 14.2 12.2  5.2  2.4  2.2
+true q with fd-estimated v  : max|z| lags (1, 2, 4, 16, 64, 256): 21.9 10.6 10.5  4.3  1.7  2.1
+recorded v lag 1:   535 s, |dx| 0.0023 | RMS all 0.030 | near A slow bias -0.004 (RMS 0.022) | near B slow bias -0.007 | max|z| lags (1, 2, 4, 16, 64, 256):  0.6  2.8  4.2  4.7  3.4  3.6
+recorded v lag 4:   544 s, |dx| 0.0006 | RMS all 0.017 | near A slow bias +0.012 (RMS 0.027) | near B slow bias +0.011 | max|z| lags (1, 2, 4, 16, 64, 256):  3.3  1.4  0.4  2.4  1.0  1.7
+Traceback (most recent call last):

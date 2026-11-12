@@ -1,0 +1,7 @@
+md_npq_all               RMS 0.0484  plateau +0.0600
+md_npne_s1-8_lag1        RMS 0.0244  plateau +0.0285
+md_npne_s1-8_lag10       RMS 0.0271  plateau +0.0305
+md_npne_s1-8_lag50       RMS 0.0252  plateau +0.0273
+md_npne_s9-16_lag10      RMS 0.0697  plateau +0.0788
+md_npne_s1-8_envsched    RMS 0.0268  plateau +0.0302
+done md

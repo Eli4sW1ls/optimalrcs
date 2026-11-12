@@ -1,0 +1,17 @@
+  /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/PyRETIS3/toytis/simulations/sim_istarz_br_g10/001: 2983 pieces, 37567 frames, cycles 63..99948 of 100001
+  /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/PyRETIS3/toytis/simulations/sim_istarz_br_g10/002: 3000 pieces, 1356152 frames, cycles 14..99949 of 100001
+  /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/PyRETIS3/toytis/simulations/sim_istarz_br_g10/003: 3000 pieces, 1963883 frames, cycles 88..99986 of 100001
+  /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/PyRETIS3/toytis/simulations/sim_istarz_br_g10/004: 3000 pieces, 2268305 frames, cycles 56..99864 of 100001
+  /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/PyRETIS3/toytis/simulations/sim_istarz_br_g10/005: 3000 pieces, 2503833 frames, cycles 13..99980 of 100001
+  /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/PyRETIS3/toytis/simulations/sim_istarz_br_g10/006: 3000 pieces, 2762139 frames, cycles 37..99910 of 100001
+  /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/PyRETIS3/toytis/simulations/sim_istarz_br_g10/007: 3000 pieces, 2687702 frames, cycles 59..99992 of 100001
+  /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/PyRETIS3/toytis/simulations/sim_istarz_br_g10/008: 3000 pieces, 2659297 frames, cycles 67..99994 of 100001
+  /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/PyRETIS3/toytis/simulations/sim_istarz_br_g10/009: 3000 pieces, 2540854 frames, cycles 125..99988 of 100001
+  /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/PyRETIS3/toytis/simulations/sim_istarz_br_g10/010: 3000 pieces, 2141220 frames, cycles 55..99955 of 100001
+20920952 frames, 29983 pieces, 15000 paths; A 7578, B 1740 frames; saved /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures/param_lambda/z_br/frames.npz
+burnin:   6046 paths,   8393473 frames, cycles 13..39992
+train:   3751 paths,   5160451 frames, cycles 40003..84982
+val  :   1510 paths,   2151143 frames, cycles 45002..69999
+test :   1485 paths,   2082642 frames, cycles 55019..79991
+ood  :   2208 paths,   3133243 frames, cycles 85001..99994
+extract done in 39 s

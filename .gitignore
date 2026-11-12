@@ -5,4 +5,8 @@ examples/figures/**/*.np*
 examples/figures/**/*.pyc
 examples/figures/istarz_test/sim_istarz_subset/
 **/.ipynb_checkpoints
-!examples/figures/exact_committors/**/*np*
+!examples/figures/exact_committors/**/*np*examples/figures_by_potential/MANIFEST.tsv
+examples/figures_by_potential/**/*.np*
+examples/figures_by_potential/**/*.pyc
+examples/figures_by_potential/2d_zpot/brownian_g10/staple/subset_test/sim_istarz_subset/
+!examples/figures_by_potential/*/exact/**/*np*

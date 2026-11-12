@@ -1,0 +1,20 @@
+===== curved channel, Brownian: gamma 10.0, kT 0.05, dt 0.005, sigma 0.00707; A: y <= 0.15, B: y >= 0.85, absorption every step =====
+  h 0.004: loaded /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures/exact_committors/cc/q_exact_h0.004.npz; q at POINTS 0.0016 0.0568 0.3802 0.5588 0.7249 0.9654 0.9981 0.4796 0.6305
+  h 0.002: loaded /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures/exact_committors/cc/q_exact_h0.002.npz; q at POINTS 0.0016 0.0568 0.3802 0.5588 0.7249 0.9654 0.9981 0.4796 0.6305
+  h 0.0015: grid 481 x 701, residual 2.2e-13, 100 s; q at POINTS 0.0016 0.0568 0.3802 0.5588 0.7249 0.9654 0.9981 0.4796 0.6305
+  change h 0.004 -> 0.002: channel (V < 10 kT) max 4.3e-06, RMS 1.5e-07; whole box max 5.5e-05
+  change h 0.002 -> 0.0015: channel (V < 10 kT) max 1.7e-07, RMS 1.9e-08; whole box max 1.8e-06
+  shooting, 1000000 trajectories per point (61 s):
+    (y, x) = (0.17, -0.060): shooting 0.00156 +- 0.00004 | grid 0.00158 | diff +0.00002 (+0.4 s.e.)
+    (y, x) = (0.30, +0.075): shooting 0.05686 +- 0.00023 | grid 0.05683 | diff -0.00003 (-0.1 s.e.)
+    (y, x) = (0.45, +0.178): shooting 0.37988 +- 0.00049 | grid 0.38015 | diff +0.00028 (+0.6 s.e.)
+    (y, x) = (0.50, +0.200): shooting 0.55879 +- 0.00050 | grid 0.55882 | diff +0.00003 (+0.1 s.e.)
+    (y, x) = (0.55, +0.216): shooting 0.72588 +- 0.00045 | grid 0.72486 | diff -0.00102 (-2.3 s.e.)
+    (y, x) = (0.70, +0.225): shooting 0.96522 +- 0.00018 | grid 0.96540 | diff +0.00018 (+1.0 s.e.)
+    (y, x) = (0.83, +0.188): shooting 0.99811 +- 0.00004 | grid 0.99813 | diff +0.00002 (+0.6 s.e.)
+    (y, x) = (0.50, +0.120): shooting 0.48014 +- 0.00050 | grid 0.47958 | diff -0.00056 (-1.1 s.e.)
+    (y, x) = (0.50, +0.280): shooting 0.63034 +- 0.00048 | grid 0.63051 | diff +0.00017 (+0.3 s.e.)
+  chi^2 = 8.4 for 9 points
+  old reference (toy2d.exact_committor_brownian, h 0.004, 0 s) - exact: channel max 0.0059, RMS 0.0006; whole box max 0.0377; at POINTS +0.0004 +0.0010 +0.0006 +0.0002 -0.0001 -0.0004 -0.0003 +0.0003 +0.0001
+  Boltzmann-weighted RMS (old - exact) over the channel: 0.0006; transition-region weighted (q(1-q) Boltzmann): 0.0007
+ALL DONE

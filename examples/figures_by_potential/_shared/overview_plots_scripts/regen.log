@@ -1,0 +1,54 @@
+done zstaple_extra in 6 s
+zstaple_extra: 6.57 s, peak RSS 1507368 kB
+done zlgv_extra in 3 s
+zlgv_extra: 3.77 s, peak RSS 995560 kB
+1390026 frames, CVs 2
+done wellpath in 122 s
+wellpath: 123.16 s, peak RSS 1938476 kB
+32842659 frames
+Traceback (most recent call last):
+  File "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures/overview_plots/regen_all.py", line 70, in <module>
+    q = fit_paths(data, data.X, 3000)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures/overview_plots/regen_all.py", line 50, in fit_paths
+    q.fit_transform(lambda: Xg[:, np.random.randint(Xg.shape[1])], gamma=gamma, ny=6, max_iter=max_iter,
+  File "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/optimalrcs-cupy/optimalrcs.py", line 243, in fit_transform
+    self.compute_metrics(metrics_print)
+  File "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/optimalrcs-cupy/optimalrcs.py", line 149, in compute_metrics
+    row = {metric: metric2function[metric](self) for metric in metrics_print}
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/optimalrcs-cupy/metrics_tis.py", line 252, in max_z_zq_stopped
+    return _cached_max_zq_stopped(rc)[0]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/optimalrcs-cupy/metrics_tis.py", line 239, in _cached_max_zq_stopped
+    stats = _comp_max_zq_stopped(rc.r_traj, rc.b_traj, rc.i_traj, getattr(rc, 'path_weights', None),
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/optimalrcs-cupy/metrics_tis.py", line 168, in _comp_max_zq_stopped
+    _, z = comp_zq_stopped_zscore(r_traj, b_traj, i_traj, w_traj, dt, nbins, tau, g_traj)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/optimalrcs-cupy/metrics_tis.py", line 146, in comp_zq_stopped_zscore
+    sigma = _sigma_zq(grp[starts], bins[starts], contrib[starts], nbins)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/optimalrcs-cupy/metrics_tis.py", line 85, in _sigma_zq
+    before_seg = (cs - c_s)[first]                      # running total before each segment
+                  ~~~^~~~~
+  File "cupy/_core/core.pyx", line 1379, in cupy._core.core._ndarray_base.__sub__
+  File "cupy/_core/_kernel.pyx", line 1349, in cupy._core._kernel.ufunc.__call__
+  File "cupy/_core/_kernel.pyx", line 645, in cupy._core._kernel._get_out_args_from_optionals
+  File "cupy/_core/core.pyx", line 2999, in cupy._core.core._ndarray_init
+  File "cupy/_core/core.pyx", line 272, in cupy._core.core._ndarray_base._init_fast
+  File "cupy/cuda/memory.pyx", line 875, in cupy.cuda.memory.alloc
+  File "cupy/cuda/memory.pyx", line 1579, in cupy.cuda.memory.MemoryPool.malloc
+  File "cupy/cuda/memory.pyx", line 1600, in cupy.cuda.memory.MemoryPool.malloc
+  File "cupy/cuda/memory.pyx", line 1271, in cupy.cuda.memory.SingleDeviceMemoryPool.malloc
+  File "cupy/cuda/memory.pyx", line 1292, in cupy.cuda.memory.SingleDeviceMemoryPool._malloc
+  File "cupy/cuda/memory.pyx", line 1537, in cupy.cuda.memory.SingleDeviceMemoryPool._try_malloc
+  File "cupy/cuda/memory.pyx", line 1540, in cupy.cuda.memory.SingleDeviceMemoryPool._try_malloc
+cupy.cuda.memory.OutOfMemoryError: Out of memory allocating 261,695,488 bytes (allocated so far: 8,084,904,960 bytes).
+Command exited with non-zero status 1
+flat: 147.32 s, peak RSS 5299224 kB
+  plt.gcf().savefig(OUT + name, dpi=100); plt.close('all')
+  plt.gcf().savefig(OUT + name, dpi=100); plt.close('all')
+done hist01 in 166 s
+hist01: 167.07 s, peak RSS 2202132 kB
+ALLDONE

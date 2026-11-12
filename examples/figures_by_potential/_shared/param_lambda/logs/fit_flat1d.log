@@ -1,0 +1,122 @@
+== flat1d
+burnin:      0 paths,         0 frames, cycles -1..-1
+train:   3741 paths,    523734 frames, cycles 40001..84995
+val  :   1486 paths,    210957 frames, cycles 45012..69991
+test :   1503 paths,    210946 frames, cycles 55012..80000
+ood  :   2270 paths,    319267 frames, cycles 85011..100000
+m1_logit_top1_0.01              2.0 s  sdzqs    3.325  spread 0.0124
+m1_logit_top1_0.1               1.9 s  sdzqs    3.325  spread 0.0124
+m1_logit_top1_1                 1.9 s  sdzqs    3.325  spread 0.0124
+m1_logit_top1_10                2.3 s  sdzqs    3.325  spread 0.0124
+m1_gam_top1_0.001               0.1 s  sdzqs    3.324  spread 0.0124
+m1_gam_top1_0.1                 0.1 s  sdzqs    3.325  spread 0.0124
+m1_gam_top1_10                  0.1 s  sdzqs    3.324  spread 0.0124
+   m3_top1_32_b0 epoch   3: sdzqs    3.325 spread 0.0124
+   m3_top1_32_b0 epoch   6: sdzqs    3.325 spread 0.0124
+   m3_top1_32_b0 epoch   9: sdzqs    3.325 spread 0.0125
+   m3_top1_32_b0 epoch  12: sdzqs    3.325 spread 0.0125
+   m3_top1_32_b0 epoch  15: sdzqs    3.325 spread 0.0124
+   m3_top1_32_b0 epoch  18: sdzqs    3.325 spread 0.0124
+   m3_top1_32_b0 epoch  21: sdzqs    3.325 spread 0.0124
+   m3_top1_32_b0 epoch  24: sdzqs    3.325 spread 0.0124
+m3_top1_32_b0                   1.9 s  epoch 12  sdzqs    3.325
+   m3_top1_32_b0.1 epoch   3: sdzqs    3.325 spread 0.0124
+   m3_top1_32_b0.1 epoch   6: sdzqs    3.325 spread 0.0125
+   m3_top1_32_b0.1 epoch   9: sdzqs    3.325 spread 0.0125
+   m3_top1_32_b0.1 epoch  12: sdzqs    3.325 spread 0.0125
+   m3_top1_32_b0.1 epoch  15: sdzqs    3.325 spread 0.0124
+   m3_top1_32_b0.1 epoch  18: sdzqs    3.325 spread 0.0124
+   m3_top1_32_b0.1 epoch  21: sdzqs    3.325 spread 0.0124
+   m3_top1_32_b0.1 epoch  24: sdzqs    3.325 spread 0.0124
+m3_top1_32_b0.1                 2.9 s  epoch 9  sdzqs    3.325
+   m3_top1_32_b1 epoch   3: sdzqs    3.325 spread 0.0123
+   m3_top1_32_b1 epoch   6: sdzqs    3.325 spread 0.0125
+   m3_top1_32_b1 epoch   9: sdzqs    3.325 spread 0.0124
+   m3_top1_32_b1 epoch  12: sdzqs    3.325 spread 0.0124
+   m3_top1_32_b1 epoch  15: sdzqs    3.325 spread 0.0123
+   m3_top1_32_b1 epoch  18: sdzqs    3.325 spread 0.0123
+   m3_top1_32_b1 epoch  21: sdzqs    3.325 spread 0.0123
+   m3_top1_32_b1 epoch  24: sdzqs    3.325 spread 0.0123
+m3_top1_32_b1                   2.6 s  epoch 9  sdzqs    3.325
+   m3_top1_32_b10 epoch   3: sdzqs    3.325 spread 0.0125
+   m3_top1_32_b10 epoch   6: sdzqs    3.325 spread 0.0124
+   m3_top1_32_b10 epoch   9: sdzqs    3.325 spread 0.0123
+   m3_top1_32_b10 epoch  12: sdzqs    3.325 spread 0.0123
+   m3_top1_32_b10 epoch  15: sdzqs    3.325 spread 0.0122
+   m3_top1_32_b10 epoch  18: sdzqs    3.325 spread 0.0122
+   m3_top1_32_b10 epoch  21: sdzqs    3.325 spread 0.0122
+   m3_top1_32_b10 epoch  24: sdzqs    3.325 spread 0.0122
+m3_top1_32_b10                  2.6 s  epoch 6  sdzqs    3.325
+   m3_top1_64x64_b0 epoch   3: sdzqs    3.325 spread 0.0124
+   m3_top1_64x64_b0 epoch   6: sdzqs    3.325 spread 0.0123
+   m3_top1_64x64_b0 epoch   9: sdzqs    3.325 spread 0.0122
+   m3_top1_64x64_b0 epoch  12: sdzqs    3.325 spread 0.0125
+   m3_top1_64x64_b0 epoch  15: sdzqs    3.325 spread 0.0125
+   m3_top1_64x64_b0 epoch  18: sdzqs    3.325 spread 0.0125
+   m3_top1_64x64_b0 epoch  21: sdzqs    3.325 spread 0.0125
+   m3_top1_64x64_b0 epoch  24: sdzqs    3.325 spread 0.0125
+m3_top1_64x64_b0                1.8 s  epoch 3  sdzqs    3.325
+   m3_top1_64x64_b0.1 epoch   3: sdzqs    3.325 spread 0.0124
+   m3_top1_64x64_b0.1 epoch   6: sdzqs    3.325 spread 0.0122
+   m3_top1_64x64_b0.1 epoch   9: sdzqs    3.325 spread 0.0125
+   m3_top1_64x64_b0.1 epoch  12: sdzqs    3.325 spread 0.0124
+   m3_top1_64x64_b0.1 epoch  15: sdzqs    3.325 spread 0.0124
+   m3_top1_64x64_b0.1 epoch  18: sdzqs    3.325 spread 0.0124
+   m3_top1_64x64_b0.1 epoch  21: sdzqs    3.325 spread 0.0122
+   m3_top1_64x64_b0.1 epoch  24: sdzqs    3.325 spread 0.0122
+m3_top1_64x64_b0.1              2.7 s  epoch 12  sdzqs    3.325
+   m3_top1_64x64_b1 epoch   3: sdzqs    3.326 spread 0.0122
+   m3_top1_64x64_b1 epoch   6: sdzqs    3.325 spread 0.0124
+   m3_top1_64x64_b1 epoch   9: sdzqs    3.325 spread 0.0122
+   m3_top1_64x64_b1 epoch  12: sdzqs    3.325 spread 0.0124
+   m3_top1_64x64_b1 epoch  15: sdzqs    3.325 spread 0.0124
+   m3_top1_64x64_b1 epoch  18: sdzqs    3.325 spread 0.0124
+   m3_top1_64x64_b1 epoch  21: sdzqs    3.325 spread 0.0124
+   m3_top1_64x64_b1 epoch  24: sdzqs    3.325 spread 0.0124
+m3_top1_64x64_b1                2.7 s  epoch 12  sdzqs    3.325
+   m3_top1_64x64_b10 epoch   3: sdzqs    3.325 spread 0.0124
+   m3_top1_64x64_b10 epoch   6: sdzqs    3.325 spread 0.0124
+   m3_top1_64x64_b10 epoch   9: sdzqs    3.326 spread 0.0125
+   m3_top1_64x64_b10 epoch  12: sdzqs    3.326 spread 0.0125
+   m3_top1_64x64_b10 epoch  15: sdzqs    3.326 spread 0.0124
+   m3_top1_64x64_b10 epoch  18: sdzqs    3.326 spread 0.0122
+   m3_top1_64x64_b10 epoch  21: sdzqs    3.326 spread 0.0122
+   m3_top1_64x64_b10 epoch  24: sdzqs    3.326 spread 0.0122
+m3_top1_64x64_b10               2.7 s  epoch 3  sdzqs    3.325
+   m3_top1_128x128x128_b0 epoch   3: sdzqs    3.325 spread 0.0124
+   m3_top1_128x128x128_b0 epoch   6: sdzqs    3.325 spread 0.0125
+   m3_top1_128x128x128_b0 epoch   9: sdzqs    3.325 spread 0.0124
+   m3_top1_128x128x128_b0 epoch  12: sdzqs    3.326 spread 0.0124
+   m3_top1_128x128x128_b0 epoch  15: sdzqs    3.326 spread 0.0124
+   m3_top1_128x128x128_b0 epoch  18: sdzqs    3.326 spread 0.0124
+   m3_top1_128x128x128_b0 epoch  21: sdzqs    3.325 spread 0.0124
+   m3_top1_128x128x128_b0 epoch  24: sdzqs    3.325 spread 0.0124
+m3_top1_128x128x128_b0          2.1 s  epoch 6  sdzqs    3.325
+   m3_top1_128x128x128_b0.1 epoch   3: sdzqs    3.325 spread 0.0123
+   m3_top1_128x128x128_b0.1 epoch   6: sdzqs    3.325 spread 0.0122
+   m3_top1_128x128x128_b0.1 epoch   9: sdzqs    3.326 spread 0.0124
+   m3_top1_128x128x128_b0.1 epoch  12: sdzqs    3.325 spread 0.0125
+   m3_top1_128x128x128_b0.1 epoch  15: sdzqs    3.326 spread 0.0125
+   m3_top1_128x128x128_b0.1 epoch  18: sdzqs    3.325 spread 0.0125
+   m3_top1_128x128x128_b0.1 epoch  21: sdzqs    3.326 spread 0.0125
+   m3_top1_128x128x128_b0.1 epoch  24: sdzqs    3.326 spread 0.0125
+m3_top1_128x128x128_b0.1        7.1 s  epoch 3  sdzqs    3.325
+   m3_top1_128x128x128_b1 epoch   3: sdzqs    3.325 spread 0.0124
+   m3_top1_128x128x128_b1 epoch   6: sdzqs    3.326 spread 0.0125
+   m3_top1_128x128x128_b1 epoch   9: sdzqs    3.326 spread 0.0122
+   m3_top1_128x128x128_b1 epoch  12: sdzqs    3.326 spread 0.0122
+   m3_top1_128x128x128_b1 epoch  15: sdzqs    3.326 spread 0.0122
+   m3_top1_128x128x128_b1 epoch  18: sdzqs    3.326 spread 0.0122
+   m3_top1_128x128x128_b1 epoch  21: sdzqs    3.326 spread 0.0123
+   m3_top1_128x128x128_b1 epoch  24: sdzqs    3.326 spread 0.0123
+m3_top1_128x128x128_b1          7.1 s  epoch 3  sdzqs    3.325
+   m3_top1_128x128x128_b10 epoch   3: sdzqs    3.326 spread 0.0125
+   m3_top1_128x128x128_b10 epoch   6: sdzqs    3.325 spread 0.0123
+   m3_top1_128x128x128_b10 epoch   9: sdzqs    3.326 spread 0.0124
+   m3_top1_128x128x128_b10 epoch  12: sdzqs    3.326 spread 0.0124
+   m3_top1_128x128x128_b10 epoch  15: sdzqs    3.326 spread 0.0124
+   m3_top1_128x128x128_b10 epoch  18: sdzqs    3.326 spread 0.0124
+   m3_top1_128x128x128_b10 epoch  21: sdzqs    3.326 spread 0.0124
+   m3_top1_128x128x128_b10 epoch  24: sdzqs    3.326 spread 0.0124
+m3_top1_128x128x128_b10         7.1 s  epoch 6  sdzqs    3.325
+fit flat1d 55.04 s

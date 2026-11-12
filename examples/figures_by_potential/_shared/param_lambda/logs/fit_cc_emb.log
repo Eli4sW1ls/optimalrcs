@@ -1,0 +1,94 @@
+== cc_emb
+burnin:      0 paths,         0 frames, cycles -1..-1
+train:   2366 paths,   1096474 frames, cycles 801..1700
+val  :    977 paths,    451538 frames, cycles 901..1400
+test :    965 paths,    457472 frames, cycles 1101..1600
+ood  :   1519 paths,    694918 frames, cycles 1701..2000
+m1_logit_top2_0.01              3.2 s  sdzqs    4.216  spread 0.7273
+m1_logit_top2_1                 3.2 s  sdzqs    4.217  spread 0.7272
+m1_gam_top2_0.1                 0.3 s  sdzqs    3.726  spread 0.6127
+m1_gam_top2_10                  0.2 s  sdzqs    4.077  spread 0.6410
+m1_logit_top8_0.01              5.3 s  sdzqs    4.226  spread 0.7249
+m1_logit_top8_1                 6.0 s  sdzqs    4.218  spread 0.7483
+m1_gam_top8_0.1                 1.7 s  sdzqs    3.697  spread 0.5829
+m1_gam_top8_10                  1.6 s  sdzqs    3.894  spread 0.6068
+m1_logit_cvs_0.01              12.9 s  sdzqs    4.198  spread 0.7496
+m1_logit_cvs_1                 15.1 s  sdzqs    4.207  spread 0.7491
+m1_gam_cvs_0.1                  9.9 s  sdzqs    3.673  spread 0.6039
+m1_gam_cvs_10                   8.2 s  sdzqs    3.950  spread 0.6416
+m1_logit_noclean_0.01          16.6 s  sdzqs   18.439  spread 0.5830
+m1_logit_noclean_1             12.0 s  sdzqs   18.403  spread 0.5565
+m1_gam_noclean_0.1              5.7 s  sdzqs   20.329  spread 0.5643
+m1_gam_noclean_10               5.6 s  sdzqs   18.383  spread 0.8159
+   m3_cvs_64x64_b0 epoch   3: sdzqs    8.227 spread 0.6488
+   m3_cvs_64x64_b0 epoch   6: sdzqs    4.959 spread 0.6310
+   m3_cvs_64x64_b0 epoch   9: sdzqs    3.995 spread 0.6929
+   m3_cvs_64x64_b0 epoch  12: sdzqs    3.967 spread 0.6268
+   m3_cvs_64x64_b0 epoch  15: sdzqs    3.919 spread 0.5878
+   m3_cvs_64x64_b0 epoch  18: sdzqs    3.921 spread 0.5872
+   m3_cvs_64x64_b0 epoch  21: sdzqs    3.914 spread 0.6073
+   m3_cvs_64x64_b0 epoch  24: sdzqs    3.926 spread 0.5669
+m3_cvs_64x64_b0                 7.0 s  epoch 21  sdzqs    3.914
+   m3_cvs_64x64_b10 epoch   3: sdzqs    3.995 spread 0.7351
+   m3_cvs_64x64_b10 epoch   6: sdzqs    3.950 spread 0.5962
+   m3_cvs_64x64_b10 epoch   9: sdzqs    3.864 spread 0.5357
+   m3_cvs_64x64_b10 epoch  12: sdzqs    3.824 spread 0.5132
+   m3_cvs_64x64_b10 epoch  15: sdzqs    3.781 spread 0.6455
+   m3_cvs_64x64_b10 epoch  18: sdzqs    3.798 spread 0.5446
+   m3_cvs_64x64_b10 epoch  21: sdzqs    3.779 spread 0.5177
+   m3_cvs_64x64_b10 epoch  24: sdzqs    3.805 spread 0.4994
+m3_cvs_64x64_b10               33.9 s  epoch 21  sdzqs    3.779
+   m3_cvs_128x128x128_b0 epoch   3: sdzqs    5.408 spread 0.5980
+   m3_cvs_128x128x128_b0 epoch   6: sdzqs    4.216 spread 0.6088
+   m3_cvs_128x128x128_b0 epoch   9: sdzqs    3.991 spread 0.5652
+   m3_cvs_128x128x128_b0 epoch  12: sdzqs    3.881 spread 0.5517
+   m3_cvs_128x128x128_b0 epoch  15: sdzqs    3.860 spread 0.5501
+   m3_cvs_128x128x128_b0 epoch  18: sdzqs    3.739 spread 0.5491
+   m3_cvs_128x128x128_b0 epoch  21: sdzqs    3.736 spread 0.5639
+   m3_cvs_128x128x128_b0 epoch  24: sdzqs    3.743 spread 0.8276
+m3_cvs_128x128x128_b0          13.2 s  epoch 21  sdzqs    3.736
+   m3_cvs_128x128x128_b10 epoch   3: sdzqs    3.968 spread 0.5275
+   m3_cvs_128x128x128_b10 epoch   6: sdzqs    3.795 spread 0.5577
+   m3_cvs_128x128x128_b10 epoch   9: sdzqs    3.820 spread 0.5378
+   m3_cvs_128x128x128_b10 epoch  12: sdzqs    3.832 spread 0.5144
+   m3_cvs_128x128x128_b10 epoch  15: sdzqs    3.782 spread 0.5339
+   m3_cvs_128x128x128_b10 epoch  18: sdzqs    3.773 spread 0.5233
+   m3_cvs_128x128x128_b10 epoch  21: sdzqs    3.760 spread 0.5220
+   m3_cvs_128x128x128_b10 epoch  24: sdzqs    3.774 spread 0.5110
+m3_cvs_128x128x128_b10         76.8 s  epoch 21  sdzqs    3.760
+   m3_noclean_64x64_b0 epoch   3: sdzqs   23.463 spread 0.8496
+   m3_noclean_64x64_b0 epoch   6: sdzqs   20.305 spread 0.9043
+   m3_noclean_64x64_b0 epoch   9: sdzqs   20.229 spread 0.9883
+   m3_noclean_64x64_b0 epoch  12: sdzqs   20.008 spread 0.9888
+   m3_noclean_64x64_b0 epoch  15: sdzqs   20.067 spread 0.9706
+   m3_noclean_64x64_b0 epoch  18: sdzqs   19.997 spread 0.9647
+   m3_noclean_64x64_b0 epoch  21: sdzqs   19.940 spread 1.0051
+   m3_noclean_64x64_b0 epoch  24: sdzqs   19.946 spread 0.8532
+m3_noclean_64x64_b0             6.2 s  epoch 21  sdzqs   19.940
+   m3_noclean_64x64_b10 epoch   3: sdzqs   19.927 spread 0.8492
+   m3_noclean_64x64_b10 epoch   6: sdzqs   19.979 spread 0.7163
+   m3_noclean_64x64_b10 epoch   9: sdzqs   19.674 spread 0.9715
+   m3_noclean_64x64_b10 epoch  12: sdzqs   19.566 spread 1.0341
+   m3_noclean_64x64_b10 epoch  15: sdzqs   19.652 spread 0.9600
+   m3_noclean_64x64_b10 epoch  18: sdzqs   19.657 spread 0.7978
+   m3_noclean_64x64_b10 epoch  21: sdzqs   19.658 spread 0.8050
+   m3_noclean_64x64_b10 epoch  24: sdzqs   19.594 spread 0.8036
+m3_noclean_64x64_b10           20.1 s  epoch 12  sdzqs   19.566
+   m3_noclean_128x128x128_b0 epoch   3: sdzqs   21.214 spread 0.7362
+   m3_noclean_128x128x128_b0 epoch   6: sdzqs   20.343 spread 0.7183
+   m3_noclean_128x128x128_b0 epoch   9: sdzqs   20.200 spread 0.9856
+   m3_noclean_128x128x128_b0 epoch  12: sdzqs   20.315 spread 0.7221
+   m3_noclean_128x128x128_b0 epoch  15: sdzqs   19.905 spread 0.9895
+   m3_noclean_128x128x128_b0 epoch  18: sdzqs   19.863 spread 0.7617
+   m3_noclean_128x128x128_b0 epoch  21: sdzqs   19.785 spread 0.7686
+   m3_noclean_128x128x128_b0 epoch  24: sdzqs   19.822 spread 0.9805
+m3_noclean_128x128x128_b0       8.7 s  epoch 21  sdzqs   19.785
+   m3_noclean_128x128x128_b10 epoch   3: sdzqs   19.873 spread 0.9200
+   m3_noclean_128x128x128_b10 epoch   6: sdzqs   20.037 spread 0.8755
+   m3_noclean_128x128x128_b10 epoch   9: sdzqs   19.614 spread 0.3967
+   m3_noclean_128x128x128_b10 epoch  12: sdzqs   19.586 spread 0.8903
+   m3_noclean_128x128x128_b10 epoch  15: sdzqs   19.624 spread 0.4221
+   m3_noclean_128x128x128_b10 epoch  18: sdzqs   19.714 spread 0.8608
+   m3_noclean_128x128x128_b10 epoch  21: sdzqs   19.708 spread 0.9376
+   m3_noclean_128x128x128_b10 epoch  24: sdzqs   19.650 spread 0.9103
+m3_noclean_128x128x128_b10     68.4 s  epoch 12  sdzqs   19.586

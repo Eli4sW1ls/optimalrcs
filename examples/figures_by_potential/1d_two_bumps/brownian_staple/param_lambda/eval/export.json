@@ -1,0 +1,62 @@
+{
+ "seed": {
+  "file": "examples/param_lambda/exported/bumps1d_seed.npz",
+  "run": null,
+  "n_calibration_knots": 300,
+  "us_per_frame_one": 2.2256561496760696,
+  "us_per_frame_batch": 0.10632512494339608,
+  "ramp_width": 0.020000000000000004,
+  "weight_fraction_in_ramps": 0.025101008920250755,
+  "max_abs_h_minus_m": 0.01288130155490527,
+  "rms_h_minus_m_in_ramps": 0.008753400524202955,
+  "train_seconds": null
+ },
+ "M1-logit": {
+  "file": "examples/param_lambda/exported/bumps1d_m1-logit.npz",
+  "run": "m1_logit_top1_1",
+  "n_calibration_knots": 300,
+  "us_per_frame_one": 2.3995102499611676,
+  "us_per_frame_batch": 0.10537989001022652,
+  "ramp_width": 0.020000000000000004,
+  "weight_fraction_in_ramps": 0.025101008920250755,
+  "max_abs_h_minus_m": 0.01288130155490524,
+  "rms_h_minus_m_in_ramps": 0.008753400524202943,
+  "train_seconds": 2.1003470420837402
+ },
+ "M1-gam": {
+  "file": "examples/param_lambda/exported/bumps1d_m1-gam.npz",
+  "run": "m1_gam_top1_0.1",
+  "n_calibration_knots": 299,
+  "us_per_frame_one": 3.4275460508069955,
+  "us_per_frame_batch": 0.17014832003042102,
+  "ramp_width": 0.020000000000000004,
+  "weight_fraction_in_ramps": 0.025101008920250755,
+  "max_abs_h_minus_m": 0.012877650328994024,
+  "rms_h_minus_m_in_ramps": 0.008757731439438076,
+  "train_seconds": 0.07907295227050781
+ },
+ "M3": {
+  "file": "examples/param_lambda/exported/bumps1d_m3.npz",
+  "run": "m3_top1_64x64_b0.1",
+  "n_calibration_knots": 300,
+  "us_per_frame_one": 8.294912999554072,
+  "us_per_frame_batch": 1.5735093450348359,
+  "ramp_width": 0.020000000000000004,
+  "weight_fraction_in_ramps": 0.025101008920250755,
+  "max_abs_h_minus_m": 0.012876898035829268,
+  "rms_h_minus_m_in_ramps": 0.008753147307955355,
+  "train_seconds": 7.214967489242554
+ },
+ "M3-fast": {
+  "file": "examples/param_lambda/exported/bumps1d_m3-fast.npz",
+  "run": "m3_top1_32_b10",
+  "n_calibration_knots": 300,
+  "us_per_frame_one": 5.436146150168497,
+  "us_per_frame_batch": 0.4294005149859004,
+  "ramp_width": 0.020000000000000004,
+  "weight_fraction_in_ramps": 0.025101008920250755,
+  "max_abs_h_minus_m": 0.012876999079551392,
+  "rms_h_minus_m_in_ramps": 0.008753194459586687,
+  "train_seconds": 6.820468902587891
+ }
+}

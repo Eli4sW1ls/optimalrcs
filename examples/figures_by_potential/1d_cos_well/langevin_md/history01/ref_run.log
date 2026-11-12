@@ -1,0 +1,8 @@
+#=500, xent=0.758092, mse=0.255171, sdzq=1182.37, dzq=3872.17, dr2=631.208, auc=0.85138, |dx|=0.338581, time=170.2
+#=1000, xent=0.782765, mse=0.259395, sdzq=1412.29, dzq=3953.65, dr2=1357.17, auc=0.854989, |dx|=0.0398567, time=340.472
+#=1500, xent=0.661307, mse=0.234606, sdzq=1535.75, dzq=3927.63, dr2=2051.7, auc=0.85923, |dx|=0.0477445, time=511.586
+/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/optimalrcs-cupy/optimalrcs.py:390: UserWarning: Creating legend with loc="best" can be slow with large amounts of data.
+  fig.tight_layout()
+/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures/langevin_hist01/reference_true_v.py:17: UserWarning: Creating legend with loc="best" can be slow with large amounts of data.
+  q.plots_obs_pred(); plt.gcf().savefig("ref_obs_pred.png", dpi=110, bbox_inches="tight"); plt.close("all")
+REF DONE

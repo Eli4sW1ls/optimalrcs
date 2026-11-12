@@ -1,0 +1,15 @@
+cc: grid h 0.004 vs 0.002 at 90188 path frames: RMS 0.0005, max |diff| 0.0036 (at q 0.01)
+shooting: 400000 trajectories in 6 s (9000 steps)
+PDE h 0.004 - shooting at 200 frames: mean +0.0004, RMS 0.0083, chi2/dof 0.84 (p 0.951), |z| > 3 at 1 frames; mean shooting s.e. 0.0086
+    (y, x) = (0.573, 0.235): PDE 0.795, shooting 0.823 +- 0.009 (z -3.2)
+    (y, x) = (0.521, 0.284): PDE 0.690, shooting 0.720 +- 0.010 (z -2.9)
+    (y, x) = (0.374, 0.174): PDE 0.203, shooting 0.183 +- 0.009 (z +2.3)
+    (y, x) = (0.487, 0.114): PDE 0.429, shooting 0.454 +- 0.011 (z -2.2)
+    (y, x) = (0.541, 0.043): PDE 0.567, shooting 0.545 +- 0.011 (z +2.0)
+PDE h 0.002 - shooting at 200 frames: mean -0.0000, RMS 0.0083, chi2/dof 0.83 (p 0.961), |z| > 3 at 1 frames; mean shooting s.e. 0.0086
+    (y, x) = (0.573, 0.235): PDE 0.795, shooting 0.823 +- 0.009 (z -3.3)
+    (y, x) = (0.521, 0.284): PDE 0.690, shooting 0.720 +- 0.010 (z -3.0)
+    (y, x) = (0.487, 0.114): PDE 0.428, shooting 0.454 +- 0.011 (z -2.3)
+    (y, x) = (0.374, 0.174): PDE 0.203, shooting 0.183 +- 0.009 (z +2.2)
+    (y, x) = (0.541, 0.043): PDE 0.567, shooting 0.545 +- 0.011 (z +2.0)
+saved /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures/reference_check/

@@ -1,0 +1,696 @@
+== flat1d
+burnin:      0 paths,         0 frames, cycles -1..-1
+train:   3741 paths,    523734 frames, cycles 40001..84995
+val  :   1486 paths,    210957 frames, cycles 45012..69991
+test :   1503 paths,    210946 frames, cycles 55012..80000
+ood  :   2270 paths,    319267 frames, cycles 85011..100000
+M2 permutation importance (validation MSE increase):
+  x            2.9479 +- 0.0098
+  x^2          0.0593 +- 0.0002
+  x^3          0.0101 +- 0.0000
+== flat1d
+burnin:      0 paths,         0 frames, cycles -1..-1
+train:   3741 paths,    523734 frames, cycles 40001..84995
+val  :   1486 paths,    210957 frames, cycles 45012..69991
+test :   1503 paths,    210946 frames, cycles 55012..80000
+ood  :   2270 paths,    319267 frames, cycles 85011..100000
+m1_logit_top1_0.01              2.3 s  sdzqs    3.333  spread 0.0332
+m1_logit_top1_0.1               2.1 s  sdzqs    3.333  spread 0.0332
+m1_logit_top1_1                 2.3 s  sdzqs    3.333  spread 0.0332
+m1_logit_top1_10                2.3 s  sdzqs    3.333  spread 0.0332
+m1_gam_top1_0.001               0.1 s  sdzqs    3.332  spread 0.0333
+m1_gam_top1_0.1                 0.1 s  sdzqs    3.332  spread 0.0333
+m1_gam_top1_10                  0.1 s  sdzqs    3.332  spread 0.0333
+   m3_top1_32_b0 epoch   3: sdzqs    3.332 spread 0.0332
+   m3_top1_32_b0 epoch   6: sdzqs    3.332 spread 0.0332
+   m3_top1_32_b0 epoch   9: sdzqs    3.333 spread 0.0332
+   m3_top1_32_b0 epoch  12: sdzqs    3.333 spread 0.0332
+   m3_top1_32_b0 epoch  15: sdzqs    3.333 spread 0.0332
+   m3_top1_32_b0 epoch  18: sdzqs    3.333 spread 0.0332
+   m3_top1_32_b0 epoch  21: sdzqs    3.333 spread 0.0332
+   m3_top1_32_b0 epoch  24: sdzqs    3.333 spread 0.0332
+m3_top1_32_b0                   3.7 s  epoch 3  sdzqs    3.332
+   m3_top1_32_b0.1 epoch   3: sdzqs    3.332 spread 0.0332
+   m3_top1_32_b0.1 epoch   6: sdzqs    3.332 spread 0.0332
+   m3_top1_32_b0.1 epoch   9: sdzqs    3.333 spread 0.0332
+   m3_top1_32_b0.1 epoch  12: sdzqs    3.333 spread 0.0332
+   m3_top1_32_b0.1 epoch  15: sdzqs    3.333 spread 0.0332
+   m3_top1_32_b0.1 epoch  18: sdzqs    3.333 spread 0.0332
+   m3_top1_32_b0.1 epoch  21: sdzqs    3.333 spread 0.0332
+   m3_top1_32_b0.1 epoch  24: sdzqs    3.333 spread 0.0332
+m3_top1_32_b0.1                 6.7 s  epoch 3  sdzqs    3.332
+   m3_top1_32_b1 epoch   3: sdzqs    3.332 spread 0.0332
+   m3_top1_32_b1 epoch   6: sdzqs    3.333 spread 0.0332
+   m3_top1_32_b1 epoch   9: sdzqs    3.333 spread 0.0332
+   m3_top1_32_b1 epoch  12: sdzqs    3.333 spread 0.0332
+   m3_top1_32_b1 epoch  15: sdzqs    3.333 spread 0.0332
+   m3_top1_32_b1 epoch  18: sdzqs    3.333 spread 0.0332
+   m3_top1_32_b1 epoch  21: sdzqs    3.333 spread 0.0332
+   m3_top1_32_b1 epoch  24: sdzqs    3.333 spread 0.0332
+m3_top1_32_b1                   6.2 s  epoch 3  sdzqs    3.332
+   m3_top1_32_b10 epoch   3: sdzqs    3.332 spread 0.0332
+   m3_top1_32_b10 epoch   6: sdzqs    3.333 spread 0.0332
+   m3_top1_32_b10 epoch   9: sdzqs    3.333 spread 0.0332
+   m3_top1_32_b10 epoch  12: sdzqs    3.333 spread 0.0332
+   m3_top1_32_b10 epoch  15: sdzqs    3.333 spread 0.0332
+   m3_top1_32_b10 epoch  18: sdzqs    3.333 spread 0.0332
+   m3_top1_32_b10 epoch  21: sdzqs    3.333 spread 0.0332
+   m3_top1_32_b10 epoch  24: sdzqs    3.333 spread 0.0332
+m3_top1_32_b10                  6.1 s  epoch 3  sdzqs    3.332
+   m3_top1_64x64_b0 epoch   3: sdzqs    3.333 spread 0.0332
+   m3_top1_64x64_b0 epoch   6: sdzqs    3.333 spread 0.0332
+   m3_top1_64x64_b0 epoch   9: sdzqs    3.333 spread 0.0332
+   m3_top1_64x64_b0 epoch  12: sdzqs    3.333 spread 0.0332
+   m3_top1_64x64_b0 epoch  15: sdzqs    3.333 spread 0.0332
+   m3_top1_64x64_b0 epoch  18: sdzqs    3.333 spread 0.0332
+   m3_top1_64x64_b0 epoch  21: sdzqs    3.333 spread 0.0332
+   m3_top1_64x64_b0 epoch  24: sdzqs    3.333 spread 0.0332
+m3_top1_64x64_b0               10.3 s  epoch 6  sdzqs    3.333
+   m3_top1_64x64_b0.1 epoch   3: sdzqs    3.333 spread 0.0332
+   m3_top1_64x64_b0.1 epoch   6: sdzqs    3.333 spread 0.0332
+   m3_top1_64x64_b0.1 epoch   9: sdzqs    3.333 spread 0.0332
+   m3_top1_64x64_b0.1 epoch  12: sdzqs    3.333 spread 0.0332
+   m3_top1_64x64_b0.1 epoch  15: sdzqs    3.333 spread 0.0332
+   m3_top1_64x64_b0.1 epoch  18: sdzqs    3.333 spread 0.0332
+   m3_top1_64x64_b0.1 epoch  21: sdzqs    3.333 spread 0.0332
+   m3_top1_64x64_b0.1 epoch  24: sdzqs    3.333 spread 0.0332
+m3_top1_64x64_b0.1             13.5 s  epoch 3  sdzqs    3.333
+   m3_top1_64x64_b1 epoch   3: sdzqs    3.333 spread 0.0332
+   m3_top1_64x64_b1 epoch   6: sdzqs    3.333 spread 0.0332
+   m3_top1_64x64_b1 epoch   9: sdzqs    3.333 spread 0.0332
+   m3_top1_64x64_b1 epoch  12: sdzqs    3.332 spread 0.0332
+   m3_top1_64x64_b1 epoch  15: sdzqs    3.332 spread 0.0332
+   m3_top1_64x64_b1 epoch  18: sdzqs    3.331 spread 0.0332
+   m3_top1_64x64_b1 epoch  21: sdzqs    3.331 spread 0.0332
+   m3_top1_64x64_b1 epoch  24: sdzqs    3.331 spread 0.0332
+m3_top1_64x64_b1               13.8 s  epoch 21  sdzqs    3.331
+   m3_top1_64x64_b10 epoch   3: sdzqs    3.333 spread 0.0332
+   m3_top1_64x64_b10 epoch   6: sdzqs    3.333 spread 0.0332
+   m3_top1_64x64_b10 epoch   9: sdzqs    3.333 spread 0.0332
+   m3_top1_64x64_b10 epoch  12: sdzqs    3.333 spread 0.0332
+   m3_top1_64x64_b10 epoch  15: sdzqs    3.333 spread 0.0332
+   m3_top1_64x64_b10 epoch  18: sdzqs    3.332 spread 0.0332
+   m3_top1_64x64_b10 epoch  21: sdzqs    3.333 spread 0.0332
+   m3_top1_64x64_b10 epoch  24: sdzqs    3.332 spread 0.0332
+m3_top1_64x64_b10              14.5 s  epoch 18  sdzqs    3.332
+   m3_top1_128x128x128_b0 epoch   3: sdzqs    3.333 spread 0.0332
+   m3_top1_128x128x128_b0 epoch   6: sdzqs    3.333 spread 0.0332
+   m3_top1_128x128x128_b0 epoch   9: sdzqs    3.333 spread 0.0332
+   m3_top1_128x128x128_b0 epoch  12: sdzqs    3.333 spread 0.0332
+   m3_top1_128x128x128_b0 epoch  15: sdzqs    3.332 spread 0.0332
+   m3_top1_128x128x128_b0 epoch  18: sdzqs    3.332 spread 0.0332
+   m3_top1_128x128x128_b0 epoch  21: sdzqs    3.332 spread 0.0332
+   m3_top1_128x128x128_b0 epoch  24: sdzqs    3.332 spread 0.0332
+m3_top1_128x128x128_b0         31.1 s  epoch 24  sdzqs    3.332
+   m3_top1_128x128x128_b0.1 epoch   3: sdzqs    3.333 spread 0.0332
+   m3_top1_128x128x128_b0.1 epoch   6: sdzqs    3.333 spread 0.0332
+   m3_top1_128x128x128_b0.1 epoch   9: sdzqs    3.332 spread 0.0332
+   m3_top1_128x128x128_b0.1 epoch  12: sdzqs    3.333 spread 0.0332
+   m3_top1_128x128x128_b0.1 epoch  15: sdzqs    3.333 spread 0.0332
+   m3_top1_128x128x128_b0.1 epoch  18: sdzqs    3.332 spread 0.0332
+   m3_top1_128x128x128_b0.1 epoch  21: sdzqs    3.332 spread 0.0332
+   m3_top1_128x128x128_b0.1 epoch  24: sdzqs    3.333 spread 0.0332
+m3_top1_128x128x128_b0.1       37.4 s  epoch 9  sdzqs    3.332
+   m3_top1_128x128x128_b1 epoch   3: sdzqs    3.333 spread 0.0332
+   m3_top1_128x128x128_b1 epoch   6: sdzqs    3.332 spread 0.0332
+   m3_top1_128x128x128_b1 epoch   9: sdzqs    3.333 spread 0.0332
+   m3_top1_128x128x128_b1 epoch  12: sdzqs    3.333 spread 0.0332
+   m3_top1_128x128x128_b1 epoch  15: sdzqs    3.332 spread 0.0332
+   m3_top1_128x128x128_b1 epoch  18: sdzqs    3.332 spread 0.0332
+   m3_top1_128x128x128_b1 epoch  21: sdzqs    3.332 spread 0.0332
+   m3_top1_128x128x128_b1 epoch  24: sdzqs    3.332 spread 0.0332
+m3_top1_128x128x128_b1         38.8 s  epoch 6  sdzqs    3.332
+   m3_top1_128x128x128_b10 epoch   3: sdzqs    3.333 spread 0.0332
+   m3_top1_128x128x128_b10 epoch   6: sdzqs    3.333 spread 0.0332
+   m3_top1_128x128x128_b10 epoch   9: sdzqs    3.333 spread 0.0332
+   m3_top1_128x128x128_b10 epoch  12: sdzqs    3.333 spread 0.0332
+   m3_top1_128x128x128_b10 epoch  15: sdzqs    3.333 spread 0.0332
+   m3_top1_128x128x128_b10 epoch  18: sdzqs    3.333 spread 0.0332
+   m3_top1_128x128x128_b10 epoch  21: sdzqs    3.333 spread 0.0332
+   m3_top1_128x128x128_b10 epoch  24: sdzqs    3.333 spread 0.0332
+m3_top1_128x128x128_b10        37.9 s  epoch 6  sdzqs    3.333
+== flat1d
+burnin:      0 paths,         0 frames, cycles -1..-1
+train:   3741 paths,    523734 frames, cycles 40001..84995
+val  :   1486 paths,    210957 frames, cycles 45012..69991
+test :   1503 paths,    210946 frames, cycles 55012..80000
+ood  :   2270 paths,    319267 frames, cycles 85011..100000
+-- test: 210946 frames; reference turns {'turns_qnp': 26.470201574719376, 'crossings_qnp': 129.295102724536, 'turns_exact': 26.883379263617865, 'crossings_exact': 131.65611806433893}
+   seed                         spread 0.0319  zqs_z   2.56  sdzqs    5.786  step 0.941  turns/q_np 0.927  (0 s)
+   q_np                         spread 0.0321  zqs_z   2.56  sdzqs    5.786  step 0.939  turns/q_np 0.928  (0 s)
+   exact                        spread 0.0319  zqs_z   2.56  sdzqs    5.786  step 0.939  turns/q_np 0.927  (0 s)
+   m1_logit_top1_0.01           spread 0.0319  zqs_z   2.56  sdzqs    5.786  step 0.941  turns/q_np 0.927  (0 s)
+   m1_logit_top1_0.1            spread 0.0319  zqs_z   2.56  sdzqs    5.786  step 0.941  turns/q_np 0.927  (0 s)
+   m1_logit_top1_1              spread 0.0319  zqs_z   2.56  sdzqs    5.786  step 0.941  turns/q_np 0.927  (0 s)
+   m1_logit_top1_10             spread 0.0319  zqs_z   2.56  sdzqs    5.786  step 0.941  turns/q_np 0.927  (0 s)
+   m1_gam_top1_0.001            spread 0.0319  zqs_z   2.56  sdzqs    5.786  step 0.944  turns/q_np 0.928  (0 s)
+   m1_gam_top1_0.1              spread 0.0319  zqs_z   2.56  sdzqs    5.786  step 0.944  turns/q_np 0.928  (0 s)
+   m1_gam_top1_10               spread 0.0319  zqs_z   2.56  sdzqs    5.786  step 0.944  turns/q_np 0.928  (0 s)
+   m3_top1_32_b0                spread 0.0319  zqs_z   2.56  sdzqs    5.786  step 0.941  turns/q_np 0.927  (1 s)
+   m3_top1_32_b0.1              spread 0.0319  zqs_z   2.56  sdzqs    5.786  step 0.941  turns/q_np 0.927  (1 s)
+   m3_top1_32_b1                spread 0.0319  zqs_z   2.56  sdzqs    5.786  step 0.941  turns/q_np 0.927  (1 s)
+   m3_top1_32_b10               spread 0.0319  zqs_z   2.56  sdzqs    5.786  step 0.941  turns/q_np 0.927  (1 s)
+   m3_top1_64x64_b0             spread 0.0319  zqs_z   2.56  sdzqs    5.786  step 0.941  turns/q_np 0.927  (1 s)
+   m3_top1_64x64_b0.1           spread 0.0319  zqs_z   2.56  sdzqs    5.786  step 0.941  turns/q_np 0.927  (1 s)
+   m3_top1_64x64_b1             spread 0.0319  zqs_z   2.56  sdzqs    5.785  step 0.941  turns/q_np 0.927  (1 s)
+   m3_top1_64x64_b10            spread 0.0319  zqs_z   2.56  sdzqs    5.786  step 0.940  turns/q_np 0.927  (1 s)
+   m3_top1_128x128x128_b0       spread 0.0319  zqs_z   2.56  sdzqs    5.786  step 0.940  turns/q_np 0.927  (4 s)
+   m3_top1_128x128x128_b0.1     spread 0.0319  zqs_z   2.56  sdzqs    5.786  step 0.940  turns/q_np 0.927  (4 s)
+   m3_top1_128x128x128_b1       spread 0.0319  zqs_z   2.56  sdzqs    5.786  step 0.940  turns/q_np 0.927  (4 s)
+   m3_top1_128x128x128_b10      spread 0.0319  zqs_z   2.56  sdzqs    5.786  step 0.940  turns/q_np 0.927  (4 s)
+-- ood: 319267 frames; reference turns {'turns_qnp': 25.01063025579328, 'crossings_qnp': 126.35201036388627, 'turns_exact': 25.46621356336332, 'crossings_exact': 128.6460063222559}
+   seed                         spread 0.0332  zqs_z   1.11  sdzqs    4.202  step 0.928  turns/q_np 0.922  (1 s)
+   q_np                         spread 0.0334  zqs_z   1.23  sdzqs    4.214  step 0.926  turns/q_np 0.924  (1 s)
+   exact                        spread 0.0332  zqs_z   1.19  sdzqs    4.207  step 0.926  turns/q_np 0.921  (0 s)
+   m1_logit_top1_0.01           spread 0.0332  zqs_z   1.11  sdzqs    4.202  step 0.928  turns/q_np 0.922  (0 s)
+   m1_logit_top1_0.1            spread 0.0332  zqs_z   1.11  sdzqs    4.202  step 0.928  turns/q_np 0.922  (0 s)
+   m1_logit_top1_1              spread 0.0332  zqs_z   1.11  sdzqs    4.202  step 0.928  turns/q_np 0.922  (0 s)
+   m1_logit_top1_10             spread 0.0332  zqs_z   1.11  sdzqs    4.202  step 0.928  turns/q_np 0.922  (0 s)
+   m1_gam_top1_0.001            spread 0.0332  zqs_z   1.12  sdzqs    4.186  step 0.931  turns/q_np 0.924  (1 s)
+   m1_gam_top1_0.1              spread 0.0332  zqs_z   1.12  sdzqs    4.188  step 0.931  turns/q_np 0.924  (1 s)
+   m1_gam_top1_10               spread 0.0332  zqs_z   1.12  sdzqs    4.189  step 0.931  turns/q_np 0.924  (1 s)
+   m3_top1_32_b0                spread 0.0332  zqs_z   1.11  sdzqs    4.202  step 0.928  turns/q_np 0.922  (1 s)
+   m3_top1_32_b0.1              spread 0.0332  zqs_z   1.11  sdzqs    4.202  step 0.928  turns/q_np 0.922  (1 s)
+   m3_top1_32_b1                spread 0.0332  zqs_z   1.11  sdzqs    4.202  step 0.928  turns/q_np 0.922  (1 s)
+   m3_top1_32_b10               spread 0.0332  zqs_z   1.11  sdzqs    4.201  step 0.928  turns/q_np 0.923  (1 s)
+   m3_top1_64x64_b0             spread 0.0332  zqs_z   1.12  sdzqs    4.202  step 0.928  turns/q_np 0.923  (2 s)
+   m3_top1_64x64_b0.1           spread 0.0332  zqs_z   1.12  sdzqs    4.201  step 0.928  turns/q_np 0.923  (2 s)
+   m3_top1_64x64_b1             spread 0.0332  zqs_z   1.12  sdzqs    4.202  step 0.928  turns/q_np 0.922  (2 s)
+   m3_top1_64x64_b10            spread 0.0332  zqs_z   1.16  sdzqs    4.203  step 0.927  turns/q_np 0.922  (2 s)
+   m3_top1_128x128x128_b0       spread 0.0332  zqs_z   1.16  sdzqs    4.202  step 0.927  turns/q_np 0.922  (4 s)
+   m3_top1_128x128x128_b0.1     spread 0.0332  zqs_z   1.12  sdzqs    4.202  step 0.927  turns/q_np 0.922  (5 s)
+   m3_top1_128x128x128_b1       spread 0.0332  zqs_z   1.16  sdzqs    4.202  step 0.927  turns/q_np 0.922  (4 s)
+   m3_top1_128x128x128_b10      spread 0.0332  zqs_z   1.18  sdzqs    4.204  step 0.927  turns/q_np 0.922  (5 s)
+TIS plots in /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures/param_lambda/flat1d/eval/tis_plots
+== flat1d
+burnin:      0 paths,         0 frames, cycles -1..-1
+train:   3741 paths,    523734 frames, cycles 40001..84995
+val  :   1486 paths,    210957 frames, cycles 45012..69991
+test :   1503 paths,    210946 frames, cycles 55012..80000
+ood  :   2270 paths,    319267 frames, cycles 85011..100000
+seed       -> /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/param_lambda/exported/flat1d_seed.npz: 2.1 us/frame (one), 0.117 us/frame (batch); ramps hold 3.23% of the weight, max |h - m| 0.026
+M1-logit   -> /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/param_lambda/exported/flat1d_m1-logit.npz: 2.6 us/frame (one), 0.108 us/frame (batch); ramps hold 3.23% of the weight, max |h - m| 0.026
+M1-gam     -> /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/param_lambda/exported/flat1d_m1-gam.npz: 3.7 us/frame (one), 0.259 us/frame (batch); ramps hold 3.23% of the weight, max |h - m| 0.026
+M3         -> /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/param_lambda/exported/flat1d_m3.npz: 8.6 us/frame (one), 1.589 us/frame (batch); ramps hold 3.23% of the weight, max |h - m| 0.026
+== flat1d
+burnin:      0 paths,         0 frames, cycles -1..-1
+train:   3741 paths,    523734 frames, cycles 40001..84995
+val  :   1486 paths,    210957 frames, cycles 45012..69991
+test :   1503 paths,    210946 frames, cycles 55012..80000
+ood  :   2270 paths,    319267 frames, cycles 85011..100000
+-- test: 210946 frames; reference turns {'turns_qnp': 26.470201574719376, 'crossings_qnp': 129.295102724536, 'turns_exact': 26.883379263617865, 'crossings_exact': 131.65611806433893}
+   seed                         spread* 0.0143  zqs_z   2.56  sdzqs    5.786  step 0.940  turns/q_np 0.927  (5 s)
+   q_np                         spread* 0.0143  zqs_z   2.56  sdzqs    5.786  step 0.940  turns/q_np 0.927  (5 s)
+   exact                        spread* 0.0143  zqs_z   2.56  sdzqs    5.786  step 0.940  turns/q_np 0.927  (5 s)
+   m1_logit_top1_0.01           spread* 0.0143  zqs_z   2.56  sdzqs    5.786  step 0.940  turns/q_np 0.927  (5 s)
+   m1_logit_top1_0.1            spread* 0.0143  zqs_z   2.56  sdzqs    5.786  step 0.940  turns/q_np 0.927  (5 s)
+   m1_logit_top1_1              spread* 0.0143  zqs_z   2.56  sdzqs    5.786  step 0.940  turns/q_np 0.927  (5 s)
+   m1_logit_top1_10             spread* 0.0143  zqs_z   2.56  sdzqs    5.786  step 0.940  turns/q_np 0.927  (5 s)
+   m1_gam_top1_0.001            spread* 0.0143  zqs_z   2.56  sdzqs    5.786  step 0.940  turns/q_np 0.927  (5 s)
+   m1_gam_top1_0.1              spread* 0.0143  zqs_z   2.56  sdzqs    5.786  step 0.940  turns/q_np 0.927  (5 s)
+   m1_gam_top1_10               spread* 0.0143  zqs_z   2.56  sdzqs    5.786  step 0.940  turns/q_np 0.927  (5 s)
+   m3_top1_32_b0                spread* 0.0143  zqs_z   2.56  sdzqs    5.786  step 0.940  turns/q_np 0.927  (5 s)
+   m3_top1_32_b0.1              spread* 0.0143  zqs_z   2.56  sdzqs    5.786  step 0.940  turns/q_np 0.927  (5 s)
+   m3_top1_32_b1                spread* 0.0143  zqs_z   2.56  sdzqs    5.786  step 0.940  turns/q_np 0.927  (5 s)
+   m3_top1_32_b10               spread* 0.0143  zqs_z   2.56  sdzqs    5.786  step 0.940  turns/q_np 0.927  (5 s)
+   m3_top1_64x64_b0             spread* 0.0143  zqs_z   2.56  sdzqs    5.786  step 0.940  turns/q_np 0.927  (5 s)
+   m3_top1_64x64_b0.1           spread* 0.0143  zqs_z   2.56  sdzqs    5.786  step 0.940  turns/q_np 0.927  (5 s)
+   m3_top1_64x64_b1             spread* 0.0143  zqs_z   2.56  sdzqs    5.786  step 0.940  turns/q_np 0.927  (5 s)
+   m3_top1_64x64_b10            spread* 0.0143  zqs_z   2.56  sdzqs    5.786  step 0.940  turns/q_np 0.927  (5 s)
+   m3_top1_128x128x128_b0       spread* 0.0143  zqs_z   2.56  sdzqs    5.786  step 0.940  turns/q_np 0.927  (5 s)
+   m3_top1_128x128x128_b0.1     spread* 0.0143  zqs_z   2.56  sdzqs    5.786  step 0.940  turns/q_np 0.927  (5 s)
+   m3_top1_128x128x128_b1       spread* 0.0143  zqs_z   2.56  sdzqs    5.786  step 0.940  turns/q_np 0.927  (5 s)
+   m3_top1_128x128x128_b10      spread* 0.0143  zqs_z   2.56  sdzqs    5.786  step 0.940  turns/q_np 0.927  (5 s)
+-- ood: 319267 frames; reference turns {'turns_qnp': 25.01063025579328, 'crossings_qnp': 126.35201036388627, 'turns_exact': 25.46621356336332, 'crossings_exact': 128.6460063222559}
+   seed                         spread* 0.0147  zqs_z   1.18  sdzqs    4.204  step 0.927  turns/q_np 0.922  (9 s)
+   q_np                         spread* 0.0147  zqs_z   1.18  sdzqs    4.204  step 0.927  turns/q_np 0.922  (9 s)
+   exact                        spread* 0.0147  zqs_z   1.18  sdzqs    4.204  step 0.927  turns/q_np 0.922  (9 s)
+   m1_logit_top1_0.01           spread* 0.0147  zqs_z   1.18  sdzqs    4.204  step 0.927  turns/q_np 0.922  (9 s)
+   m1_logit_top1_0.1            spread* 0.0147  zqs_z   1.18  sdzqs    4.204  step 0.927  turns/q_np 0.922  (9 s)
+   m1_logit_top1_1              spread* 0.0147  zqs_z   1.18  sdzqs    4.204  step 0.927  turns/q_np 0.922  (9 s)
+   m1_logit_top1_10             spread* 0.0147  zqs_z   1.18  sdzqs    4.204  step 0.927  turns/q_np 0.922  (9 s)
+   m1_gam_top1_0.001            spread* 0.0147  zqs_z   1.18  sdzqs    4.204  step 0.927  turns/q_np 0.922  (9 s)
+   m1_gam_top1_0.1              spread* 0.0147  zqs_z   1.18  sdzqs    4.204  step 0.927  turns/q_np 0.922  (9 s)
+   m1_gam_top1_10               spread* 0.0147  zqs_z   1.18  sdzqs    4.204  step 0.927  turns/q_np 0.922  (9 s)
+   m3_top1_32_b0                spread* 0.0147  zqs_z   1.18  sdzqs    4.204  step 0.927  turns/q_np 0.922  (9 s)
+   m3_top1_32_b0.1              spread* 0.0147  zqs_z   1.18  sdzqs    4.204  step 0.927  turns/q_np 0.922  (9 s)
+   m3_top1_32_b1                spread* 0.0147  zqs_z   1.18  sdzqs    4.204  step 0.927  turns/q_np 0.922  (9 s)
+   m3_top1_32_b10               spread* 0.0147  zqs_z   1.18  sdzqs    4.204  step 0.927  turns/q_np 0.922  (9 s)
+   m3_top1_64x64_b0             spread* 0.0147  zqs_z   1.18  sdzqs    4.204  step 0.927  turns/q_np 0.922  (9 s)
+   m3_top1_64x64_b0.1           spread* 0.0147  zqs_z   1.18  sdzqs    4.204  step 0.927  turns/q_np 0.922  (9 s)
+   m3_top1_64x64_b1             spread* 0.0147  zqs_z   1.18  sdzqs    4.204  step 0.927  turns/q_np 0.922  (9 s)
+   m3_top1_64x64_b10            spread* 0.0147  zqs_z   1.18  sdzqs    4.204  step 0.927  turns/q_np 0.922  (9 s)
+   m3_top1_128x128x128_b0       spread* 0.0147  zqs_z   1.18  sdzqs    4.204  step 0.927  turns/q_np 0.922  (9 s)
+   m3_top1_128x128x128_b0.1     spread* 0.0147  zqs_z   1.18  sdzqs    4.204  step 0.927  turns/q_np 0.922  (9 s)
+   m3_top1_128x128x128_b1       spread* 0.0147  zqs_z   1.18  sdzqs    4.204  step 0.927  turns/q_np 0.922  (9 s)
+   m3_top1_128x128x128_b10      spread* 0.0147  zqs_z   1.18  sdzqs    4.204  step 0.927  turns/q_np 0.922  (9 s)
+TIS plots in /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures/param_lambda/flat1d/eval/tis_plots
+== flat1d
+burnin:      0 paths,         0 frames, cycles -1..-1
+train:   3741 paths,    523734 frames, cycles 40001..84995
+val  :   1486 paths,    210957 frames, cycles 45012..69991
+test :   1503 paths,    210946 frames, cycles 55012..80000
+ood  :   2270 paths,    319267 frames, cycles 85011..100000
+-- test: 210946 frames; reference turns {'turns_qnp': 26.470201574719376, 'crossings_qnp': 129.295102724536, 'turns_exact': 26.883379263617865, 'crossings_exact': 131.65611806433893}
+   seed                         zqs_z   2.56  sdzqs    5.784  step 0.998  turns/q_np 0.929  (0 s)
+   q_np                         zqs_z   2.56  sdzqs    5.784  step 0.998  turns/q_np 0.930  (0 s)
+   exact                        zqs_z   2.56  sdzqs    5.784  step 0.999  turns/q_np 0.930  (0 s)
+   m1_logit_top1_0.01           zqs_z   2.56  sdzqs    5.784  step 0.998  turns/q_np 0.929  (0 s)
+   m1_logit_top1_0.1            zqs_z   2.56  sdzqs    5.784  step 0.998  turns/q_np 0.929  (0 s)
+   m1_logit_top1_1              zqs_z   2.56  sdzqs    5.784  step 0.998  turns/q_np 0.929  (0 s)
+   m1_logit_top1_10             zqs_z   2.56  sdzqs    5.784  step 0.998  turns/q_np 0.929  (0 s)
+   m1_gam_top1_0.001            zqs_z   2.56  sdzqs    5.784  step 0.996  turns/q_np 0.930  (0 s)
+   m1_gam_top1_0.1              zqs_z   2.56  sdzqs    5.784  step 0.995  turns/q_np 0.930  (0 s)
+   m1_gam_top1_10               zqs_z   2.56  sdzqs    5.784  step 0.995  turns/q_np 0.930  (0 s)
+   m3_top1_32_b0                zqs_z   2.56  sdzqs    5.784  step 0.998  turns/q_np 0.930  (1 s)
+   m3_top1_32_b0.1              zqs_z   2.56  sdzqs    5.784  step 0.998  turns/q_np 0.930  (1 s)
+   m3_top1_32_b1                zqs_z   2.56  sdzqs    5.784  step 0.998  turns/q_np 0.930  (1 s)
+   m3_top1_32_b10               zqs_z   2.56  sdzqs    5.784  step 0.998  turns/q_np 0.930  (1 s)
+   m3_top1_64x64_b0             zqs_z   2.56  sdzqs    5.784  step 0.998  turns/q_np 0.930  (1 s)
+   m3_top1_64x64_b0.1           zqs_z   2.56  sdzqs    5.784  step 0.998  turns/q_np 0.930  (1 s)
+   m3_top1_64x64_b1             zqs_z   2.56  sdzqs    5.784  step 0.998  turns/q_np 0.930  (1 s)
+   m3_top1_64x64_b10            zqs_z   2.56  sdzqs    5.784  step 0.998  turns/q_np 0.930  (1 s)
+   m3_top1_128x128x128_b0       zqs_z   2.56  sdzqs    5.784  step 0.998  turns/q_np 0.930  (4 s)
+   m3_top1_128x128x128_b0.1     zqs_z   2.56  sdzqs    5.784  step 0.998  turns/q_np 0.930  (4 s)
+   m3_top1_128x128x128_b1       zqs_z   2.56  sdzqs    5.784  step 0.999  turns/q_np 0.929  (4 s)
+   m3_top1_128x128x128_b10      zqs_z   2.56  sdzqs    5.784  step 0.998  turns/q_np 0.930  (4 s)
+   seed                         spread (q_np) 0.0128  (exact) 0.0127  missing 0
+   q_np                         spread (q_np) 0.0127  (exact) 0.0129  missing 0
+   exact                        spread (q_np) 0.0128  (exact) 0.0128  missing 0
+   m1_logit_top1_0.01           spread (q_np) 0.0128  (exact) 0.0127  missing 0
+   m1_logit_top1_0.1            spread (q_np) 0.0128  (exact) 0.0127  missing 0
+   m1_logit_top1_1              spread (q_np) 0.0128  (exact) 0.0127  missing 0
+   m1_logit_top1_10             spread (q_np) 0.0128  (exact) 0.0127  missing 0
+   m1_gam_top1_0.001            spread (q_np) 0.0126  (exact) 0.0126  missing 0
+   m1_gam_top1_0.1              spread (q_np) 0.0126  (exact) 0.0126  missing 0
+   m1_gam_top1_10               spread (q_np) 0.0126  (exact) 0.0126  missing 0
+   m3_top1_32_b0                spread (q_np) 0.0128  (exact) 0.0127  missing 0
+   m3_top1_32_b0.1              spread (q_np) 0.0128  (exact) 0.0127  missing 0
+   m3_top1_32_b1                spread (q_np) 0.0128  (exact) 0.0127  missing 0
+   m3_top1_32_b10               spread (q_np) 0.0128  (exact) 0.0127  missing 0
+   m3_top1_64x64_b0             spread (q_np) 0.0128  (exact) 0.0128  missing 0
+   m3_top1_64x64_b0.1           spread (q_np) 0.0128  (exact) 0.0128  missing 0
+   m3_top1_64x64_b1             spread (q_np) 0.0128  (exact) 0.0128  missing 0
+   m3_top1_64x64_b10            spread (q_np) 0.0128  (exact) 0.0129  missing 0
+   m3_top1_128x128x128_b0       spread (q_np) 0.0128  (exact) 0.0128  missing 0
+   m3_top1_128x128x128_b0.1     spread (q_np) 0.0128  (exact) 0.0128  missing 0
+   m3_top1_128x128x128_b1       spread (q_np) 0.0128  (exact) 0.0128  missing 0
+   m3_top1_128x128x128_b10      spread (q_np) 0.0128  (exact) 0.0128  missing 0
+-- ood: 319267 frames; reference turns {'turns_qnp': 25.01063025579328, 'crossings_qnp': 126.35201036388627, 'turns_exact': 25.46621356336332, 'crossings_exact': 128.6460063222559}
+   seed                         zqs_z   1.11  sdzqs    4.107  step 0.988  turns/q_np 0.925  (0 s)
+   q_np                         zqs_z   1.11  sdzqs    4.107  step 0.988  turns/q_np 0.925  (0 s)
+   exact                        zqs_z   1.11  sdzqs    4.109  step 0.989  turns/q_np 0.925  (0 s)
+   m1_logit_top1_0.01           zqs_z   1.11  sdzqs    4.107  step 0.988  turns/q_np 0.925  (0 s)
+   m1_logit_top1_0.1            zqs_z   1.11  sdzqs    4.107  step 0.988  turns/q_np 0.925  (0 s)
+   m1_logit_top1_1              zqs_z   1.11  sdzqs    4.107  step 0.988  turns/q_np 0.925  (0 s)
+   m1_logit_top1_10             zqs_z   1.11  sdzqs    4.107  step 0.988  turns/q_np 0.925  (0 s)
+   m1_gam_top1_0.001            zqs_z   1.11  sdzqs    4.106  step 0.987  turns/q_np 0.925  (1 s)
+   m1_gam_top1_0.1              zqs_z   1.11  sdzqs    4.102  step 0.986  turns/q_np 0.925  (1 s)
+   m1_gam_top1_10               zqs_z   1.11  sdzqs    4.105  step 0.986  turns/q_np 0.925  (1 s)
+   m3_top1_32_b0                zqs_z   1.11  sdzqs    4.109  step 0.988  turns/q_np 0.925  (1 s)
+   m3_top1_32_b0.1              zqs_z   1.11  sdzqs    4.110  step 0.988  turns/q_np 0.925  (1 s)
+   m3_top1_32_b1                zqs_z   1.11  sdzqs    4.108  step 0.988  turns/q_np 0.925  (1 s)
+   m3_top1_32_b10               zqs_z   1.11  sdzqs    4.107  step 0.988  turns/q_np 0.925  (1 s)
+   m3_top1_64x64_b0             zqs_z   1.11  sdzqs    4.107  step 0.989  turns/q_np 0.925  (2 s)
+   m3_top1_64x64_b0.1           zqs_z   1.11  sdzqs    4.107  step 0.988  turns/q_np 0.925  (2 s)
+   m3_top1_64x64_b1             zqs_z   1.11  sdzqs    4.108  step 0.989  turns/q_np 0.925  (2 s)
+   m3_top1_64x64_b10            zqs_z   1.11  sdzqs    4.108  step 0.989  turns/q_np 0.925  (2 s)
+   m3_top1_128x128x128_b0       zqs_z   1.11  sdzqs    4.110  step 0.989  turns/q_np 0.925  (4 s)
+   m3_top1_128x128x128_b0.1     zqs_z   1.11  sdzqs    4.109  step 0.989  turns/q_np 0.925  (4 s)
+   m3_top1_128x128x128_b1       zqs_z   1.11  sdzqs    4.111  step 0.989  turns/q_np 0.925  (4 s)
+   m3_top1_128x128x128_b10      zqs_z   1.11  sdzqs    4.109  step 0.989  turns/q_np 0.925  (4 s)
+   seed                         spread (q_np) 0.0129  (exact) 0.0128  missing 0
+   q_np                         spread (q_np) 0.0129  (exact) 0.0131  missing 0
+   exact                        spread (q_np) 0.0130  (exact) 0.0130  missing 0
+   m1_logit_top1_0.01           spread (q_np) 0.0129  (exact) 0.0128  missing 0
+   m1_logit_top1_0.1            spread (q_np) 0.0129  (exact) 0.0128  missing 0
+   m1_logit_top1_1              spread (q_np) 0.0129  (exact) 0.0128  missing 0
+   m1_logit_top1_10             spread (q_np) 0.0129  (exact) 0.0128  missing 0
+   m1_gam_top1_0.001            spread (q_np) 0.0128  (exact) 0.0127  missing 0
+   m1_gam_top1_0.1              spread (q_np) 0.0128  (exact) 0.0127  missing 0
+   m1_gam_top1_10               spread (q_np) 0.0127  (exact) 0.0126  missing 0
+   m3_top1_32_b0                spread (q_np) 0.0129  (exact) 0.0128  missing 0
+   m3_top1_32_b0.1              spread (q_np) 0.0129  (exact) 0.0128  missing 0
+   m3_top1_32_b1                spread (q_np) 0.0129  (exact) 0.0127  missing 0
+   m3_top1_32_b10               spread (q_np) 0.0129  (exact) 0.0128  missing 0
+   m3_top1_64x64_b0             spread (q_np) 0.0129  (exact) 0.0130  missing 0
+   m3_top1_64x64_b0.1           spread (q_np) 0.0129  (exact) 0.0130  missing 0
+   m3_top1_64x64_b1             spread (q_np) 0.0130  (exact) 0.0130  missing 0
+   m3_top1_64x64_b10            spread (q_np) 0.0130  (exact) 0.0132  missing 0
+   m3_top1_128x128x128_b0       spread (q_np) 0.0130  (exact) 0.0130  missing 0
+   m3_top1_128x128x128_b0.1     spread (q_np) 0.0129  (exact) 0.0130  missing 0
+   m3_top1_128x128x128_b1       spread (q_np) 0.0130  (exact) 0.0130  missing 0
+   m3_top1_128x128x128_b10      spread (q_np) 0.0130  (exact) 0.0130  missing 0
+TIS plots in /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures/param_lambda/flat1d/eval/tis_plots
+== flat1d
+burnin:      0 paths,         0 frames, cycles -1..-1
+train:   3741 paths,    523734 frames, cycles 40001..84995
+val  :   1486 paths,    210957 frames, cycles 45012..69991
+test :   1503 paths,    210946 frames, cycles 55012..80000
+ood  :   2270 paths,    319267 frames, cycles 85011..100000
+-- test: 210946 frames; reference turns {'turns_qnp': 26.470201574719376, 'crossings_qnp': 129.295102724536, 'turns_exact': 26.883379263617865, 'crossings_exact': 131.65611806433893}
+   seed                         zqs_z   2.56  sdzqs    5.784  step 0.998  turns/q_np 0.929  (0 s)
+   q_np                         zqs_z   2.56  sdzqs    5.784  step 0.998  turns/q_np 0.930  (0 s)
+   exact                        zqs_z   2.56  sdzqs    5.784  step 0.999  turns/q_np 0.930  (0 s)
+   m1_logit_top1_0.01           zqs_z   2.56  sdzqs    5.784  step 0.998  turns/q_np 0.929  (0 s)
+   m1_logit_top1_0.1            zqs_z   2.56  sdzqs    5.784  step 0.998  turns/q_np 0.929  (0 s)
+   m1_logit_top1_1              zqs_z   2.56  sdzqs    5.784  step 0.998  turns/q_np 0.929  (0 s)
+   m1_logit_top1_10             zqs_z   2.56  sdzqs    5.784  step 0.998  turns/q_np 0.929  (0 s)
+   m1_gam_top1_0.001            zqs_z   2.56  sdzqs    5.784  step 0.996  turns/q_np 0.930  (0 s)
+   m1_gam_top1_0.1              zqs_z   2.56  sdzqs    5.784  step 0.995  turns/q_np 0.930  (0 s)
+   m1_gam_top1_10               zqs_z   2.56  sdzqs    5.784  step 0.995  turns/q_np 0.930  (0 s)
+   m3_top1_32_b0                zqs_z   2.56  sdzqs    5.784  step 0.998  turns/q_np 0.930  (1 s)
+   m3_top1_32_b0.1              zqs_z   2.56  sdzqs    5.784  step 0.998  turns/q_np 0.930  (1 s)
+   m3_top1_32_b1                zqs_z   2.56  sdzqs    5.784  step 0.998  turns/q_np 0.930  (1 s)
+   m3_top1_32_b10               zqs_z   2.56  sdzqs    5.784  step 0.998  turns/q_np 0.930  (1 s)
+   m3_top1_64x64_b0             zqs_z   2.56  sdzqs    5.784  step 0.998  turns/q_np 0.930  (1 s)
+   m3_top1_64x64_b0.1           zqs_z   2.56  sdzqs    5.784  step 0.998  turns/q_np 0.930  (1 s)
+   m3_top1_64x64_b1             zqs_z   2.56  sdzqs    5.784  step 0.998  turns/q_np 0.930  (1 s)
+   m3_top1_64x64_b10            zqs_z   2.56  sdzqs    5.784  step 0.998  turns/q_np 0.930  (1 s)
+   m3_top1_128x128x128_b0       zqs_z   2.56  sdzqs    5.784  step 0.998  turns/q_np 0.930  (4 s)
+   m3_top1_128x128x128_b0.1     zqs_z   2.56  sdzqs    5.784  step 0.998  turns/q_np 0.930  (4 s)
+   m3_top1_128x128x128_b1       zqs_z   2.56  sdzqs    5.784  step 0.999  turns/q_np 0.929  (3 s)
+   m3_top1_128x128x128_b10      zqs_z   2.56  sdzqs    5.784  step 0.998  turns/q_np 0.930  (4 s)
+   seed                         spread (q_np) 0.0128  (exact) 0.0127  missing 0
+   q_np                         spread (q_np) 0.0127  (exact) 0.0129  missing 0
+   exact                        spread (q_np) 0.0128  (exact) 0.0128  missing 0
+   m1_logit_top1_0.01           spread (q_np) 0.0128  (exact) 0.0127  missing 0
+   m1_logit_top1_0.1            spread (q_np) 0.0128  (exact) 0.0127  missing 0
+   m1_logit_top1_1              spread (q_np) 0.0128  (exact) 0.0127  missing 0
+   m1_logit_top1_10             spread (q_np) 0.0128  (exact) 0.0127  missing 0
+   m1_gam_top1_0.001            spread (q_np) 0.0126  (exact) 0.0126  missing 0
+   m1_gam_top1_0.1              spread (q_np) 0.0126  (exact) 0.0126  missing 0
+   m1_gam_top1_10               spread (q_np) 0.0126  (exact) 0.0126  missing 0
+   m3_top1_32_b0                spread (q_np) 0.0128  (exact) 0.0127  missing 0
+   m3_top1_32_b0.1              spread (q_np) 0.0128  (exact) 0.0127  missing 0
+   m3_top1_32_b1                spread (q_np) 0.0128  (exact) 0.0127  missing 0
+   m3_top1_32_b10               spread (q_np) 0.0128  (exact) 0.0127  missing 0
+   m3_top1_64x64_b0             spread (q_np) 0.0128  (exact) 0.0128  missing 0
+   m3_top1_64x64_b0.1           spread (q_np) 0.0128  (exact) 0.0128  missing 0
+   m3_top1_64x64_b1             spread (q_np) 0.0128  (exact) 0.0128  missing 0
+   m3_top1_64x64_b10            spread (q_np) 0.0128  (exact) 0.0129  missing 0
+   m3_top1_128x128x128_b0       spread (q_np) 0.0128  (exact) 0.0128  missing 0
+   m3_top1_128x128x128_b0.1     spread (q_np) 0.0128  (exact) 0.0128  missing 0
+   m3_top1_128x128x128_b1       spread (q_np) 0.0128  (exact) 0.0128  missing 0
+   m3_top1_128x128x128_b10      spread (q_np) 0.0128  (exact) 0.0128  missing 0
+-- ood: 319267 frames; reference turns {'turns_qnp': 25.01063025579328, 'crossings_qnp': 126.35201036388627, 'turns_exact': 25.46621356336332, 'crossings_exact': 128.6460063222559}
+   seed                         zqs_z   1.11  sdzqs    4.107  step 0.988  turns/q_np 0.925  (0 s)
+   q_np                         zqs_z   1.11  sdzqs    4.107  step 0.988  turns/q_np 0.925  (0 s)
+   exact                        zqs_z   1.11  sdzqs    4.109  step 0.989  turns/q_np 0.925  (0 s)
+   m1_logit_top1_0.01           zqs_z   1.11  sdzqs    4.107  step 0.988  turns/q_np 0.925  (0 s)
+   m1_logit_top1_0.1            zqs_z   1.11  sdzqs    4.107  step 0.988  turns/q_np 0.925  (0 s)
+   m1_logit_top1_1              zqs_z   1.11  sdzqs    4.107  step 0.988  turns/q_np 0.925  (0 s)
+   m1_logit_top1_10             zqs_z   1.11  sdzqs    4.107  step 0.988  turns/q_np 0.925  (0 s)
+   m1_gam_top1_0.001            zqs_z   1.11  sdzqs    4.106  step 0.987  turns/q_np 0.925  (1 s)
+   m1_gam_top1_0.1              zqs_z   1.11  sdzqs    4.102  step 0.986  turns/q_np 0.925  (1 s)
+   m1_gam_top1_10               zqs_z   1.11  sdzqs    4.105  step 0.986  turns/q_np 0.925  (1 s)
+   m3_top1_32_b0                zqs_z   1.11  sdzqs    4.109  step 0.988  turns/q_np 0.925  (1 s)
+   m3_top1_32_b0.1              zqs_z   1.11  sdzqs    4.110  step 0.988  turns/q_np 0.925  (1 s)
+   m3_top1_32_b1                zqs_z   1.11  sdzqs    4.108  step 0.988  turns/q_np 0.925  (1 s)
+   m3_top1_32_b10               zqs_z   1.11  sdzqs    4.107  step 0.988  turns/q_np 0.925  (1 s)
+   m3_top1_64x64_b0             zqs_z   1.11  sdzqs    4.107  step 0.989  turns/q_np 0.925  (2 s)
+   m3_top1_64x64_b0.1           zqs_z   1.11  sdzqs    4.107  step 0.988  turns/q_np 0.925  (2 s)
+   m3_top1_64x64_b1             zqs_z   1.11  sdzqs    4.108  step 0.989  turns/q_np 0.925  (2 s)
+   m3_top1_64x64_b10            zqs_z   1.11  sdzqs    4.108  step 0.989  turns/q_np 0.925  (2 s)
+   m3_top1_128x128x128_b0       zqs_z   1.11  sdzqs    4.110  step 0.989  turns/q_np 0.925  (4 s)
+   m3_top1_128x128x128_b0.1     zqs_z   1.11  sdzqs    4.109  step 0.989  turns/q_np 0.925  (4 s)
+   m3_top1_128x128x128_b1       zqs_z   1.11  sdzqs    4.111  step 0.989  turns/q_np 0.925  (4 s)
+   m3_top1_128x128x128_b10      zqs_z   1.11  sdzqs    4.109  step 0.989  turns/q_np 0.925  (4 s)
+   seed                         spread (q_np) 0.0129  (exact) 0.0128  missing 0
+   q_np                         spread (q_np) 0.0129  (exact) 0.0131  missing 0
+   exact                        spread (q_np) 0.0130  (exact) 0.0130  missing 0
+   m1_logit_top1_0.01           spread (q_np) 0.0129  (exact) 0.0128  missing 0
+   m1_logit_top1_0.1            spread (q_np) 0.0129  (exact) 0.0128  missing 0
+   m1_logit_top1_1              spread (q_np) 0.0129  (exact) 0.0128  missing 0
+   m1_logit_top1_10             spread (q_np) 0.0129  (exact) 0.0128  missing 0
+   m1_gam_top1_0.001            spread (q_np) 0.0128  (exact) 0.0127  missing 0
+   m1_gam_top1_0.1              spread (q_np) 0.0128  (exact) 0.0127  missing 0
+   m1_gam_top1_10               spread (q_np) 0.0127  (exact) 0.0126  missing 0
+   m3_top1_32_b0                spread (q_np) 0.0129  (exact) 0.0128  missing 0
+   m3_top1_32_b0.1              spread (q_np) 0.0129  (exact) 0.0128  missing 0
+   m3_top1_32_b1                spread (q_np) 0.0129  (exact) 0.0127  missing 0
+   m3_top1_32_b10               spread (q_np) 0.0129  (exact) 0.0128  missing 0
+   m3_top1_64x64_b0             spread (q_np) 0.0129  (exact) 0.0130  missing 0
+   m3_top1_64x64_b0.1           spread (q_np) 0.0129  (exact) 0.0130  missing 0
+   m3_top1_64x64_b1             spread (q_np) 0.0130  (exact) 0.0130  missing 0
+   m3_top1_64x64_b10            spread (q_np) 0.0130  (exact) 0.0132  missing 0
+   m3_top1_128x128x128_b0       spread (q_np) 0.0130  (exact) 0.0130  missing 0
+   m3_top1_128x128x128_b0.1     spread (q_np) 0.0129  (exact) 0.0130  missing 0
+   m3_top1_128x128x128_b1       spread (q_np) 0.0130  (exact) 0.0130  missing 0
+   m3_top1_128x128x128_b10      spread (q_np) 0.0130  (exact) 0.0130  missing 0
+TIS plots in /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures/param_lambda/flat1d/eval/tis_plots
+== flat1d
+burnin:      0 paths,         0 frames, cycles -1..-1
+train:   3741 paths,    523734 frames, cycles 40001..84995
+val  :   1486 paths,    210957 frames, cycles 45012..69991
+test :   1503 paths,    210946 frames, cycles 55012..80000
+ood  :   2270 paths,    319267 frames, cycles 85011..100000
+== flat1d
+burnin:      0 paths,         0 frames, cycles -1..-1
+train:   3741 paths,    523734 frames, cycles 40001..84995
+val  :   1486 paths,    210957 frames, cycles 45012..69991
+test :   1503 paths,    210946 frames, cycles 55012..80000
+ood  :   2270 paths,    319267 frames, cycles 85011..100000
+seed       -> /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/param_lambda/exported/flat1d_seed.npz: 2.3 us/frame (one), 0.104 us/frame (batch); ramps hold 3.23% of the weight, max |h - m| 0.0234
+M1-logit   -> /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/param_lambda/exported/flat1d_m1-logit.npz: 2.6 us/frame (one), 0.105 us/frame (batch); ramps hold 3.23% of the weight, max |h - m| 0.0234
+M1-gam     -> /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/param_lambda/exported/flat1d_m1-gam.npz: 3.5 us/frame (one), 0.175 us/frame (batch); ramps hold 3.23% of the weight, max |h - m| 0.0229
+M3         -> /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/param_lambda/exported/flat1d_m3.npz: 8.9 us/frame (one), 1.503 us/frame (batch); ramps hold 3.23% of the weight, max |h - m| 0.0235
+== flat1d
+burnin:      0 paths,         0 frames, cycles -1..-1
+train:   3741 paths,    523734 frames, cycles 40001..84995
+val  :   1486 paths,    210957 frames, cycles 45012..69991
+test :   1503 paths,    210946 frames, cycles 55012..80000
+ood  :   2270 paths,    319267 frames, cycles 85011..100000
+== flat1d
+burnin:      0 paths,         0 frames, cycles -1..-1
+train:   3741 paths,    523734 frames, cycles 40001..84995
+val  :   1486 paths,    210957 frames, cycles 45012..69991
+test :   1503 paths,    210946 frames, cycles 55012..80000
+ood  :   2270 paths,    319267 frames, cycles 85011..100000
+TIS plots in /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures/param_lambda/flat1d/eval/tis_plots
+== flat1d
+burnin:      0 paths,         0 frames, cycles -1..-1
+train:   3741 paths,    523734 frames, cycles 40001..84995
+val  :   1486 paths,    210957 frames, cycles 45012..69991
+test :   1503 paths,    210946 frames, cycles 55012..80000
+ood  :   2270 paths,    319267 frames, cycles 85011..100000
+seed       -> /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/param_lambda/exported/flat1d_seed.npz: 2.3 us/frame (one), 0.106 us/frame (batch); ramps hold 3.23% of the weight, max |h - m| 0.0234
+M1-logit   -> /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/param_lambda/exported/flat1d_m1-logit.npz: 2.6 us/frame (one), 0.107 us/frame (batch); ramps hold 3.23% of the weight, max |h - m| 0.0234
+M1-gam     -> /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/param_lambda/exported/flat1d_m1-gam.npz: 3.6 us/frame (one), 0.171 us/frame (batch); ramps hold 3.23% of the weight, max |h - m| 0.0229
+M3         -> /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/param_lambda/exported/flat1d_m3.npz: 8.8 us/frame (one), 1.576 us/frame (batch); ramps hold 3.23% of the weight, max |h - m| 0.0235
+M3-fast    -> /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/param_lambda/exported/flat1d_m3-fast.npz: 5.8 us/frame (one), 0.410 us/frame (batch); ramps hold 3.23% of the weight, max |h - m| 0.0233
+== flat1d
+burnin:      0 paths,         0 frames, cycles -1..-1
+train:   3741 paths,    523734 frames, cycles 40001..84995
+val  :   1486 paths,    210957 frames, cycles 45012..69991
+test :   1503 paths,    210946 frames, cycles 55012..80000
+ood  :   2270 paths,    319267 frames, cycles 85011..100000
+== flat1d
+burnin:      0 paths,         0 frames, cycles -1..-1
+train:   3741 paths,    523734 frames, cycles 40001..84995
+val  :   1486 paths,    210957 frames, cycles 45012..69991
+test :   1503 paths,    210946 frames, cycles 55012..80000
+ood  :   2270 paths,    319267 frames, cycles 85011..100000
+== flat1d
+burnin:      0 paths,         0 frames, cycles -1..-1
+train:   3741 paths,    523734 frames, cycles 40001..84995
+val  :   1486 paths,    210957 frames, cycles 45012..69991
+test :   1503 paths,    210946 frames, cycles 55012..80000
+ood  :   2270 paths,    319267 frames, cycles 85011..100000
+== flat1d
+burnin:      0 paths,         0 frames, cycles -1..-1
+train:   3741 paths,    523734 frames, cycles 40001..84995
+val  :   1486 paths,    210957 frames, cycles 45012..69991
+test :   1503 paths,    210946 frames, cycles 55012..80000
+ood  :   2270 paths,    319267 frames, cycles 85011..100000
+m1_logit_top1_0.01              2.0 s  sdzqs    3.325  spread 0.0124
+m1_logit_top1_0.1               1.9 s  sdzqs    3.325  spread 0.0124
+m1_logit_top1_1                 1.9 s  sdzqs    3.325  spread 0.0124
+m1_logit_top1_10                2.3 s  sdzqs    3.325  spread 0.0124
+m1_gam_top1_0.001               0.1 s  sdzqs    3.324  spread 0.0124
+m1_gam_top1_0.1                 0.1 s  sdzqs    3.325  spread 0.0124
+m1_gam_top1_10                  0.1 s  sdzqs    3.324  spread 0.0124
+   m3_top1_32_b0 epoch   3: sdzqs    3.325 spread 0.0124
+   m3_top1_32_b0 epoch   6: sdzqs    3.325 spread 0.0124
+   m3_top1_32_b0 epoch   9: sdzqs    3.325 spread 0.0125
+   m3_top1_32_b0 epoch  12: sdzqs    3.325 spread 0.0125
+   m3_top1_32_b0 epoch  15: sdzqs    3.325 spread 0.0124
+   m3_top1_32_b0 epoch  18: sdzqs    3.325 spread 0.0124
+   m3_top1_32_b0 epoch  21: sdzqs    3.325 spread 0.0124
+   m3_top1_32_b0 epoch  24: sdzqs    3.325 spread 0.0124
+m3_top1_32_b0                   1.9 s  epoch 12  sdzqs    3.325
+   m3_top1_32_b0.1 epoch   3: sdzqs    3.325 spread 0.0124
+   m3_top1_32_b0.1 epoch   6: sdzqs    3.325 spread 0.0125
+   m3_top1_32_b0.1 epoch   9: sdzqs    3.325 spread 0.0125
+   m3_top1_32_b0.1 epoch  12: sdzqs    3.325 spread 0.0125
+   m3_top1_32_b0.1 epoch  15: sdzqs    3.325 spread 0.0124
+   m3_top1_32_b0.1 epoch  18: sdzqs    3.325 spread 0.0124
+   m3_top1_32_b0.1 epoch  21: sdzqs    3.325 spread 0.0124
+   m3_top1_32_b0.1 epoch  24: sdzqs    3.325 spread 0.0124
+m3_top1_32_b0.1                 2.9 s  epoch 9  sdzqs    3.325
+   m3_top1_32_b1 epoch   3: sdzqs    3.325 spread 0.0123
+   m3_top1_32_b1 epoch   6: sdzqs    3.325 spread 0.0125
+   m3_top1_32_b1 epoch   9: sdzqs    3.325 spread 0.0124
+   m3_top1_32_b1 epoch  12: sdzqs    3.325 spread 0.0124
+   m3_top1_32_b1 epoch  15: sdzqs    3.325 spread 0.0123
+   m3_top1_32_b1 epoch  18: sdzqs    3.325 spread 0.0123
+   m3_top1_32_b1 epoch  21: sdzqs    3.325 spread 0.0123
+   m3_top1_32_b1 epoch  24: sdzqs    3.325 spread 0.0123
+m3_top1_32_b1                   2.6 s  epoch 9  sdzqs    3.325
+   m3_top1_32_b10 epoch   3: sdzqs    3.325 spread 0.0125
+   m3_top1_32_b10 epoch   6: sdzqs    3.325 spread 0.0124
+   m3_top1_32_b10 epoch   9: sdzqs    3.325 spread 0.0123
+   m3_top1_32_b10 epoch  12: sdzqs    3.325 spread 0.0123
+   m3_top1_32_b10 epoch  15: sdzqs    3.325 spread 0.0122
+   m3_top1_32_b10 epoch  18: sdzqs    3.325 spread 0.0122
+   m3_top1_32_b10 epoch  21: sdzqs    3.325 spread 0.0122
+   m3_top1_32_b10 epoch  24: sdzqs    3.325 spread 0.0122
+m3_top1_32_b10                  2.6 s  epoch 6  sdzqs    3.325
+   m3_top1_64x64_b0 epoch   3: sdzqs    3.325 spread 0.0124
+   m3_top1_64x64_b0 epoch   6: sdzqs    3.325 spread 0.0123
+   m3_top1_64x64_b0 epoch   9: sdzqs    3.325 spread 0.0122
+   m3_top1_64x64_b0 epoch  12: sdzqs    3.325 spread 0.0125
+   m3_top1_64x64_b0 epoch  15: sdzqs    3.325 spread 0.0125
+   m3_top1_64x64_b0 epoch  18: sdzqs    3.325 spread 0.0125
+   m3_top1_64x64_b0 epoch  21: sdzqs    3.325 spread 0.0125
+   m3_top1_64x64_b0 epoch  24: sdzqs    3.325 spread 0.0125
+m3_top1_64x64_b0                1.8 s  epoch 3  sdzqs    3.325
+   m3_top1_64x64_b0.1 epoch   3: sdzqs    3.325 spread 0.0124
+   m3_top1_64x64_b0.1 epoch   6: sdzqs    3.325 spread 0.0122
+   m3_top1_64x64_b0.1 epoch   9: sdzqs    3.325 spread 0.0125
+   m3_top1_64x64_b0.1 epoch  12: sdzqs    3.325 spread 0.0124
+   m3_top1_64x64_b0.1 epoch  15: sdzqs    3.325 spread 0.0124
+   m3_top1_64x64_b0.1 epoch  18: sdzqs    3.325 spread 0.0124
+   m3_top1_64x64_b0.1 epoch  21: sdzqs    3.325 spread 0.0122
+   m3_top1_64x64_b0.1 epoch  24: sdzqs    3.325 spread 0.0122
+m3_top1_64x64_b0.1              2.7 s  epoch 12  sdzqs    3.325
+   m3_top1_64x64_b1 epoch   3: sdzqs    3.326 spread 0.0122
+   m3_top1_64x64_b1 epoch   6: sdzqs    3.325 spread 0.0124
+   m3_top1_64x64_b1 epoch   9: sdzqs    3.325 spread 0.0122
+   m3_top1_64x64_b1 epoch  12: sdzqs    3.325 spread 0.0124
+   m3_top1_64x64_b1 epoch  15: sdzqs    3.325 spread 0.0124
+   m3_top1_64x64_b1 epoch  18: sdzqs    3.325 spread 0.0124
+   m3_top1_64x64_b1 epoch  21: sdzqs    3.325 spread 0.0124
+   m3_top1_64x64_b1 epoch  24: sdzqs    3.325 spread 0.0124
+m3_top1_64x64_b1                2.7 s  epoch 12  sdzqs    3.325
+   m3_top1_64x64_b10 epoch   3: sdzqs    3.325 spread 0.0124
+   m3_top1_64x64_b10 epoch   6: sdzqs    3.325 spread 0.0124
+   m3_top1_64x64_b10 epoch   9: sdzqs    3.326 spread 0.0125
+   m3_top1_64x64_b10 epoch  12: sdzqs    3.326 spread 0.0125
+   m3_top1_64x64_b10 epoch  15: sdzqs    3.326 spread 0.0124
+   m3_top1_64x64_b10 epoch  18: sdzqs    3.326 spread 0.0122
+   m3_top1_64x64_b10 epoch  21: sdzqs    3.326 spread 0.0122
+   m3_top1_64x64_b10 epoch  24: sdzqs    3.326 spread 0.0122
+m3_top1_64x64_b10               2.7 s  epoch 3  sdzqs    3.325
+   m3_top1_128x128x128_b0 epoch   3: sdzqs    3.325 spread 0.0124
+   m3_top1_128x128x128_b0 epoch   6: sdzqs    3.325 spread 0.0125
+   m3_top1_128x128x128_b0 epoch   9: sdzqs    3.325 spread 0.0124
+   m3_top1_128x128x128_b0 epoch  12: sdzqs    3.326 spread 0.0124
+   m3_top1_128x128x128_b0 epoch  15: sdzqs    3.326 spread 0.0124
+   m3_top1_128x128x128_b0 epoch  18: sdzqs    3.326 spread 0.0124
+   m3_top1_128x128x128_b0 epoch  21: sdzqs    3.325 spread 0.0124
+   m3_top1_128x128x128_b0 epoch  24: sdzqs    3.325 spread 0.0124
+m3_top1_128x128x128_b0          2.1 s  epoch 6  sdzqs    3.325
+   m3_top1_128x128x128_b0.1 epoch   3: sdzqs    3.325 spread 0.0123
+   m3_top1_128x128x128_b0.1 epoch   6: sdzqs    3.325 spread 0.0122
+   m3_top1_128x128x128_b0.1 epoch   9: sdzqs    3.326 spread 0.0124
+   m3_top1_128x128x128_b0.1 epoch  12: sdzqs    3.325 spread 0.0125
+   m3_top1_128x128x128_b0.1 epoch  15: sdzqs    3.326 spread 0.0125
+   m3_top1_128x128x128_b0.1 epoch  18: sdzqs    3.325 spread 0.0125
+   m3_top1_128x128x128_b0.1 epoch  21: sdzqs    3.326 spread 0.0125
+   m3_top1_128x128x128_b0.1 epoch  24: sdzqs    3.326 spread 0.0125
+m3_top1_128x128x128_b0.1        7.1 s  epoch 3  sdzqs    3.325
+   m3_top1_128x128x128_b1 epoch   3: sdzqs    3.325 spread 0.0124
+   m3_top1_128x128x128_b1 epoch   6: sdzqs    3.326 spread 0.0125
+   m3_top1_128x128x128_b1 epoch   9: sdzqs    3.326 spread 0.0122
+   m3_top1_128x128x128_b1 epoch  12: sdzqs    3.326 spread 0.0122
+   m3_top1_128x128x128_b1 epoch  15: sdzqs    3.326 spread 0.0122
+   m3_top1_128x128x128_b1 epoch  18: sdzqs    3.326 spread 0.0122
+   m3_top1_128x128x128_b1 epoch  21: sdzqs    3.326 spread 0.0123
+   m3_top1_128x128x128_b1 epoch  24: sdzqs    3.326 spread 0.0123
+m3_top1_128x128x128_b1          7.1 s  epoch 3  sdzqs    3.325
+   m3_top1_128x128x128_b10 epoch   3: sdzqs    3.326 spread 0.0125
+   m3_top1_128x128x128_b10 epoch   6: sdzqs    3.325 spread 0.0123
+   m3_top1_128x128x128_b10 epoch   9: sdzqs    3.326 spread 0.0124
+   m3_top1_128x128x128_b10 epoch  12: sdzqs    3.326 spread 0.0124
+   m3_top1_128x128x128_b10 epoch  15: sdzqs    3.326 spread 0.0124
+   m3_top1_128x128x128_b10 epoch  18: sdzqs    3.326 spread 0.0124
+   m3_top1_128x128x128_b10 epoch  21: sdzqs    3.326 spread 0.0124
+   m3_top1_128x128x128_b10 epoch  24: sdzqs    3.326 spread 0.0124
+m3_top1_128x128x128_b10         7.1 s  epoch 6  sdzqs    3.325
+== flat1d
+burnin:      0 paths,         0 frames, cycles -1..-1
+train:   3741 paths,    523734 frames, cycles 40001..84995
+val  :   1486 paths,    210957 frames, cycles 45012..69991
+test :   1503 paths,    210946 frames, cycles 55012..80000
+ood  :   2270 paths,    319267 frames, cycles 85011..100000
+-- test: 210946 frames; reference turns {'turns_qnp': 26.470201574719376, 'crossings_qnp': 129.295102724536, 'turns_exact': 26.883379263617865, 'crossings_exact': 131.65611806433893}
+   seed                         zqs_z   2.56  sdzqs    5.784  step 0.998  turns/q_np 0.929  (0 s)
+   q_np                         zqs_z   2.56  sdzqs    5.784  step 0.998  turns/q_np 0.930  (0 s)
+   exact                        zqs_z   2.56  sdzqs    5.784  step 0.999  turns/q_np 0.930  (0 s)
+   m1_logit_top1_0.01           zqs_z   2.56  sdzqs    5.784  step 0.998  turns/q_np 0.929  (0 s)
+   m1_logit_top1_0.1            zqs_z   2.56  sdzqs    5.784  step 0.998  turns/q_np 0.929  (0 s)
+   m1_logit_top1_1              zqs_z   2.56  sdzqs    5.784  step 0.998  turns/q_np 0.929  (0 s)
+   m1_logit_top1_10             zqs_z   2.56  sdzqs    5.784  step 0.998  turns/q_np 0.929  (0 s)
+   m1_gam_top1_0.001            zqs_z   2.56  sdzqs    5.784  step 0.996  turns/q_np 0.930  (0 s)
+   m1_gam_top1_0.1              zqs_z   2.56  sdzqs    5.784  step 0.997  turns/q_np 0.930  (0 s)
+   m1_gam_top1_10               zqs_z   2.56  sdzqs    5.784  step 0.995  turns/q_np 0.930  (0 s)
+   m3_top1_32_b0                zqs_z   2.56  sdzqs    5.784  step 0.998  turns/q_np 0.930  (1 s)
+   m3_top1_32_b0.1              zqs_z   2.56  sdzqs    5.784  step 0.998  turns/q_np 0.929  (1 s)
+   m3_top1_32_b1                zqs_z   2.56  sdzqs    5.784  step 0.998  turns/q_np 0.929  (1 s)
+   m3_top1_32_b10               zqs_z   2.56  sdzqs    5.784  step 0.998  turns/q_np 0.930  (1 s)
+   m3_top1_64x64_b0             zqs_z   2.56  sdzqs    5.784  step 0.998  turns/q_np 0.930  (1 s)
+   m3_top1_64x64_b0.1           zqs_z   2.56  sdzqs    5.784  step 0.998  turns/q_np 0.930  (1 s)
+   m3_top1_64x64_b1             zqs_z   2.56  sdzqs    5.784  step 0.998  turns/q_np 0.930  (1 s)
+   m3_top1_64x64_b10            zqs_z   2.56  sdzqs    5.784  step 0.998  turns/q_np 0.930  (1 s)
+   m3_top1_128x128x128_b0       zqs_z   2.56  sdzqs    5.784  step 0.998  turns/q_np 0.930  (4 s)
+   m3_top1_128x128x128_b0.1     zqs_z   2.56  sdzqs    5.784  step 0.998  turns/q_np 0.930  (4 s)
+   m3_top1_128x128x128_b1       zqs_z   2.56  sdzqs    5.784  step 0.998  turns/q_np 0.930  (4 s)
+   m3_top1_128x128x128_b10      zqs_z   2.56  sdzqs    5.784  step 0.998  turns/q_np 0.930  (4 s)
+-- ood: 319267 frames; reference turns {'turns_qnp': 25.01063025579328, 'crossings_qnp': 126.35201036388627, 'turns_exact': 25.46621356336332, 'crossings_exact': 128.6460063222559}
+   seed                         zqs_z   1.11  sdzqs    4.107  step 0.988  turns/q_np 0.925  (0 s)
+   q_np                         zqs_z   1.11  sdzqs    4.107  step 0.988  turns/q_np 0.925  (0 s)
+   exact                        zqs_z   1.11  sdzqs    4.109  step 0.989  turns/q_np 0.925  (0 s)
+   m1_logit_top1_0.01           zqs_z   1.11  sdzqs    4.107  step 0.988  turns/q_np 0.925  (0 s)
+   m1_logit_top1_0.1            zqs_z   1.11  sdzqs    4.107  step 0.988  turns/q_np 0.925  (0 s)
+   m1_logit_top1_1              zqs_z   1.11  sdzqs    4.107  step 0.988  turns/q_np 0.925  (0 s)
+   m1_logit_top1_10             zqs_z   1.11  sdzqs    4.107  step 0.988  turns/q_np 0.925  (0 s)
+   m1_gam_top1_0.001            zqs_z   1.11  sdzqs    4.106  step 0.987  turns/q_np 0.925  (1 s)
+   m1_gam_top1_0.1              zqs_z   1.11  sdzqs    4.104  step 0.989  turns/q_np 0.925  (0 s)
+   m1_gam_top1_10               zqs_z   1.11  sdzqs    4.105  step 0.986  turns/q_np 0.925  (1 s)
+   m3_top1_32_b0                zqs_z   1.11  sdzqs    4.108  step 0.988  turns/q_np 0.925  (1 s)
+   m3_top1_32_b0.1              zqs_z   1.11  sdzqs    4.106  step 0.988  turns/q_np 0.925  (1 s)
+   m3_top1_32_b1                zqs_z   1.11  sdzqs    4.106  step 0.988  turns/q_np 0.924  (1 s)
+   m3_top1_32_b10               zqs_z   1.11  sdzqs    4.106  step 0.988  turns/q_np 0.925  (1 s)
+   m3_top1_64x64_b0             zqs_z   1.11  sdzqs    4.106  step 0.988  turns/q_np 0.925  (2 s)
+   m3_top1_64x64_b0.1           zqs_z   1.11  sdzqs    4.108  step 0.989  turns/q_np 0.925  (2 s)
+   m3_top1_64x64_b1             zqs_z   1.11  sdzqs    4.109  step 0.989  turns/q_np 0.925  (2 s)
+   m3_top1_64x64_b10            zqs_z   1.11  sdzqs    4.109  step 0.989  turns/q_np 0.925  (2 s)
+   m3_top1_128x128x128_b0       zqs_z   1.11  sdzqs    4.107  step 0.989  turns/q_np 0.925  (4 s)
+   m3_top1_128x128x128_b0.1     zqs_z   1.11  sdzqs    4.107  step 0.989  turns/q_np 0.925  (4 s)
+   m3_top1_128x128x128_b1       zqs_z   1.11  sdzqs    4.109  step 0.989  turns/q_np 0.925  (4 s)
+   m3_top1_128x128x128_b10      zqs_z   1.11  sdzqs    4.109  step 0.989  turns/q_np 0.925  (4 s)
+TIS plots in /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures/param_lambda/flat1d/eval/tis_plots
+== flat1d
+burnin:      0 paths,         0 frames, cycles -1..-1
+train:   3741 paths,    523734 frames, cycles 40001..84995
+val  :   1486 paths,    210957 frames, cycles 45012..69991
+test :   1503 paths,    210946 frames, cycles 55012..80000
+ood  :   2270 paths,    319267 frames, cycles 85011..100000
+seed       -> /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/param_lambda/exported/flat1d_seed.npz: 2.4 us/frame (one), 0.110 us/frame (batch); ramps hold 3.23% of the weight, max |h - m| 0.0234
+M1-logit   -> /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/param_lambda/exported/flat1d_m1-logit.npz: 2.5 us/frame (one), 0.108 us/frame (batch); ramps hold 3.23% of the weight, max |h - m| 0.0234
+M1-gam     -> /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/param_lambda/exported/flat1d_m1-gam.npz: 3.4 us/frame (one), 0.173 us/frame (batch); ramps hold 3.23% of the weight, max |h - m| 0.0229
+M3         -> /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/param_lambda/exported/flat1d_m3.npz: 8.7 us/frame (one), 1.552 us/frame (batch); ramps hold 3.23% of the weight, max |h - m| 0.0235
+M3-fast    -> /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/param_lambda/exported/flat1d_m3-fast.npz: 5.6 us/frame (one), 0.412 us/frame (batch); ramps hold 3.23% of the weight, max |h - m| 0.0233
+== flat1d
+burnin:      0 paths,         0 frames, cycles -1..-1
+train:   3741 paths,    523734 frames, cycles 40001..84995
+val  :   1486 paths,    210957 frames, cycles 45012..69991
+test :   1503 paths,    210946 frames, cycles 55012..80000
+ood  :   2270 paths,    319267 frames, cycles 85011..100000
+== flat1d
+burnin:      0 paths,         0 frames, cycles -1..-1
+train:   3741 paths,    523734 frames, cycles 40001..84995
+val  :   1486 paths,    210957 frames, cycles 45012..69991
+test :   1503 paths,    210946 frames, cycles 55012..80000
+ood  :   2270 paths,    319267 frames, cycles 85011..100000

@@ -1,0 +1,47 @@
+Interfaces from /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/PyRETIS3/toytis/simulations/sim_istarz_br_g10/logging.log: [0.05, 0.13, 0.21, 0.29, 0.37, 0.45, 0.53, 0.61, 0.69, 0.77, 0.85]
+State A: order <= 0.05, state B: order >= 0.85
+Found 11 ensemble folders in /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/PyRETIS3/toytis/simulations/sim_istarz_br_g10
+  /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/PyRETIS3/toytis/simulations/sim_istarz_br_g10/001: loaded 2983 pieces, 37567 frames, total weight 7930, cut at M = 0.05
+  /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/PyRETIS3/toytis/simulations/sim_istarz_br_g10/002: loaded 3000 pieces, 1356152 frames, total weight 6570, cut at M = 0.13
+  /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/PyRETIS3/toytis/simulations/sim_istarz_br_g10/003: loaded 3000 pieces, 1963883 frames, total weight 5928, cut at M = 0.21
+  /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/PyRETIS3/toytis/simulations/sim_istarz_br_g10/004: loaded 3000 pieces, 2268305 frames, total weight 5846, cut at M = 0.29
+  /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/PyRETIS3/toytis/simulations/sim_istarz_br_g10/005: loaded 3000 pieces, 2503833 frames, total weight 6312, cut at M = 0.37
+  /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/PyRETIS3/toytis/simulations/sim_istarz_br_g10/006: loaded 3000 pieces, 2762139 frames, total weight 5932, cut at M = 0.45
+  /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/PyRETIS3/toytis/simulations/sim_istarz_br_g10/007: loaded 3000 pieces, 2687702 frames, total weight 6148, cut at M = 0.53
+  /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/PyRETIS3/toytis/simulations/sim_istarz_br_g10/008: loaded 3000 pieces, 2659297 frames, total weight 5846, cut at M = 0.61
+  /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/PyRETIS3/toytis/simulations/sim_istarz_br_g10/009: loaded 3000 pieces, 2540854 frames, total weight 5652, cut at M = 0.69
+  /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/PyRETIS3/toytis/simulations/sim_istarz_br_g10/010: loaded 3000 pieces, 2141220 frames, total weight 6016, cut at M = 0.77
+Loaded 29983 pieces, 20920952 frames total
+Using 2 of 2 CV(s)
+Frames in A: 7578, in B: 1740
+Starting CommittorNE training for 10000 iterations...
+#=500, dr2=400.034, zqs_z=41.4751, sdzqs=232.88, |dx|=0.265205, time=162.192
+#=1000, dr2=291.326, zqs_z=35.3386, sdzqs=41.2479, |dx|=0.0942248, time=321.83
+#=1500, dr2=269.767, zqs_z=8.42583, sdzqs=30.9428, |dx|=0.0219079, time=487.633
+#=2000, dr2=255.582, zqs_z=3.98509, sdzqs=25.132, |dx|=0.0117879, time=658.301
+#=2500, dr2=245.29, zqs_z=3.49821, sdzqs=21.879, |dx|=0.00850173, time=828.192
+#=3000, dr2=236.041, zqs_z=3.07453, sdzqs=19.4069, |dx|=0.0080403, time=1000.27
+#=3500, dr2=226.585, zqs_z=2.55409, sdzqs=15.6676, |dx|=0.00853895, time=1175.32
+#=4000, dr2=220.171, zqs_z=2.38632, sdzqs=14.0245, |dx|=0.00610328, time=1345.33
+#=4500, dr2=214.376, zqs_z=2.03758, sdzqs=11.7853, |dx|=0.00570988, time=1515.52
+#=5000, dr2=209.064, zqs_z=1.73721, sdzqs=9.66017, |dx|=0.00532372, time=1692.81
+#=5500, dr2=204.827, zqs_z=1.57074, sdzqs=8.09272, |dx|=0.00447357, time=1873.88
+#=6000, dr2=201.897, zqs_z=1.53066, sdzqs=7.08258, |dx|=0.00314172, time=2049.8
+#=6500, dr2=199.367, zqs_z=1.43747, sdzqs=6.18706, |dx|=0.00266188, time=2222.96
+#=7000, dr2=197.264, zqs_z=1.39796, sdzqs=5.55855, |dx|=0.00232181, time=2398.01
+#=7500, dr2=195.231, zqs_z=1.48255, sdzqs=4.39723, |dx|=0.00238252, time=2566.01
+#=8000, dr2=193.467, zqs_z=1.46623, sdzqs=3.92322, |dx|=0.00196857, time=2735.49
+#=8500, dr2=192.019, zqs_z=1.43448, sdzqs=3.37348, |dx|=0.00162972, time=2902.83
+#=9000, dr2=190.767, zqs_z=1.31297, sdzqs=3.02042, |dx|=0.00131876, time=3072.8
+#=9500, dr2=189.749, zqs_z=1.35074, sdzqs=2.6619, |dx|=0.00116455, time=3321.98
+#=10000, dr2=188.895, zqs_z=1.36095, sdzqs=2.38826, |dx|=0.000971149, time=3568.72
+CommittorNE training complete.
+  saved figures/istarz_br_g10_reversed/feps.png
+  saved figures/istarz_br_g10_reversed/tis_diagnostics.png
+  saved figures/istarz_br_g10_reversed/metrics.png
+  saved figures/istarz_br_g10_reversed/committor.npz
+  saved figures/istarz_br_g10_reversed/committor_vs_order.png
+Potential from --potential: sjoelbak_angle:RectangularGridWithAngledBarrierPotential(Lx=0.3, angle=45)
+order.py does not say which positions the order columns are; assuming [0, 1]
+  saved figures/istarz_br_g10_reversed/committor_on_potential.png
+Figures written to figures/istarz_br_g10_reversed

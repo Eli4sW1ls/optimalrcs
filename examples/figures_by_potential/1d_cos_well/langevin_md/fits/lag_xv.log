@@ -1,0 +1,28 @@
+6000000 frames, 8021 departures from A; RMS(exact - MD outcome) per bin 0.0123 (noise yardstick)
+lag 16: 4186236 windows
+#=1000, xent=0.48177, mse=0.17435, sdzq=1126.17, auc=0.799011, |dx|=0.180607
+iteration=1000 | hours=0.053948 | xent=0.48177 | sdzq=1126.2 | auc=0.79901 | dx=0.18061 | rms_bin=0.34128 | rms_frame=0.22792 | rms_band=0.22024 | max_bin=0.79422
+#=1000, xent=0.436568, mse=0.156721, sdzq=674.351, auc=0.855926, |dx|=0.142912
+iteration=2000 | hours=0.10939 | xent=0.43657 | sdzq=674.35 | auc=0.85593 | dx=0.14291 | rms_bin=0.20422 | rms_frame=0.16308 | rms_band=0.12101 | max_bin=0.61315
+#=1000, xent=0.395071, mse=0.138544, sdzq=467.069, auc=0.873381, |dx|=0.133667
+iteration=3000 | hours=0.16452 | xent=0.39507 | sdzq=467.07 | auc=0.87338 | dx=0.13367 | rms_bin=0.013898 | rms_frame=0.021933 | rms_band=0.037183 | max_bin=0.091917
+#=1000, xent=0.394897, mse=0.138496, sdzq=419.849, auc=0.873458, |dx|=0.00385562
+iteration=4000 | hours=0.21949 | xent=0.3949 | sdzq=419.85 | auc=0.87346 | dx=0.0038556 | rms_bin=0.012875 | rms_frame=0.020208 | rms_band=0.033622 | max_bin=0.084559
+#=1000, xent=0.39485, mse=0.138471, sdzq=394.14, auc=0.873536, |dx|=0.0023468
+iteration=5000 | hours=0.27466 | xent=0.39485 | sdzq=394.14 | auc=0.87354 | dx=0.0023468 | rms_bin=0.012411 | rms_frame=0.019408 | rms_band=0.031769 | max_bin=0.080922
+#=1000, xent=0.394805, mse=0.138457, sdzq=380.714, auc=0.873574, |dx|=0.00175155
+iteration=6000 | hours=0.32988 | xent=0.3948 | sdzq=380.71 | auc=0.87357 | dx=0.0017516 | rms_bin=0.012037 | rms_frame=0.018829 | rms_band=0.030521 | max_bin=0.074398
+#=1000, xent=0.394771, mse=0.138448, sdzq=369.354, auc=0.873599, |dx|=0.00144882
+iteration=7000 | hours=0.38519 | xent=0.39477 | sdzq=369.35 | auc=0.8736 | dx=0.0014488 | rms_bin=0.011888 | rms_frame=0.018479 | rms_band=0.029491 | max_bin=0.071328
+#=1000, xent=0.394753, mse=0.138442, sdzq=359.839, auc=0.873614, |dx|=0.000971864
+iteration=8000 | hours=0.44052 | xent=0.39475 | sdzq=359.84 | auc=0.87361 | dx=0.00097186 | rms_bin=0.011726 | rms_frame=0.018212 | rms_band=0.028857 | max_bin=0.069196
+#=1000, xent=0.394734, mse=0.138436, sdzq=356.106, auc=0.873632, |dx|=0.00104603
+iteration=9000 | hours=0.49593 | xent=0.39473 | sdzq=356.11 | auc=0.87363 | dx=0.001046 | rms_bin=0.011595 | rms_frame=0.018 | rms_band=0.028499 | max_bin=0.066436
+#=1000, xent=0.394719, mse=0.138431, sdzq=355.73, auc=0.873647, |dx|=0.000944057
+iteration=10000 | hours=0.5514 | xent=0.39472 | sdzq=355.73 | auc=0.87365 | dx=0.00094406 | rms_bin=0.011481 | rms_frame=0.017807 | rms_band=0.028101 | max_bin=0.064518
+#=1000, xent=0.394715, mse=0.138428, sdzq=342.297, auc=0.873654, |dx|=0.000890232
+iteration=11000 | hours=0.60718 | xent=0.39471 | sdzq=342.3 | auc=0.87365 | dx=0.00089023 | rms_bin=0.011389 | rms_frame=0.017613 | rms_band=0.027647 | max_bin=0.062893
+#=1000, xent=0.39471, mse=0.138425, sdzq=335.681, auc=0.873662, |dx|=0.000839276
+iteration=12000 | hours=0.66283 | xent=0.39471 | sdzq=335.68 | auc=0.87366 | dx=0.00083928 | rms_bin=0.011355 | rms_frame=0.017504 | rms_band=0.027467 | max_bin=0.062839
+converged: cross-entropy improved by 2.40e-05 over the last 3000 iterations
+ALL DONE

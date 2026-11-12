@@ -1,0 +1,10 @@
+force checked at 400 random points
+step 20000: 4187 walkers left (125 s)
+step 40000: 1459 walkers left (226 s)
+step 60000: 504 walkers left (297 s)
+step 80000: 187 walkers left (359 s)
+step 100000: 62 walkers left (418 s)
+step 120000: 23 walkers left (474 s)
+step 140000: 8 walkers left (510 s)
+step 160000: 2 walkers left (558 s)
+5177825 frames from 30000 walkers; 0 not absorbed after 177233 steps; 11045 reached B, 18955 reached A (606 s)
