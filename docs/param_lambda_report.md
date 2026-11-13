@@ -161,6 +161,37 @@ Table columns, in order:
 | µs/frame (one / batch) | the exported model: one frame per call, as in the sampler, and a batch of 200k frames | Cost. A toytis MD step takes 8.6 µs |
 | training s | wall time of the fit, including the checkpoint evaluations | |
 
+### Loss values
+
+The loss tables and the `losses.png` figures of each system give the M3 training objective, written by
+`run.py losses` (`fit/losses.json`). Units are logit², so √loss is an RMS error in logit units.
+
+- **Point term**: Σ w (z − logit q_np)² / Σ w over every 4th frame of the split. Here w is the path weight, ×5
+  for 0.05 < q_np < 0.95.
+- **Increment term**: for each training lag (1, 2, 4, 8 frames), Σ w (Δz − Δ logit q_np)² / Σ w over all pairs
+  inside one piece; the tables give the sum over the lags. It measures whether λ moves along the paths the way
+  q_np does.
+- **Total** = point + β × increments, the quantity M3 minimizes.
+
+How each quantity is computed:
+- **Training, validation and test values**: the same objective on each split's frames, computed from the
+  checkpoints saved during the fit (every 3 epochs). The standardization of the features comes from the
+  training frames.
+- **The thin training curve**: the mean over each epoch's minibatches as recorded during training. The weights
+  change during the epoch and the increment pairs are sampled, so it differs slightly from the checkpoint value.
+- **M1 rows**: the same objective evaluated for the final model. M1 is trained on its own loss (logistic
+  log-loss, or the penalized spline fit).
+
+How to read the numbers:
+- **The floor**: the exact committor's loss against the same q_np labels (dashed line, "exact committor"
+  row). It is q_np's own error: on cc 0.016, i.e. q_np is off the true committor by 0.13 logit RMS.
+  - A model below the floor reproduces q_np's errors as well as the committor.
+  - Those errors are smooth in position, so they are learnable, and they are present in the validation and test
+    labels too, since they come from the same q_np fit. A lower validation loss then no longer means a better λ.
+  - That is why checkpoints and runs are selected by the stopped Z_q of the dynamics, not by validation loss.
+- **Validation above training**: overfitting to the training paths. A small gap means the model generalizes to
+  new paths of the same run.
+
 ### The stopped Z_q is the library's
 
 - It is computed with `optimalrcs/metrics_tis.py`: `stop_index`, `comp_zq_stopped` (the profile Z_q) and
@@ -337,6 +368,16 @@ Selection sensitivity: the rule selects by validation SD(Z_q); a selection by va
 | M3 | SD(Z_q) (rule) | m3_cvs_128x128x128_b0 | 1.120 | 0.048 | 0.053 | 0.055 | 10.551 | 2.293 |
 | M3 | spread | m3_top4_128x128x128_b10 | 1.277 | 0.028 | 0.027 | 0.037 | 10.451 | 2.272 |
 
+Loss values: the M3 training objective on each split (see [Loss values](#loss-values)); the selected checkpoint for M3, the final model for M1:
+
+| candidate | point: train / val / test | increments (sum): train / val / test | total (point + β·inc), val |
+|---|---|---|---|
+| exact committor (floor) | 0.0284 / 0.0284 / 0.0295 | 0.00702 / 0.00637 / 0.00772 | – |
+| M1 L1-logistic | 4.09 / 3.59 / 3.87 | 0.0429 / 0.0416 / 0.0434 | 3.59 |
+| M1 spline GAM | 1.1 / 1.05 / 1.05 | 0.0856 / 0.0846 / 0.086 | 1.05 |
+| M3 MLP (128x128x128, β = 0, epoch 9) | 0.00214 / 0.00192 / 0.0023 | 0.00374 / 0.00359 / 0.00444 | 0.00192 |
+| M3 MLP, smallest within 10% (cost) (64x64, β = 10, epoch 18) | 0.00121 / 0.00111 / 0.00128 | 0.00269 / 0.00264 / 0.00326 | 0.0275 |
+
 Recommendation: **M3 MLP**. M1 L1-logistic vs M3 on the test paths: spread 1.244 vs 0.0535 (outside +10%), zqs_z 12.25 vs 10.55 (outside +0.5).
 
 ![committor_maps.png](../examples/figures_by_potential/2d_zpot/brownian_g10/staple/param_lambda/z_br/report/committor_maps.png)
@@ -348,6 +389,8 @@ Recommendation: **M3 MLP**. M1 L1-logistic vs M3 on the test paths: spread 1.244
 ![zq_lags.png](../examples/figures_by_potential/2d_zpot/brownian_g10/staple/param_lambda/z_br/report/zq_lags.png)
 
 ![m3_checkpoints.png](../examples/figures_by_potential/2d_zpot/brownian_g10/staple/param_lambda/z_br/report/m3_checkpoints.png)
+
+![losses.png](../examples/figures_by_potential/2d_zpot/brownian_g10/staple/param_lambda/z_br/report/losses.png)
 
 TIS diagnostics (plots_tis) and path-weighted feps of every row: [`../examples/figures_by_potential/2d_zpot/brownian_g10/staple/param_lambda/z_br/eval/tis_plots`](../examples/figures_by_potential/2d_zpot/brownian_g10/staple/param_lambda/z_br/eval/tis_plots).
 
@@ -467,6 +510,16 @@ Selection sensitivity: the rule selects by validation SD(Z_q); a selection by va
 | M3 | SD(Z_q) (rule) | m3_top2_64x64_b0.1 | 3.618 | 0.550 | 0.063 | 0.047 | 1.978 | 3.297 |
 | M3 | spread | m3_top4_32_b0.1 | 3.777 | 0.450 | 0.147 | 0.061 | 2.220 | 3.464 |
 
+Loss values: the M3 training objective on each split (see [Loss values](#loss-values)); the selected checkpoint for M3, the final model for M1:
+
+| candidate | point: train / val / test | increments (sum): train / val / test | total (point + β·inc), val |
+|---|---|---|---|
+| exact committor (floor) | 0.0159 / 0.0169 / 0.0194 | 0.00228 / 0.00726 / 0.00586 | – |
+| M1 L1-logistic | 0.0494 / 0.0486 / 0.0582 | 0.0183 / 0.0241 / 0.0233 | 0.0486 |
+| M1 spline GAM | 0.0156 / 0.0165 / 0.019 | 0.0127 / 0.0191 / 0.0175 | 0.0165 |
+| M3 MLP (64x64, β = 0.1, epoch 3) | 0.012 / 0.0134 / 0.0171 | 0.0107 / 0.0164 / 0.0155 | 0.015 |
+| M3 MLP, smallest within 10% (cost) (32, β = 0.1, epoch 3) | 0.0187 / 0.0201 / 0.0257 | 0.0124 / 0.0179 / 0.0177 | 0.0218 |
+
 Recommendation: **M3 MLP**. M1 spline GAM vs M3 on the test paths: spread 0.12 vs 0.06306 (outside +10%), zqs_z 2.27 vs 1.98 (within +0.5).
 
 ![committor_maps.png](../examples/figures_by_potential/2d_curved_channel/brownian_g10/param_lambda/cc_br/report/committor_maps.png)
@@ -478,6 +531,8 @@ Recommendation: **M3 MLP**. M1 spline GAM vs M3 on the test paths: spread 0.12 v
 ![zq_lags.png](../examples/figures_by_potential/2d_curved_channel/brownian_g10/param_lambda/cc_br/report/zq_lags.png)
 
 ![m3_checkpoints.png](../examples/figures_by_potential/2d_curved_channel/brownian_g10/param_lambda/cc_br/report/m3_checkpoints.png)
+
+![losses.png](../examples/figures_by_potential/2d_curved_channel/brownian_g10/param_lambda/cc_br/report/losses.png)
 
 TIS diagnostics (plots_tis) and path-weighted feps of every row: [`../examples/figures_by_potential/2d_curved_channel/brownian_g10/param_lambda/cc_br/eval/tis_plots`](../examples/figures_by_potential/2d_curved_channel/brownian_g10/param_lambda/cc_br/eval/tis_plots).
 
@@ -597,6 +652,16 @@ Selection sensitivity: the rule selects by validation SD(Z_q); a selection by va
 | M3 | SD(Z_q) (rule) | m3_top1_64x64_b0 | 3.325 | 0.012 | 0.012 | 0.012 | 2.562 | 5.784 |
 | M3 | spread | m3_top1_128x128x128_b0.1 | 3.325 | 0.012 | 0.012 | 0.012 | 2.562 | 5.784 |
 
+Loss values: the M3 training objective on each split (see [Loss values](#loss-values)); the selected checkpoint for M3, the final model for M1:
+
+| candidate | point: train / val / test | increments (sum): train / val / test | total (point + β·inc), val |
+|---|---|---|---|
+| exact committor (floor) | 0.00404 / 0.00403 / 0.00404 | 0.000223 / 0.000217 / 0.000218 | – |
+| M1 L1-logistic | 0.03 / 0.029 / 0.0292 | 0.0657 / 0.065 / 0.0661 | 0.029 |
+| M1 spline GAM | 0.0262 / 0.0254 / 0.0254 | 0.0617 / 0.0609 / 0.0618 | 0.0254 |
+| M3 MLP (64x64, β = 0, epoch 3) | 0.00425 / 0.00412 / 0.00407 | 0.0238 / 0.0232 / 0.0229 | 0.00412 |
+| M3 MLP, smallest within 10% (cost) (32, β = 1, epoch 9) | 0.00575 / 0.00557 / 0.0056 | 0.0291 / 0.0284 / 0.0282 | 0.034 |
+
 Recommendation: **M1 spline GAM**. M1 spline GAM vs M3 on the test paths: spread 0.0125 vs 0.01208 (within +10%), zqs_z 2.56 vs 2.56 (within +0.5).
 
 ![committor_profiles.png](../examples/figures_by_potential/1d_flat/brownian_staple/param_lambda/report/committor_profiles.png)
@@ -606,6 +671,8 @@ Recommendation: **M1 spline GAM**. M1 spline GAM vs M3 on the test paths: spread
 ![zq_lags.png](../examples/figures_by_potential/1d_flat/brownian_staple/param_lambda/report/zq_lags.png)
 
 ![m3_checkpoints.png](../examples/figures_by_potential/1d_flat/brownian_staple/param_lambda/report/m3_checkpoints.png)
+
+![losses.png](../examples/figures_by_potential/1d_flat/brownian_staple/param_lambda/report/losses.png)
 
 TIS diagnostics (plots_tis) and path-weighted feps of every row: [`../examples/figures_by_potential/1d_flat/brownian_staple/param_lambda/eval/tis_plots`](../examples/figures_by_potential/1d_flat/brownian_staple/param_lambda/eval/tis_plots).
 
@@ -687,6 +754,16 @@ Selection sensitivity: the rule selects by validation SD(Z_q); a selection by va
 | M3 | SD(Z_q) (rule) | m3_top1_64x64_b0.1 | 8.317 | 0.013 | 0.013 | 0.013 | 1.911 | 7.832 |
 | M3 | spread | m3_top1_64x64_b0.1 | 8.317 | 0.013 | 0.013 | 0.013 | 1.911 | 7.832 |
 
+Loss values: the M3 training objective on each split (see [Loss values](#loss-values)); the selected checkpoint for M3, the final model for M1:
+
+| candidate | point: train / val / test | increments (sum): train / val / test | total (point + β·inc), val |
+|---|---|---|---|
+| exact committor (floor) | 0.000474 / 0.000475 / 0.000474 | 6.21e-05 / 6.52e-05 / 6.08e-05 | – |
+| M1 L1-logistic | 0.0822 / 0.0816 / 0.0824 | 0.0914 / 0.091 / 0.091 | 0.0816 |
+| M1 spline GAM | 0.00769 / 0.00757 / 0.00763 | 0.0169 / 0.0169 / 0.0168 | 0.00757 |
+| M3 MLP (64x64, β = 0.1, epoch 21) | 0.000364 / 0.000354 / 0.000363 | 0.0022 / 0.0022 / 0.00219 | 0.000573 |
+| M3 MLP, smallest within 10% (cost) (32, β = 10, epoch 6) | 0.000651 / 0.000637 / 0.00065 | 0.00324 / 0.00327 / 0.00324 | 0.0334 |
+
 Recommendation: **M1 L1-logistic**. M1 L1-logistic vs M3 on the test paths: spread 0.01287 vs 0.01288 (within +10%), zqs_z 1.91 vs 1.91 (within +0.5).
 
 ![committor_profiles.png](../examples/figures_by_potential/1d_two_bumps/brownian_staple/param_lambda/report/committor_profiles.png)
@@ -696,6 +773,8 @@ Recommendation: **M1 L1-logistic**. M1 L1-logistic vs M3 on the test paths: spre
 ![zq_lags.png](../examples/figures_by_potential/1d_two_bumps/brownian_staple/param_lambda/report/zq_lags.png)
 
 ![m3_checkpoints.png](../examples/figures_by_potential/1d_two_bumps/brownian_staple/param_lambda/report/m3_checkpoints.png)
+
+![losses.png](../examples/figures_by_potential/1d_two_bumps/brownian_staple/param_lambda/report/losses.png)
 
 TIS diagnostics (plots_tis) and path-weighted feps of every row: [`../examples/figures_by_potential/1d_two_bumps/brownian_staple/param_lambda/eval/tis_plots`](../examples/figures_by_potential/1d_two_bumps/brownian_staple/param_lambda/eval/tis_plots).
 

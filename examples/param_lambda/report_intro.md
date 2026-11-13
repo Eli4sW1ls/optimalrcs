@@ -161,6 +161,37 @@ Table columns, in order:
 | µs/frame (one / batch) | the exported model: one frame per call, as in the sampler, and a batch of 200k frames | Cost. A toytis MD step takes 8.6 µs |
 | training s | wall time of the fit, including the checkpoint evaluations | |
 
+### Loss values
+
+The loss tables and the `losses.png` figures of each system give the M3 training objective, written by
+`run.py losses` (`fit/losses.json`). Units are logit², so √loss is an RMS error in logit units.
+
+- **Point term**: Σ w (z − logit q_np)² / Σ w over every 4th frame of the split. Here w is the path weight, ×5
+  for 0.05 < q_np < 0.95.
+- **Increment term**: for each training lag (1, 2, 4, 8 frames), Σ w (Δz − Δ logit q_np)² / Σ w over all pairs
+  inside one piece; the tables give the sum over the lags. It measures whether λ moves along the paths the way
+  q_np does.
+- **Total** = point + β × increments, the quantity M3 minimizes.
+
+How each quantity is computed:
+- **Training, validation and test values**: the same objective on each split's frames, computed from the
+  checkpoints saved during the fit (every 3 epochs). The standardization of the features comes from the
+  training frames.
+- **The thin training curve**: the mean over each epoch's minibatches as recorded during training. The weights
+  change during the epoch and the increment pairs are sampled, so it differs slightly from the checkpoint value.
+- **M1 rows**: the same objective evaluated for the final model. M1 is trained on its own loss (logistic
+  log-loss, or the penalized spline fit).
+
+How to read the numbers:
+- **The floor**: the exact committor's loss against the same q_np labels (dashed line, "exact committor"
+  row). It is q_np's own error: on cc 0.016, i.e. q_np is off the true committor by 0.13 logit RMS.
+  - A model below the floor reproduces q_np's errors as well as the committor.
+  - Those errors are smooth in position, so they are learnable, and they are present in the validation and test
+    labels too, since they come from the same q_np fit. A lower validation loss then no longer means a better λ.
+  - That is why checkpoints and runs are selected by the stopped Z_q of the dynamics, not by validation loss.
+- **Validation above training**: overfitting to the training paths. A small gap means the model generalizes to
+  new paths of the same run.
+
 ### The stopped Z_q is the library's
 
 - It is computed with `optimalrcs/metrics_tis.py`: `stop_index`, `comp_zq_stopped` (the profile Z_q) and
@@ -260,6 +291,10 @@ file changes.
 
 Runs analysed with `tis_data` read λ as the order parameter. The states there must still come from y:
 order.txt rounds λ to 6 decimals, and `tis_data` tests `lam <= lambda_A`.
+
+**infretis.** `infretis_orderp.LearnedLambda` is the same λ as an infretis order parameter class. It is set in
+`[orderparameter]` with `class`, `module`, `model`, and `cvs` (the order parameter classes of the training run as
+the CV source). The README has the toml, the `interfaces` / `check` / `relabel` helpers, and the tested setup.
 
 ## Caveats
 

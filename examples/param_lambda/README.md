@@ -11,6 +11,7 @@ forward pass for the toytis sampler. Results: [`docs/param_lambda_report.md`](..
 | `evaluate.py` | step 4: isosurface spread, smoothness, turn replay, stopped Z_q, Δr², static metrics |
 | `lambda_runtime.py` | step 5: the exported λ (numpy only): features, score, calibration, A/B handling, OOD flag |
 | `toytis_adapter.py` | step 5: plugs λ into toytis without changing it |
+| `infretis_orderp.py` | λ as an infretis order parameter (`[orderparameter]` in infretis.toml), interfaces, relabelling of load paths |
 | `report.py`, `report_intro.md` | step 6: figures and the report |
 | `run.py`, `steps.py`, `run_all.sh` | command line; `./run_all.sh` regenerates everything |
 | `variants.py`, `configs/loss_variants.toml` | training variants (lean sweep, several seeds), every run on the test paths |
@@ -68,3 +69,44 @@ Run long steps in their own unit:
    set `tis_dir` in the configs.
 3. Run: `PY=$(which python) ./run_all.sh z_br`, or the steps above, from `examples/param_lambda`.
    `MLP` picks `cuda` automatically.
+
+## As the order parameter of infretis
+
+`infretis_orderp.LearnedLambda` is an infretis order parameter class. infretis loads it from `[orderparameter]`, as
+any external class:
+
+```toml
+[orderparameter]
+class = "LearnedLambda"
+module = "/abs/path/examples/param_lambda/infretis_orderp.py"
+model = "/abs/path/examples/param_lambda/exported/<system>_m3-fast.npz"
+# the CVs the model was trained on: the order parameter(s) of the training run, in order
+cvs = [{class = "PositionX", module = "orderp.py", index = [0, 0], periodic = false}]
+# cv_columns = [0, 1]    # if the CV source returns more values than the model takes
+```
+
+- **Output.** `calculate(system)` returns `[λ, v_0, v_1, …]`: λ, then every value of the CV source.
+  - infretis uses λ for interfaces, crossings and states.
+  - order.txt keeps the CVs, so the infretis loader (`tis_data.prepare_data`) reads `[λ, v_0, …]` as CVs for
+    the next round.
+- **CV sources.**
+  - Any infretis order parameter, built-in or external, built with infretis' own `create_orderparameter`
+    (module paths relative to the launch directory).
+  - Several sources are concatenated.
+  - Velocity-dependent sources are refused.
+- **States and interfaces.**
+  - The first and last interfaces must be the model's λ_A and λ_B. Then infretis' state tests on λ agree with
+    those on the state CV.
+  - `python infretis_orderp.py interfaces <model> --q 1e-3 1e-2 0.1 0.5` prints the `interfaces = [...]` line
+    for given committor levels.
+  - `python infretis_orderp.py check infretis.toml` loads the order parameter as infretis does, compares the end
+    interfaces, and prints the committor level of each interface.
+- **Load paths.** infretis reads the orders of the initial paths from `load/<n>/order.txt` and does not recompute
+  them. `python infretis_orderp.py relabel <model> load_old load` writes λ in front of the old values.
+  - Check that each path still crosses its ensemble's interface; `relabel` prints each path's λ range.
+- **Workers.** The object is built once and inherited by the forked workers. BLAS is limited to one thread
+  (`blas_threads = 1`), which is faster for one-frame calls.
+
+Tested with a real run (`tests/test_param_lambda.py::test_infretis_turtlemd_run`, slow): the turtlemd double well,
+2 workers, 8 MC steps, with a small model on x. Every new frame has λ = model(x), and every path end point has the
+states of x.

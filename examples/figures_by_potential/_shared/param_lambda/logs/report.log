@@ -1,5 +1,5 @@
 Running as unit: pl-report.service
 Finished with result: success
 Main processes terminated with: code=exited/status=0
-Service runtime: 1min 17.159s
-CPU time consumed: 5min 51.109s
+Service runtime: 43.867s
+CPU time consumed: 2min 35.258s

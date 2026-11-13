@@ -215,6 +215,91 @@ def fig_selection(cfg, metrics, runs, out):
     return path, ref
 
 
+SPLIT_STYLE = {'train': dict(color='#2a78d6', label='training paths'), 'val': dict(color='#eb6834', label='validation paths'),
+               'test': dict(color='#1baf7a', label='test paths')}
+
+
+def _load_losses(cfg):
+    path = os.path.join(cfg['out_dir'], 'fit', 'losses.json')
+    return json.load(open(path)) if os.path.isfile(path) else None
+
+
+def fig_losses(cfg, metrics, losses, out):
+    """Learning curves of the selected M3 run and M3-fast: the point term, the increment term (sum over the
+    training lags) and the total objective on the training / validation / test paths at every checkpoint, the
+    per-epoch minibatch training loss, and the validation SD(Z_q) used for selection. Dashed: the exact
+    committor's loss against the same q_np labels (the floor below which a model fits q_np's own errors)."""
+    if losses is None:
+        return None
+    ents = [(fam, metrics['_best'][fam]) for fam in ('M3', 'M3-fast') if fam in metrics['_best']]
+    if not ents:
+        return None
+    plt = _plt()
+    fig, axes = plt.subplots(len(ents), 4, figsize=(15, 3.3 * len(ents)), squeeze=False)
+    ex = losses['refs'].get('exact')
+    for row, (fam, rid) in zip(axes, ents):
+        r = losses['runs'][rid]
+        ep = [c['epoch'] for c in r['checkpoints']]
+        for ax, key, title in ((row[0], 'point', 'point term: weighted MSE of logit q_np'),
+                               (row[1], 'inc_sum', 'increment term: sum over lags 1, 2, 4, 8'),
+                               (row[2], 'total', f'total = point + β·increments (β = {r["beta"]:g})')):
+            h = r['history']
+            ax.plot([x['epoch'] for x in h], [x[key] for x in h], color=SPLIT_STYLE['train']['color'], lw=1,
+                    alpha=0.5, label='training, minibatch mean per epoch')
+            for sp, st in SPLIT_STYLE.items():
+                ax.plot(ep, [c[sp][key] for c in r['checkpoints']], marker='o', color=st['color'], label=st['label'])
+            if ex is not None and key != 'total':
+                ax.axhline(ex['val'][key], color='#0b0b0b', ls='--', lw=1.2,
+                           label='exact committor vs q_np (validation)')
+            ax.axvline(r['selected_epoch'], color='#8c8b86', lw=0.8, ls=':')
+            ax.set_yscale('log')
+            ax.set_title(title, fontsize=8)
+            ax.set_xlabel('epoch')
+        row[3].plot(ep, r['val_sdzqs'], marker='o', color='#52514e')
+        row[3].axvline(r['selected_epoch'], color='#8c8b86', lw=0.8, ls=':')
+        row[3].set_title('validation SD($Z_q$) (selection metric)', fontsize=8)
+        row[3].set_xlabel('epoch')
+        row[0].set_ylabel(f'{STYLE[fam]["label"].split(",")[0]}\n{_arch(r)}')
+    h, l = axes[0, 0].get_legend_handles_labels()
+    fig.legend(h, l, loc='lower center', ncol=5, fontsize=8)
+    fig.suptitle(f'{cfg["name"]}: loss values of the selected M3 runs (dotted: selected checkpoint)')
+    fig.tight_layout(rect=(0, 0.07, 1, 1))
+    path = os.path.join(out, 'losses.png')
+    fig.savefig(path, dpi=120)
+    plt.close(fig)
+    return path
+
+
+def _arch(r):
+    return f'{"x".join(map(str, r["arch"]))}, β = {r["beta"]:g}' if r.get('arch') else ''
+
+
+def loss_table(metrics, losses, runs):
+    """Loss values of the reported candidates: M1 (final), M3 and M3-fast (selected checkpoint), and the exact
+    committor (z = logit q_exact) as the floor."""
+    if losses is None:
+        return None
+    lines = ['| candidate | point: train / val / test | increments (sum): train / val / test | total (point + β·inc), val |',
+             '|---|---|---|---|']
+    fmt = lambda d, k: ' / '.join(f'{d[sp][k]:.3g}' for sp in ('train', 'val', 'test'))
+    ex = losses['refs'].get('exact')
+    if ex is not None:
+        lines.append(f'| exact committor (floor) | {fmt(ex, "point")} | {fmt(ex, "inc_sum")} | – |')
+    for fam in FAMILIES:
+        rid = metrics['_best'].get(fam)
+        if rid is None or rid not in losses['runs']:
+            continue
+        r = losses['runs'][rid]
+        if 'checkpoints' in r:
+            c = next(c for c in r['checkpoints'] if c['epoch'] == r['selected_epoch'])
+            lines.append(f'| {STYLE[fam]["label"]} ({_arch(r)}, epoch {r["selected_epoch"]}) | {fmt(c, "point")} | '
+                         f'{fmt(c, "inc_sum")} | {c["val"]["total"]:.3g} |')
+        else:
+            d = r['final']
+            lines.append(f'| {STYLE[fam]["label"]} | {fmt(d, "point")} | {fmt(d, "inc_sum")} | {d["val"]["point"]:.3g} |')
+    return '\n'.join(lines)
+
+
 DIFF_LIM = 0.15          # colour range of the difference maps (as staple_compare)
 MAP_ROWS = ['q_np', 'seed', 'M1-logit', 'M1-gam', 'M3', 'M3-fast']
 
@@ -429,8 +514,10 @@ def write(systems):
         os.makedirs(out, exist_ok=True)
         rel = lambda p: os.path.relpath(p, os.path.dirname(DOC))
         sel = fig_selection(cfg, metrics, runs, out)
+        losses = _load_losses(cfg)
         figs = [fig_committor_maps(cfg, export, out), fig_map(cfg, metrics, export, out),
-                fig_spread(cfg, metrics, out), fig_zq(cfg, metrics, out), sel[0] if sel else None]
+                fig_spread(cfg, metrics, out), fig_zq(cfg, metrics, out), sel[0] if sel else None,
+                fig_losses(cfg, metrics, losses, out)]
         rows = _rows(metrics)
         labels = {ent: _label(ent, cid, runs) for ent, cid in rows}
         choice, why = recommendation(metrics, runs)
@@ -468,6 +555,11 @@ def write(systems):
             s.append('Selection sensitivity: the rule selects by validation SD(Z_q); a selection by validation '
                      'isosurface spread (q_np only) would take:\n')
             s.append(sens + '\n')
+        lt = loss_table(metrics, losses, runs)
+        if lt:
+            s.append('Loss values: the M3 training objective on each split (see [Loss values](#loss-values)); '
+                     'the selected checkpoint for M3, the final model for M1:\n')
+            s.append(lt + '\n')
         s.append(f'Recommendation: **{STYLE[choice]["label"] if choice in STYLE else choice}**. {why}.\n')
         for p in figs:
             if p:

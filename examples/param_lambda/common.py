@@ -25,7 +25,8 @@ OUT_ROOT = os.path.join(FIGURES, '_shared', 'param_lambda')     # outputs that c
 OUT_DIRS = {'flat1d': '1d_flat/brownian_staple/param_lambda', 'bumps1d': '1d_two_bumps/brownian_staple/param_lambda',
             'z_br': '2d_zpot/brownian_g10/staple/param_lambda/z_br', 'z_emb': '2d_zpot/brownian_g10/staple/param_lambda/z_emb',
             'cc_br': '2d_curved_channel/brownian_g10/param_lambda/cc_br', 'cc_emb': '2d_curved_channel/brownian_g10/param_lambda/cc_emb',
-            'cc_emb_np': '2d_curved_channel/brownian_g10/param_lambda/cc_emb_np'}
+            'cc_emb_np': '2d_curved_channel/brownian_g10/param_lambda/cc_emb_np',
+            'zw_br': '3d_zpot_w/brownian_g10/staple/param_lambda/zw_br'}
 
 
 def out_dir(name):
