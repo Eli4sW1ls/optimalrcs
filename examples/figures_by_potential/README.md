@@ -6,10 +6,11 @@ data, `md` = plain MD, `exact` = reference committors, `checks` = method checks)
 
 | Folder | Potential | Runs |
 |---|---|---|
-| `1d_flat/` | flat 1D potential | staple `sim_istar0br10intf` (overdamped), staple `sim_istar0lgv15intf` (Langevin), long overdamped MD |
+| `1d_flat/` | flat 1D potential | staple `sim_istar0br10intf` (overdamped), staple `sim_istar0lgv15intf` (Langevin), long overdamped MD, infretis RETIS `flat_lgv/gamma5` (ASE Langevin) |
 | `1d_two_bumps/` | two cosine bumps of 1 kT on [-0.1, 0.3] | staple `sim_istar2cosbr_2108` (param_lambda), long overdamped MD |
 | `1d_cos_well/` | toytis `cos_well.CosWellWalls` | Langevin MD `md_istarwell2_100M`, Langevin staple `sim_istarwell2rv` |
 | `2d_zpot/` | toytis `sjoelbak_angle` (Z potential, Lx = 0.3, 45° ridge) | overdamped γ = 10 (`sim_istarz_br_g10`, MD `md_zbr_g10_s*`), Langevin γ = 2 (`sim_istarz_2603`) |
+| `2d_staggered_channels/` | toytis `potential_staggered_channels.PotentialStaggeredChannels` (`staggered_channels_run.py` settings) | Langevin reference (friction 0.1, dt 0.02, kT 0.25); staple and MD runs on the other machine |
 | `2d_curved_channel/` | toytis `curved_channel.CurvedChannelDoubleWell` (defaults) | overdamped γ = 10 (`sim_istar_cc_br`), Langevin γ = 2 (`sim_istar_cc_lgv`), MD |
 | `_shared/` | several | tools and results that cover more than one potential |
 | `_unsorted/` | ? | files the script had no rule for, under their old path |

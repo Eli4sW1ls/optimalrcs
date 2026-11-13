@@ -32,3 +32,4 @@ y is the order parameter, x the transverse coordinate; A: y ≤ 0.05, B: y ≥ 0
 | `overview_plots/` | `overview_plots/zlgv*` | plots for `docs/results_overview.md` |
 
 `exact/` (`exact_committors/zpot`, `zpot_exact.py`): exact committor of the staple dynamics.
+`exact/langevin_g2/` (new, 2026-11-13): Langevin (BBK, γ = 2, dt 0.002, the dynamics of `sim_istarz_2603`, whose `sjoelbak.RectangularGridWithBarrierPotential` gives the same force as `zpot_force`) reference by GPU shooting (`_shared/exact_committors/lgv2d_exact.py zpot`): velocity-averaged q̄(y, x), 10000 shots per point (s.e. ≤ 0.005). No fixed-velocity maps or frames: the run has no velocities in `order.txt`.

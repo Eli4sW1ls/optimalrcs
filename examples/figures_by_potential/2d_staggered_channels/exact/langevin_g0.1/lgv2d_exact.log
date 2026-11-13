@@ -1,0 +1,10 @@
+===== staggered channels: kT 0.25, gamma 0.1, dt 0.02, A: y <= -1.6, B: y >= 1.6 (staggered_channels_run.py defaults (istar, friction 0.1, dt 0.02)); Fri Nov 13 21:23:18 2026 =====
+grid 33 x 39, 374 points with V - V_min < 10 kT
+  qbar_maxwell: 10000 shots per point, 346 s; s.e. max 0.0042, mean steps to absorption 1364
+===== staggered channels: kT 0.25, gamma 0.1, dt 0.02, A: y <= -1.6, B: y >= 1.6 (staggered_channels_run.py defaults (istar, friction 0.1, dt 0.02)); Fri Nov 13 21:29:19 2026 =====
+grid 33 x 39, 450 points with V - V_min < 13 kT
+  qbar_maxwell: 10000 shots per point, 570 s; s.e. max 0.0049, mean steps to absorption 1408
+  q_vy_minus: 10000 shots per point, 653 s; s.e. max 0.0037, mean steps to absorption 1451
+  q_vy_zero: 10000 shots per point, 635 s; s.e. max 0.0035, mean steps to absorption 1596
+  q_vy_plus: 10000 shots per point, 458 s; s.e. max 0.0037, mean steps to absorption 1452
+ALL DONE
