@@ -779,3 +779,9 @@ train:   3358 paths,   1361817 frames, cycles 40001..85000
 val  :   1329 paths,    544573 frames, cycles 45011..69999
 test :   1322 paths,    545399 frames, cycles 55010..79995
 ood  :   1991 paths,    806865 frames, cycles 85014..99999
+== bumps1d
+burnin:      0 paths,         0 frames, cycles -1..-1
+train:   3358 paths,   1361817 frames, cycles 40001..85000
+val  :   1329 paths,    544573 frames, cycles 45011..69999
+test :   1322 paths,    545399 frames, cycles 55010..79995
+ood  :   1991 paths,    806865 frames, cycles 85014..99999

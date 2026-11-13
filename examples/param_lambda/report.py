@@ -440,6 +440,7 @@ def write(systems):
                  + (f' (tis_data {cfg["data"]["tis_data_rev"]})' if cfg['data'].get('tis_data_rev') else '') + '.\n')
         s.append('M2 screening (permutation importance of the gradient-boosted trees on validation paths): '
                  + ', '.join(f'`{sp}` {v:.3g}' for sp, v in list(zip(screen['specs'], screen['importance']))[:6]) + '.\n')
+        s.append('Columns and the test/OOD split: see [How to read this report](#how-to-read-this-report).\n')
         s.append('### Test paths (held-out MC cycle blocks)\n')
         s.append(_table(metrics, rows, 'test', export, runs, labels) + '\n')
         s.append('### OOD block (the last 15% of the cycles)\n')
