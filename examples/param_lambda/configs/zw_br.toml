@@ -7,9 +7,9 @@ name = "zw_br"
 seed = 0
 
 [data]
-tis_dir = "../toytis/simulations/sim_istarzw_br_g10_dV3_s1"
+tis_dir = "/home/staff7/fbsskr/Notebooks/Students/elias/toytis/simulations/sim_istarzw_br_g10_dV3_s1"
 loader_args = ["--reversed", "--paths-per-ensemble", "1500"]
-q_np = "examples/figures_by_potential/3d_zpot_w/brownian_g10/staple/param_lambda/zw_br/qnp/committor.npz"
+q_np = "/home/staff7/fbsskr/Notebooks/Students/elias/optimalrcs/examples/figures_by_potential/3d_zpot_w/brownian_g10/staple/param_lambda/zw_br/qnp/committor.npz"
 qnp_fit_args = ["--max-iter", "30000", "--lazy-basis", "--gamma", "0.1"]   # as many iterations as the Z fit; to check
 cv_names = ["y", "x", "w"]
 state_cv = 0
