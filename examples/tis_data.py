@@ -464,7 +464,8 @@ def save_open_figures(figure_dir, label):
 
 def add_data_arguments(parser):
     """Command-line options for reading and preparing the path data."""
-    parser.add_argument("tis_dir", help="simulation directory with the 0NN ensemble folders")
+    parser.add_argument("tis_dir", help="simulation directory: a PyRETIS/toytis run with the 0NN ensemble "
+                                        "folders, or an infretis run (infretis.toml, infretis_data.txt, load/)")
     parser.add_argument("-a", "--lambda-a", type=float,
                         help="state A: order parameter <= lambda_A (default: first interface)")
     parser.add_argument("-b", "--lambda-b", type=float,
@@ -472,12 +473,21 @@ def add_data_arguments(parser):
     parser.add_argument("--interfaces-file",
                         help="file with the `interfaces = [...]` line (default: the first of "
                              "repptis.rst, retis.rst, logging.log in tis_dir)")
-    parser.add_argument("--weights", choices=["rejections", "staple", "none"], default="rejections",
-                        help="Monte Carlo path weights, from tistools: 'rejections' = each accepted "
-                             "path counted once per cycle it stays the current path (default); "
-                             "'staple' = that times the high-acceptance factor 2 for shot LML/RMR "
-                             "paths; 'none' = every accepted path once. On a flat 1D staple test "
-                             "only 'rejections' passed the stopped Z_q test for the exact committor.")
+    parser.add_argument("--weights", choices=["rejections", "staple", "none"], default=None,
+                        help="Monte Carlo path weights. toytis/PyRETIS (from tistools): 'rejections' = each "
+                             "accepted path counted once per cycle it stays the current path (default); "
+                             "'staple' = that times the high-acceptance factor 2 for LML/RMR paths; "
+                             "'none' = every accepted path once. On a flat 1D staple test only "
+                             "'rejections' passed the stopped Z_q test for the exact committor. "
+                             "infretis: 'rejections' = path_f (occupancy), 'staple' = path_f / path_w "
+                             "(the infretis/inftools analysis: undoes high-acceptance and staple weights), "
+                             "'none' = 1 per (path, ensemble); default: path_f / path_w, except for "
+                             "StapleTIS with shooting only (path_f), see infretis_data.default_weighting")
+    parser.add_argument("--h5", metavar="FILE",
+                        help="infretis: read the order parameters from this `inft store_txt -order` h5 "
+                             "archive instead of <tis_dir>/load/<pnr>/order.txt")
+    parser.add_argument("--data-file", metavar="FILE",
+                        help="infretis: the path table (default <tis_dir>/infretis_data.txt; .gz allowed)")
     parser.add_argument("--no-cut", action="store_true",
                         help="keep whole paths instead of cutting them at their first frame "
                              "past M (for comparison only: the cut frames are biased)")
@@ -556,7 +566,12 @@ def prepare_data(args):
     each frame's path, averaging 1 so that --gamma keeps its meaning relative to
     the unweighted transition count), boundary0 (A) and boundary1 (B).
     """
-    interfaces = read_interfaces(args.tis_dir, args.interfaces_file)
+    import infretis_data
+    infretis_run = infretis_data.is_infretis_run(args.tis_dir)
+    if infretis_run:
+        interfaces = infretis_data.read_settings(args.tis_dir)["interfaces"]
+    else:
+        interfaces = read_interfaces(args.tis_dir, args.interfaces_file)
     if args.lambda_a is None:
         args.lambda_a = interfaces[0]
     if args.lambda_b is None:
@@ -565,23 +580,34 @@ def prepare_data(args):
 
     if args.reversed and args.no_cut:
         raise SystemExit("--reversed needs the cut at M (drop --no-cut)")
-    dim, v_ord = read_run_settings(args.tis_dir)
-    # order.txt columns: time, `dim` positions (order parameter first), then with
-    # v_ord `dim` velocities, which change sign under time reversal.
-    odd_columns = range(1 + dim, 1 + 2 * dim) if (v_ord and dim) else ()
-    if args.reversed and v_ord and not dim:
-        raise SystemExit("--reversed: order.txt holds velocities but the dimension is not recorded")
     if getattr(args, "seed", None) is not None:
         print("Note: --seed is ignored; paths are thinned in a fixed pattern (--thin, --paths-per-ensemble), "
               "not drawn at random")
-    cvs, order, time, weights, paths = load_tis_data(
-        args.tis_dir, interfaces, include_zero_minus=args.include_zero_minus,
-        weighting=args.weights, cut_at_m=not args.no_cut, burn_in=args.burn_in,
-        burn_in_fraction=getattr(args, "burn_in_fraction", 0.4), thin=getattr(args, "thin", 1),
-        paths_per_ensemble=args.paths_per_ensemble,
-        reversed_pieces=args.reversed, odd_columns=odd_columns, fd_velocity=args.fd_velocity,
-        fd_columns=list(range(1, 1 + dim)) if dim else [1],
-        max_length=getattr(args, "max_length", None), long_pieces=getattr(args, "long_pieces", "truncate"))
+    common = dict(include_zero_minus=args.include_zero_minus, cut_at_m=not args.no_cut, burn_in=args.burn_in,
+                  burn_in_fraction=getattr(args, "burn_in_fraction", 0.4), thin=getattr(args, "thin", 1),
+                  paths_per_ensemble=args.paths_per_ensemble, reversed_pieces=args.reversed,
+                  fd_velocity=args.fd_velocity, max_length=getattr(args, "max_length", None),
+                  long_pieces=getattr(args, "long_pieces", "truncate"))
+    if infretis_run:
+        # infretis order.txt: time, order parameter, then any extra CVs of the order parameter class; no
+        # velocities, so nothing changes sign under time reversal (extra CVs must be even).
+        dim = None
+        cvs, order, time, weights, paths, settings = infretis_data.load_infretis_data(
+            args.tis_dir, weighting=args.weights, odd_columns=(), fd_columns=[1],
+            h5_file=getattr(args, "h5", None), data_file=getattr(args, "data_file", None), **common)
+        args.weights = settings["weighting"]
+    else:
+        dim, v_ord = read_run_settings(args.tis_dir)
+        # order.txt columns: time, `dim` positions (order parameter first), then with
+        # v_ord `dim` velocities, which change sign under time reversal.
+        odd_columns = range(1 + dim, 1 + 2 * dim) if (v_ord and dim) else ()
+        if args.reversed and v_ord and not dim:
+            raise SystemExit("--reversed: order.txt holds velocities but the dimension is not recorded")
+        if args.weights is None:
+            args.weights = "rejections"
+        cvs, order, time, weights, paths = load_tis_data(
+            args.tis_dir, interfaces, weighting=args.weights, odd_columns=odd_columns,
+            fd_columns=list(range(1, 1 + dim)) if dim else [1], **common)
 
     path_weights = np.concatenate([np.full(len(path), w, dtype=float)
                                    for path, w in zip(order, weights)])

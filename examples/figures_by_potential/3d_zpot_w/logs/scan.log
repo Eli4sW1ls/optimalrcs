@@ -1,0 +1,5 @@
+dV_w 2 kT: steps between hops in A      4065, overall      4076; transitions 1940 + 1915 (96 per 1e9 steps), switched 0.555, mean TP 11325 steps
+dV_w 3 kT: steps between hops in A      7760, overall      7782; transitions 1683 + 1659 (84 per 1e9 steps), switched 0.576, mean TP 13434 steps
+dV_w 4 kT: steps between hops in A     16027, overall     16069; transitions 1506 + 1474 (74 per 1e9 steps), switched 0.556, mean TP 15936 steps
+dV_w 5 kT: steps between hops in A     34848, overall     34954; transitions 1229 + 1188 (60 per 1e9 steps), switched 0.438, mean TP 18457 steps
+dV_w 8 kT: steps between hops in A    430272, overall    432021; transitions 961 + 921 (47 per 1e9 steps), switched 0.070, mean TP 21329 steps

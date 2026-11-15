@@ -694,3 +694,40 @@ train:   3741 paths,    523734 frames, cycles 40001..84995
 val  :   1486 paths,    210957 frames, cycles 45012..69991
 test :   1503 paths,    210946 frames, cycles 55012..80000
 ood  :   2270 paths,    319267 frames, cycles 85011..100000
+== flat1d
+burnin:      0 paths,         0 frames, cycles -1..-1
+train:   3741 paths,    523734 frames, cycles 40001..84995
+val  :   1486 paths,    210957 frames, cycles 45012..69991
+test :   1503 paths,    210946 frames, cycles 55012..80000
+ood  :   2270 paths,    319267 frames, cycles 85011..100000
+== flat1d
+burnin:      0 paths,         0 frames, cycles -1..-1
+train:   3741 paths,    523734 frames, cycles 40001..84995
+val  :   1486 paths,    210957 frames, cycles 45012..69991
+test :   1503 paths,    210946 frames, cycles 55012..80000
+ood  :   2270 paths,    319267 frames, cycles 85011..100000
+m1_logit_top1_0.01             train 0.030/0.066 val 0.029/0.065 test 0.029/0.066
+m1_logit_top1_0.1              train 0.030/0.066 val 0.029/0.065 test 0.029/0.066
+m1_logit_top1_1                train 0.030/0.066 val 0.029/0.065 test 0.029/0.066
+m1_logit_top1_10               train 0.030/0.066 val 0.029/0.065 test 0.029/0.066
+m1_gam_top1_0.001              train 0.001/0.007 val 0.001/0.007 test 0.001/0.007
+m1_gam_top1_0.1                train 0.006/0.032 val 0.006/0.031 test 0.006/0.031
+m1_gam_top1_10                 train 0.026/0.062 val 0.025/0.061 test 0.025/0.062
+m3_top1_32_b0                  train 0.006/0.030 val 0.006/0.030 test 0.006/0.030
+m3_top1_32_b0.1                train 0.006/0.029 val 0.005/0.028 test 0.005/0.028
+m3_top1_32_b1                  train 0.005/0.023 val 0.005/0.023 test 0.005/0.022
+m3_top1_32_b10                 train 0.005/0.017 val 0.005/0.017 test 0.005/0.017
+m3_top1_64x64_b0               train 0.002/0.014 val 0.002/0.014 test 0.002/0.013
+m3_top1_64x64_b0.1             train 0.001/0.009 val 0.001/0.009 test 0.001/0.009
+m3_top1_64x64_b1               train 0.000/0.002 val 0.000/0.002 test 0.000/0.002
+m3_top1_64x64_b10              train 0.000/0.000 val 0.000/0.000 test 0.000/0.000
+m3_top1_128x128x128_b0         train 0.000/0.001 val 0.000/0.001 test 0.000/0.001
+m3_top1_128x128x128_b0.1       train 0.000/0.000 val 0.000/0.000 test 0.000/0.000
+m3_top1_128x128x128_b1         train 0.000/0.000 val 0.000/0.000 test 0.000/0.000
+m3_top1_128x128x128_b10        train 0.000/0.000 val 0.000/0.000 test 0.000/0.000
+== flat1d
+burnin:      0 paths,         0 frames, cycles -1..-1
+train:   3741 paths,    523734 frames, cycles 40001..84995
+val  :   1486 paths,    210957 frames, cycles 45012..69991
+test :   1503 paths,    210946 frames, cycles 55012..80000
+ood  :   2270 paths,    319267 frames, cycles 85011..100000

@@ -1,0 +1,4 @@
+===== Z potential: kT 0.05, gamma 2.0, dt 0.002, A: y <= 0.05, B: y >= 0.85 (sim_istarz_2603 (staple; positions only)); Fri Nov 13 22:07:56 2026 =====
+grid 33 x 13, 421 points with V - V_min < 10 kT
+  qbar_maxwell: 10000 shots per point, 687 s; s.e. max 0.0050, mean steps to absorption 6885
+ALL DONE

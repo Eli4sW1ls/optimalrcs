@@ -4,6 +4,9 @@ A parametric λ(x) was fitted to the nonparametric committor q_np of staple runs
 parameter of the sampler. Priorities: (1) cost per frame, (2) smoothness along trajectories, (3) λ isosurfaces
 close to isocommittors, (4) pointwise accuracy.
 
+The terms, data and metrics are explained in [How to read this report](#how-to-read-this-report) below the
+findings.
+
 ## Findings
 
 **Recommendation.**
@@ -88,6 +91,125 @@ error is underestimated there. Compare zqs_z with the exact committor's on the s
 - A production staple run with the new λ: compare the crossing probability and rate with the exact rate, and
   the turn-to-turn MSM against the exact committor. Only a 4-cycle toytis smoke test was run.
 
+## How to read this report
+
+### Symbols
+
+| symbol | meaning |
+|---|---|
+| x | the CVs of one frame (y, x in 2D; x in 1D) |
+| q_np(x) | the nonparametric committor from the NPNEq fit of the run. It is the training label, defined per frame only, not as a function you can evaluate at a new x |
+| q_exact(x) | the exact committor from a grid solution; used for validation only, never for fitting or selection |
+| logit q | ln(q / (1 − q)). For small q it is ≈ ln q, so logit units are relative (factor) errors in q: 0.1 logit ≈ 10% |
+| z(x) | the raw output of a fitted model (M1 or M3), trained to approximate logit q_np. An unbounded score, not exactly calibrated |
+| g | the calibration map: a monotone increasing function fitted after training (isotonic regression of q_np on z, smoothed by a monotone cubic). It does not change the ordering of frames, so it does not change any isosurface; it only says which value of z belongs to a given committor level |
+| m(x) = g(z(x)) | the model's committor estimate in [0, 1]. All metrics are computed on m (or on z, which orders frames the same way). Earlier versions of this text wrote g(λ) for m |
+| λ(x) | the exported order parameter: m on a log scale between λ_A and λ_B, with short ramps at A and B (see Calibration). Away from the ramps λ and m have the same isosurfaces; the interface of committor level q_k is λ_k = `interface_for_q(q_k)` |
+| s | the state CV (y in 2D): A is s ≤ λ_A, B is s ≥ λ_B, as in the sampler |
+
+The stopped Z_q code (`optimalrcs/metrics_tis.py`) takes its inputs as per-frame arrays:
+- `r_traj`: the candidate's m, set to 0 in A and 1 in B.
+- `b_traj`: 1 in A or B.
+- `i_traj`: the piece a frame belongs to. Lag windows never run from one piece into another.
+- `w_traj`: the Monte Carlo weight of the frame's path.
+- `g_traj`: the path a frame belongs to. A path's forward and mirrored pieces share frames, so for the standard
+  error they count as one independent unit.
+
+### Data: pieces and weights
+
+- Each staple path is cut at its first crossing of the ensemble's interface M (the interface below the ensemble)
+  and gives two pieces:
+  - a **forward piece**: the frames after M up to the end of the path;
+  - a **mirrored piece**: the frames from the start of the path up to M, read backwards. Brownian dynamics at
+    equilibrium are time-reversible, so a reversed segment is a valid trajectory.
+- Every frame carries its path's **rejection weight**: the number of MC cycles the path stayed the current path
+  (tistools `get_weights`). It is the same for both pieces.
+- These are exactly the frames, pieces and weights of the q_np fit (`tis_data.prepare_data --reversed`); the
+  loader checks that frame by frame.
+- **Every metric below uses both piece kinds and these weights.** The turn replay scans each piece in its own
+  time order, the mirrored ones backwards.
+
+### Test paths and the OOD block
+
+Both are whole paths that no model was trained or selected on. They differ in *when* in the MC chain they were
+sampled:
+- **Test**: two blocks of 5% of the MC cycles (blocks 3 and 7) between 40% and 85% of the run, interleaved with
+  the training blocks. They come from the same stage of sampling as the training data: an in-distribution test.
+- **OOD** (out of distribution): every path from the last 15% of the cycles, all later than any training path.
+  If the MC chain drifts (paths through regions it had not reached yet), λ has to extrapolate there. Similar
+  numbers on test and OOD mean λ does not depend on the sampling stage it was trained on.
+- One caveat: the q_np labels of the OOD frames come from fits that also saw those frames. The λ models never
+  did, and the exact-committor columns are unaffected.
+
+### Metrics, and how to read the numbers
+
+Table columns, in order:
+
+| metric | what it is | how to read it |
+|---|---|---|
+| spread (exact), spread (q_np) | **Isosurface alignment.** For each of the 12 planned interfaces q_k, take the frames on that λ isosurface (the slab \|logit m − logit q_k\| < 0.2) and compute the weighted variance of logit q_exact (or logit q_np) over them. The table gives the mean over levels | If λ's isosurfaces were isocommittors, the slab would hold only frames with q within ±0.2 logit of q_k: variance 0.2²/3 = 0.013, the **floor** (the exact committor scores 0.012–0.013). Above the floor, √(spread − 0.013) is the RMS misalignment in logit units: 0.043 (Z, M3) → 0.17, so the committor along one interface varies by about ±17%. 1.26 (Z, y) → 1.1, about a factor 3. Against q_np the value also contains q_np's own noise |
+| zqs_z | stopped Z_q profile divided by its standard error; the maximum of \|Z/s.e.\| over q (first 5 bins skipped) and over lags 1 … 4096 | ≈ 2 or less for the committor *if paths are independent*. Here paths from one MC block are correlated, so even the exact committor scores 7–11 on Z. Compare with the exact committor's value on the same split, not with 2 |
+| SD(Z_q) | the standard deviation over q (200 bins on [0, 1]) of the stopped Z_q profile itself, maximum over lags | 0 for the committor up to sampling noise; the exact committor's value is the noise floor (Z ≈ 2.2, cc ≈ 3.5). Several times that = dynamically inconsistent (y on Z: 93). This is the selection metric (on the validation paths, lags 1 … 256) |
+| step ratio | Σ w (Δ logit m)² / Σ w (Δ logit q_np)² over lag-1 steps | Jitter of λ along trajectories. < 1: smoother than q_np (q_np is noisy; the exact committor has 0.64 on Z, 0.89 on cc). Clearly > 1: λ jitters |
+| Δ RMSE lag 1 / 8 | RMS of (Δ logit m − Δ logit q_np) over steps of 1 and 8 frames | How closely λ's increments follow q_np's, in logit units; includes q_np's noise. Smaller is better |
+| sign-change ratio | fraction of consecutive lag-1 increments with opposite sign, divided by the same fraction for q_np | ≈ 1 for every λ here: the lag-1 motion is thermal noise. It does not separate the candidates |
+| turns / q_np, turns / exact | turns per 1000 frames when the sampler's turn rule (`pgmoves.turn_detected`) is replayed on the pieces with λ and the planned interfaces, divided by the same count with q_np or the exact committor as order parameter | 1 = as many turns as the ideal order parameter. > 1: spurious turns, where λ re-crosses interfaces the committor would not (y on Z: 4.1). < 1: λ turns less, because it is smoother than the reference |
+| crossings / q_np | interface crossings per 1000 frames, relative to q_np | 1 = the same crossing rate; > 1 = extra back-and-forth crossings |
+| Δr² / q_np (lag 1) | stopped Δr² of m, Σ w (r(min(t + lag, τ_t)) − r(t))² / lag, divided by q_np's | The committor minimizes Δr² (the NPNEq criterion). ≈ 1 = as good as q_np; > 1 = worse (y on Z: 11.6). It can be slightly below 1 because q_np's noise adds to its own Δr² |
+| Spearman | rank correlation of z with q_np over all frames | Whether λ orders the frames like q_np. 0.95–1.00 for every λ here, y included (0.994 on Z), so it hardly separates candidates |
+| logit RMSE (q_np / exact) | bin the frames on a 40 × 40 grid in CV space (quantile bins), average logit m and logit q_ref per bin, then the weighted RMS of the difference | Pointwise accuracy in logit units, as a function of position: 0.04 ≈ 4% error in q. Against q_exact every candidate scores at least 0.12–0.13, the exact committor included (Z 0.12, cc 0.13). Every candidate is calibrated on q_np (g is fitted to q_np), so q_np's level errors, mostly at small q, enter m. Compare with the exact committor's row |
+| µs/frame (one / batch) | the exported model: one frame per call, as in the sampler, and a batch of 200k frames | Cost. A toytis MD step takes 8.6 µs |
+| training s | wall time of the fit, including the checkpoint evaluations | |
+
+### Loss values
+
+The loss tables and the `losses.png` figures of each system give the M3 training objective, written by
+`run.py losses` (`fit/losses.json`). Units are logit², so √loss is an RMS error in logit units.
+
+- **Point term**: Σ w (z − logit q_np)² / Σ w over every 4th frame of the split. Here w is the path weight, ×5
+  for 0.05 < q_np < 0.95.
+- **Increment term**: for each training lag (1, 2, 4, 8 frames), Σ w (Δz − Δ logit q_np)² / Σ w over all pairs
+  inside one piece; the tables give the sum over the lags. It measures whether λ moves along the paths the way
+  q_np does.
+- **Total** = point + β × increments, the quantity M3 minimizes.
+
+How each quantity is computed:
+- **Training, validation and test values**: the same objective on each split's frames, computed from the
+  checkpoints saved during the fit (every 3 epochs). The standardization of the features comes from the
+  training frames.
+- **The thin training curve**: the mean over each epoch's minibatches as recorded during training. The weights
+  change during the epoch and the increment pairs are sampled, so it differs slightly from the checkpoint value.
+- **M1 rows**: the same objective evaluated for the final model. M1 is trained on its own loss (logistic
+  log-loss, or the penalized spline fit).
+
+How to read the numbers:
+- **The floor**: the exact committor's loss against the same q_np labels (dashed line, "exact committor"
+  row). It is q_np's own error: on cc 0.016, i.e. q_np is off the true committor by 0.13 logit RMS.
+  - A model below the floor reproduces q_np's errors as well as the committor.
+  - Those errors are smooth in position, so they are learnable, and they are present in the validation and test
+    labels too, since they come from the same q_np fit. A lower validation loss then no longer means a better λ.
+  - That is why checkpoints and runs are selected by the stopped Z_q of the dynamics, not by validation loss.
+- **Validation above training**: overfitting to the training paths. A small gap means the model generalizes to
+  new paths of the same run.
+
+### The stopped Z_q is the library's
+
+- It is computed with `optimalrcs/metrics_tis.py`: `stop_index`, `comp_zq_stopped` (the profile Z_q) and
+  `comp_zq_stopped_zscore` (Z / s.e.). That is the numpy twin of `optimalrcs-cupy/metrics_tis.py`, whose
+  `max_z_zq_stopped` and `max_sd_zq_stopped` are the zqs_z and sdzqs that the NPNEq fits print.
+- What it does: a lag window [t, t + Δt] that would run past the end of a piece (in A/B, at an L/R exit or a
+  completed turn) is stopped at that end instead of dropped. Dropping those windows biases the ordinary Z_q of
+  path pieces, even for the exact committor.
+- The inputs are as in the notebooks: `w_traj` = path weight, `g_traj` = path, `i_traj` = piece, 200 bins, the
+  first 5 bins skipped for the maximum.
+- What differs from the numbers a fit prints:
+  - **Lags:** this report uses 1, 4, 16, …, 4096; checkpoint selection 1, 4, 16, 64, 256; the library default
+    is 1, 2, 4, …, 32768.
+  - **r** is the candidate's calibrated m.
+  - **Frames:** one split only (test, OOD or validation), not all frames.
+
+  So the q_np row's zqs_z here is not the value its fit printed.
+
 
 ## What was compared
 
@@ -140,26 +262,14 @@ later with a q_np refit that leaves the block out).
 - The OOD flag combines a per-CV training range check (counted per frame by the adapter) with a Mahalanobis
   distance on the standardized features (`LambdaModel.ood`).
 
-**Metrics** (path weights throughout; Z_q as in the notebooks: `w_traj` = path weight, `g_traj` = path):
-- *Isosurface spread*: 12 planned interfaces equally spaced in ln q (Z, cc: 1e-4 … 0.95; 1D: 1e-2 … 0.95).
-  - For each, the weighted variance of logit q_np (and of logit q_exact) over the frames with
-    |logit g(λ) − logit q_k| < 0.2. A λ whose isosurfaces are isocommittors scores ≈ 0.2²/3 = 0.013.
-  - The table mean is over the levels where the exact committor's slab holds ≥ 500 frames and logit q_np on it
-    varies by less than 10× that baseline, i.e. where q_np resolves the committor; the levels used are listed.
-  - Below about q = 1e-3 the q_np labels are noise. There, alignment can only be judged against the exact
-    committor (per-level figure).
-- *Smoothness*:
-  - step ratio: mean squared lag-1 increment of logit g(λ) over that of logit q_np;
-  - RMSE of the increments against q_np's at lags 1–8;
-  - sign-change ratio of consecutive lag-1 increments;
-  - turns and interface crossings per 1000 frames under the sampler's own turn rule (`pgmoves.turn_detected`,
-    both directions, restarted after each turn), relative to q_np and to the exact committor used as the
-    order parameter.
-- *Dynamical*: the stopped Z_q of g(λ), max |Z/s.e.| (zqs_z) and its SD over q, at lags 1 … 4096; and the
-  stopped Δr² relative to q_np's. N_AB is not defined for path pieces, so Δr²/2N_AB is reported as this ratio.
-- *Static*: Spearman correlation with q_np, and the RMSE of logit g(λ) against logit q_np (and logit q_exact)
-  after averaging over a 40×40 grid of CV-space bins.
-- *Cost*: µs per frame of the exported model: one-frame calls (as the sampler makes them) and batch.
+**Metrics**: defined in [How to read this report](#how-to-read-this-report). Specifics:
+- The planned interfaces are 12 levels equally spaced in ln q (Z, cc: 1e-4 … 0.95; 1D: 1e-2 … 0.95).
+- The mean spread is taken over the levels where the exact committor's slab holds at least 50 frames and logit
+  q_np on it varies by less than 10× the floor, i.e. where q_np resolves the committor. The levels used are
+  listed under each table.
+- Below about q = 1e-3 the q_np labels are noise. There, alignment can only be judged against the exact
+  committor (per-level figure).
+- N_AB is not defined for path pieces, so Δr²/2N_AB is reported as the ratio to q_np.
 
 ## Using it in the sampler
 
@@ -213,6 +323,8 @@ Data: `sim_istarz_br_g10`, loader `--reversed --paths-per-ensemble 1500 --seed 0
 
 M2 screening (permutation importance of the gradient-boosted trees on validation paths): `u` 11.3, `y^2*x` 2.1, `y` 1.48, `v` 0.0626, `y*x` 0.0145, `x` 0.0112.
 
+Columns and the test/OOD split: see [How to read this report](#how-to-read-this-report).
+
 ### Test paths (held-out MC cycle blocks)
 
 | candidate | spread (q_np) | spread (exact) | zqs_z | SD(Z_q) | step ratio | Δ RMSE lag 1 / 8 | sign-change ratio | turns / q_np | turns / exact | crossings / q_np | Δr² / q_np (lag 1) | Spearman | logit RMSE (q_np / exact) | µs/frame (one / batch) | training s |
@@ -256,6 +368,16 @@ Selection sensitivity: the rule selects by validation SD(Z_q); a selection by va
 | M3 | SD(Z_q) (rule) | m3_cvs_128x128x128_b0 | 1.120 | 0.048 | 0.053 | 0.055 | 10.551 | 2.293 |
 | M3 | spread | m3_top4_128x128x128_b10 | 1.277 | 0.028 | 0.027 | 0.037 | 10.451 | 2.272 |
 
+Loss values: the M3 training objective on each split (see [Loss values](#loss-values)); the selected checkpoint for M3, the final model for M1:
+
+| candidate | point: train / val / test | increments (sum): train / val / test | total (point + β·inc), val |
+|---|---|---|---|
+| exact committor (floor) | 0.0284 / 0.0284 / 0.0295 | 0.00702 / 0.00637 / 0.00772 | – |
+| M1 L1-logistic | 4.09 / 3.59 / 3.87 | 0.0429 / 0.0416 / 0.0434 | 3.59 |
+| M1 spline GAM | 1.1 / 1.05 / 1.05 | 0.0856 / 0.0846 / 0.086 | 1.05 |
+| M3 MLP (128x128x128, β = 0, epoch 9) | 0.00214 / 0.00192 / 0.0023 | 0.00374 / 0.00359 / 0.00444 | 0.00192 |
+| M3 MLP, smallest within 10% (cost) (64x64, β = 10, epoch 18) | 0.00121 / 0.00111 / 0.00128 | 0.00269 / 0.00264 / 0.00326 | 0.0275 |
+
 Recommendation: **M3 MLP**. M1 L1-logistic vs M3 on the test paths: spread 1.244 vs 0.0535 (outside +10%), zqs_z 12.25 vs 10.55 (outside +0.5).
 
 ![committor_maps.png](../examples/figures_by_potential/2d_zpot/brownian_g10/staple/param_lambda/z_br/report/committor_maps.png)
@@ -267,6 +389,8 @@ Recommendation: **M3 MLP**. M1 L1-logistic vs M3 on the test paths: spread 1.244
 ![zq_lags.png](../examples/figures_by_potential/2d_zpot/brownian_g10/staple/param_lambda/z_br/report/zq_lags.png)
 
 ![m3_checkpoints.png](../examples/figures_by_potential/2d_zpot/brownian_g10/staple/param_lambda/z_br/report/m3_checkpoints.png)
+
+![losses.png](../examples/figures_by_potential/2d_zpot/brownian_g10/staple/param_lambda/z_br/report/losses.png)
 
 TIS diagnostics (plots_tis) and path-weighted feps of every row: [`../examples/figures_by_potential/2d_zpot/brownian_g10/staple/param_lambda/z_br/eval/tis_plots`](../examples/figures_by_potential/2d_zpot/brownian_g10/staple/param_lambda/z_br/eval/tis_plots).
 
@@ -341,6 +465,8 @@ Data: `test_cc_br`, loader `--reversed`.
 
 M2 screening (permutation importance of the gradient-boosted trees on validation paths): `y` 6.67, `u` 1.84, `x^2` 0.0483, `y^2` 0.0215, `v` 0.012, `y^3` 0.00297.
 
+Columns and the test/OOD split: see [How to read this report](#how-to-read-this-report).
+
 ### Test paths (held-out MC cycle blocks)
 
 | candidate | spread (q_np) | spread (exact) | zqs_z | SD(Z_q) | step ratio | Δ RMSE lag 1 / 8 | sign-change ratio | turns / q_np | turns / exact | crossings / q_np | Δr² / q_np (lag 1) | Spearman | logit RMSE (q_np / exact) | µs/frame (one / batch) | training s |
@@ -384,6 +510,16 @@ Selection sensitivity: the rule selects by validation SD(Z_q); a selection by va
 | M3 | SD(Z_q) (rule) | m3_top2_64x64_b0.1 | 3.618 | 0.550 | 0.063 | 0.047 | 1.978 | 3.297 |
 | M3 | spread | m3_top4_32_b0.1 | 3.777 | 0.450 | 0.147 | 0.061 | 2.220 | 3.464 |
 
+Loss values: the M3 training objective on each split (see [Loss values](#loss-values)); the selected checkpoint for M3, the final model for M1:
+
+| candidate | point: train / val / test | increments (sum): train / val / test | total (point + β·inc), val |
+|---|---|---|---|
+| exact committor (floor) | 0.0159 / 0.0169 / 0.0194 | 0.00228 / 0.00726 / 0.00586 | – |
+| M1 L1-logistic | 0.0494 / 0.0486 / 0.0582 | 0.0183 / 0.0241 / 0.0233 | 0.0486 |
+| M1 spline GAM | 0.0156 / 0.0165 / 0.019 | 0.0127 / 0.0191 / 0.0175 | 0.0165 |
+| M3 MLP (64x64, β = 0.1, epoch 3) | 0.012 / 0.0134 / 0.0171 | 0.0107 / 0.0164 / 0.0155 | 0.015 |
+| M3 MLP, smallest within 10% (cost) (32, β = 0.1, epoch 3) | 0.0187 / 0.0201 / 0.0257 | 0.0124 / 0.0179 / 0.0177 | 0.0218 |
+
 Recommendation: **M3 MLP**. M1 spline GAM vs M3 on the test paths: spread 0.12 vs 0.06306 (outside +10%), zqs_z 2.27 vs 1.98 (within +0.5).
 
 ![committor_maps.png](../examples/figures_by_potential/2d_curved_channel/brownian_g10/param_lambda/cc_br/report/committor_maps.png)
@@ -395,6 +531,8 @@ Recommendation: **M3 MLP**. M1 spline GAM vs M3 on the test paths: spread 0.12 v
 ![zq_lags.png](../examples/figures_by_potential/2d_curved_channel/brownian_g10/param_lambda/cc_br/report/zq_lags.png)
 
 ![m3_checkpoints.png](../examples/figures_by_potential/2d_curved_channel/brownian_g10/param_lambda/cc_br/report/m3_checkpoints.png)
+
+![losses.png](../examples/figures_by_potential/2d_curved_channel/brownian_g10/param_lambda/cc_br/report/losses.png)
 
 TIS diagnostics (plots_tis) and path-weighted feps of every row: [`../examples/figures_by_potential/2d_curved_channel/brownian_g10/param_lambda/cc_br/eval/tis_plots`](../examples/figures_by_potential/2d_curved_channel/brownian_g10/param_lambda/cc_br/eval/tis_plots).
 
@@ -469,6 +607,8 @@ Data: `sim_istar0br10intf`, loader `--reversed --paths-per-ensemble 1000`.
 
 M2 screening (permutation importance of the gradient-boosted trees on validation paths): `x` 2.95, `x^2` 0.0593, `x^3` 0.0101.
 
+Columns and the test/OOD split: see [How to read this report](#how-to-read-this-report).
+
 ### Test paths (held-out MC cycle blocks)
 
 | candidate | spread (q_np) | spread (exact) | zqs_z | SD(Z_q) | step ratio | Δ RMSE lag 1 / 8 | sign-change ratio | turns / q_np | turns / exact | crossings / q_np | Δr² / q_np (lag 1) | Spearman | logit RMSE (q_np / exact) | µs/frame (one / batch) | training s |
@@ -512,6 +652,16 @@ Selection sensitivity: the rule selects by validation SD(Z_q); a selection by va
 | M3 | SD(Z_q) (rule) | m3_top1_64x64_b0 | 3.325 | 0.012 | 0.012 | 0.012 | 2.562 | 5.784 |
 | M3 | spread | m3_top1_128x128x128_b0.1 | 3.325 | 0.012 | 0.012 | 0.012 | 2.562 | 5.784 |
 
+Loss values: the M3 training objective on each split (see [Loss values](#loss-values)); the selected checkpoint for M3, the final model for M1:
+
+| candidate | point: train / val / test | increments (sum): train / val / test | total (point + β·inc), val |
+|---|---|---|---|
+| exact committor (floor) | 0.00404 / 0.00403 / 0.00404 | 0.000223 / 0.000217 / 0.000218 | – |
+| M1 L1-logistic | 0.03 / 0.029 / 0.0292 | 0.0657 / 0.065 / 0.0661 | 0.029 |
+| M1 spline GAM | 0.0262 / 0.0254 / 0.0254 | 0.0617 / 0.0609 / 0.0618 | 0.0254 |
+| M3 MLP (64x64, β = 0, epoch 3) | 0.00425 / 0.00412 / 0.00407 | 0.0238 / 0.0232 / 0.0229 | 0.00412 |
+| M3 MLP, smallest within 10% (cost) (32, β = 1, epoch 9) | 0.00575 / 0.00557 / 0.0056 | 0.0291 / 0.0284 / 0.0282 | 0.034 |
+
 Recommendation: **M1 spline GAM**. M1 spline GAM vs M3 on the test paths: spread 0.0125 vs 0.01208 (within +10%), zqs_z 2.56 vs 2.56 (within +0.5).
 
 ![committor_profiles.png](../examples/figures_by_potential/1d_flat/brownian_staple/param_lambda/report/committor_profiles.png)
@@ -521,6 +671,8 @@ Recommendation: **M1 spline GAM**. M1 spline GAM vs M3 on the test paths: spread
 ![zq_lags.png](../examples/figures_by_potential/1d_flat/brownian_staple/param_lambda/report/zq_lags.png)
 
 ![m3_checkpoints.png](../examples/figures_by_potential/1d_flat/brownian_staple/param_lambda/report/m3_checkpoints.png)
+
+![losses.png](../examples/figures_by_potential/1d_flat/brownian_staple/param_lambda/report/losses.png)
 
 TIS diagnostics (plots_tis) and path-weighted feps of every row: [`../examples/figures_by_potential/1d_flat/brownian_staple/param_lambda/eval/tis_plots`](../examples/figures_by_potential/1d_flat/brownian_staple/param_lambda/eval/tis_plots).
 
@@ -556,6 +708,8 @@ TIS diagnostics (plots_tis) and path-weighted feps of every row: [`../examples/f
 Data: `sim_istar2cosbr_2108`, loader `--reversed --paths-per-ensemble 2000`.
 
 M2 screening (permutation importance of the gradient-boosted trees on validation paths): `x` 3.26, `x^2` 0.363, `x^3` 0.000696.
+
+Columns and the test/OOD split: see [How to read this report](#how-to-read-this-report).
 
 ### Test paths (held-out MC cycle blocks)
 
@@ -600,6 +754,16 @@ Selection sensitivity: the rule selects by validation SD(Z_q); a selection by va
 | M3 | SD(Z_q) (rule) | m3_top1_64x64_b0.1 | 8.317 | 0.013 | 0.013 | 0.013 | 1.911 | 7.832 |
 | M3 | spread | m3_top1_64x64_b0.1 | 8.317 | 0.013 | 0.013 | 0.013 | 1.911 | 7.832 |
 
+Loss values: the M3 training objective on each split (see [Loss values](#loss-values)); the selected checkpoint for M3, the final model for M1:
+
+| candidate | point: train / val / test | increments (sum): train / val / test | total (point + β·inc), val |
+|---|---|---|---|
+| exact committor (floor) | 0.000474 / 0.000475 / 0.000474 | 6.21e-05 / 6.52e-05 / 6.08e-05 | – |
+| M1 L1-logistic | 0.0822 / 0.0816 / 0.0824 | 0.0914 / 0.091 / 0.091 | 0.0816 |
+| M1 spline GAM | 0.00769 / 0.00757 / 0.00763 | 0.0169 / 0.0169 / 0.0168 | 0.00757 |
+| M3 MLP (64x64, β = 0.1, epoch 21) | 0.000364 / 0.000354 / 0.000363 | 0.0022 / 0.0022 / 0.00219 | 0.000573 |
+| M3 MLP, smallest within 10% (cost) (32, β = 10, epoch 6) | 0.000651 / 0.000637 / 0.00065 | 0.00324 / 0.00327 / 0.00324 | 0.0334 |
+
 Recommendation: **M1 L1-logistic**. M1 L1-logistic vs M3 on the test paths: spread 0.01287 vs 0.01288 (within +10%), zqs_z 1.91 vs 1.91 (within +0.5).
 
 ![committor_profiles.png](../examples/figures_by_potential/1d_two_bumps/brownian_staple/param_lambda/report/committor_profiles.png)
@@ -609,6 +773,8 @@ Recommendation: **M1 L1-logistic**. M1 L1-logistic vs M3 on the test paths: spre
 ![zq_lags.png](../examples/figures_by_potential/1d_two_bumps/brownian_staple/param_lambda/report/zq_lags.png)
 
 ![m3_checkpoints.png](../examples/figures_by_potential/1d_two_bumps/brownian_staple/param_lambda/report/m3_checkpoints.png)
+
+![losses.png](../examples/figures_by_potential/1d_two_bumps/brownian_staple/param_lambda/report/losses.png)
 
 TIS diagnostics (plots_tis) and path-weighted feps of every row: [`../examples/figures_by_potential/1d_two_bumps/brownian_staple/param_lambda/eval/tis_plots`](../examples/figures_by_potential/1d_two_bumps/brownian_staple/param_lambda/eval/tis_plots).
 

@@ -1096,6 +1096,7 @@ lag with the last row of the table.
 | File | What |
 |---|---|
 | `tis_data.py` | shared loader: interfaces, run settings (`dim`, `v_ord`), weights, cut at M (`first_frame_past_m`), reversed pieces (`last_frame_before_m`), data preparation, figures |
+| `infretis_data.py` | infretis runs (RETIS, REPPTIS, StapleTIS; load folder or h5 archive): settings, `infretis_data.txt`, path_f / path_w weights, staple cores, `weight_consistency` test (§15); used by `tis_data.prepare_data` |
 | `load_tis_data.py` / `load_tis_data_cupy.py` | fit scripts (TF / CuPy) |
 
 **Tests:** `tests/test_metrics_tis.py`, `tests/test_boundary_traps.py`, plus CuPy-vs-TF checks in `tests/test_cupy.py`.
@@ -1341,6 +1342,31 @@ NPNEq fit is real: against the exact committor, per bin RMS 0.058, mean +0.055; 
 vs exact, and the χ²/dof 0.84 against shooting stand). The curved-channel MD definition (A/B checked on the saved frames, every 50 steps)
 was not computed; the solver supports it (`stride=50`).
 
+### 13.4 2D Langevin references by shooting (2026-11-13)
+
+For underdamped dynamics the committor depends on (y, x, v_y, v_x); a grid solve as in §13.3 would be 4D and does not
+fit the 8 GB GPU at useful resolution. The references are therefore GPU shooting with the run's own BBK step
+(`figures_by_potential/_shared/exact_committors/lgv2d_tools.py`; identical to toytis' ndLangevinEngine / `toy2d.Integrator`),
+absorption checked every step, absorbed trajectories removed at once: exact in expectation, standard error
+√(q(1−q)/N) given everywhere. Forces: curved channel exact (0 difference), Z = `exact_tools.zpot_force` (the Langevin run
+`sim_istarz_2603` uses the original `sjoelbak.RectangularGridWithBarrierPotential`, which takes (x, y) and gives the same
+force to 0), staggered channels a new vectorized force (1e-13 against the toytis class). Script `lgv2d_exact.py <cc|zpot|stag>`,
+results in `<potential>/exact/langevin_g<γ>/`.
+
+| System | Settings | Computed | Cost |
+|---|---|---|---|
+| Curved channel | γ 2, kT 0.05, dt 0.005; A y ≤ 0.15, B y ≥ 0.85 | q̄(y, x) (Maxwell velocities, 20000 shots), q(y, x \| v_y = −s, 0, +s; v_x = 0) (10000), 300 frames of `test_cc_lgv` with their own velocities (20000); s.e. ≤ 0.005 | 2 min |
+| Z potential | γ 2, kT 0.05, dt 0.002; A y ≤ 0.05, B y ≥ 0.85 | q̄(y, x), 10000 shots (no velocities in the run) | 11 min (mean 6900 steps to absorption) |
+| Staggered channels | `staggered_channels_run.py` defaults: friction 0.1, kT 0.25, dt 0.02; A x ≤ −1.6, B x ≥ 1.6 | q̄ and the three fixed-velocity maps on a 0.1 grid (10000), fine cuts through both barrier tops (`cuts.png`) | 45 min |
+
+Findings. Curved channel: the velocity matters, RMS(q(frame) − q̄(position)) = 0.12 over the 300 frames, so the position-only
+fit target and the full-state committor differ by that much. Staggered channels: at friction 0.1 the committor is a
+near-step at each channel's barrier top (−0.6 upper, +0.6 lower): q̄ rises from 0.1 to 0.9 over ~0.3 in the order parameter,
+at fixed velocity over ~0.02–0.05, shifted by ±0.2 by v_op = ±√(kT/m); past the barrier q ≈ 1. The mirror symmetry
+(x → −x, channels swapped, A ↔ B: q_upper(x, v) = 1 − q_lower(−x, −v)) holds within the statistics (χ² 124 for 100 points
+for q̄, max difference 0.015 ≈ 2 s.e.), a check of force, integrator and absorption together. Z: q̄ jumps across the ridge
+to a plateau of 0.75–0.85 and reaches 0.9 near y = 0.8.
+
 ## 14. Fit settings of the runs
 
 **Defaults** (checked in `optimalrcs-cupy/optimalrcs.py`): `envelope_scale` 0.01 (module
@@ -1389,3 +1415,67 @@ of each ensemble drawn with seed 0 unless noted.
 | 2D Z MD, new 1.06·10⁹-step run (§9.1) | 4.46M kept rows, 16 A→B | (y, x) | NPq library, 1 row | – | 0.001 (warm-up 1) | 6 | 1000 + 15000 | full | BT | 6 | `base_documented_2d_brownian_md.ipynb` |
 | Curved channel MD (§10.5) | 128 × 10⁶ steps, every 50 (2.56M frames) | (y, x) / (y, x, v_y, v_x) | NPq / NPNEq library, 1 | 0.1 | 1 or 10⁶ (warm-up 1000), then 0.01 | 6 | 1000 + 6000 | full / lazy | BT | 0 | `toy2d_md.ipynb`, `toy2d_md-lgv.ipynb` |
 | Notebooks for the +mir tests (not run yet) | well: 2000 paths/ens.; 2D Z: 1000 paths/ens.; +mir | as above | stopped Δ = 4 (or library, 1) | 0.1 (well) / 0.2 (2D Z) | 0.01 / 0.001 | 6 | 4000 / 3000 | full / chunked | FTL | 0 | `base_documented_1d_langevin_staple.ipynb`, `base_documented_2d_langevin.ipynb` |
+
+## 15. infretis runs: loader and path weights (2026-11-13)
+
+**Loader.** `examples/infretis_data.py`; `tis_data.prepare_data` switches to it when `tis_dir` holds an
+`infretis.toml`, so `load_tis_data_cupy.py` and the notebooks take infretis runs unchanged. New options:
+`--h5 FILE` (order parameters from an `inft store_txt -order` archive instead of `load/<pnr>/order.txt`)
+and `--data-file`. Read with infretis/inftools: interfaces and modes from `infretis.toml`; order
+parameters with `inftools.istar.reading.OrderSource` (load folder or h5); staple cores with infretis'
+`StaplePath.get_sh_region` for the ensemble's window (L, M, R) as `initiate_ensembles` sets it up.
+`infretis_data.txt` is read row by row on tabs (the staple move column holds a tuple with spaces); the
+inftools readers each handle only one of the two layouts (RETIS: pnr, len, max OP, f, w; staple: plus
+min OP, ptype, and move and ensemble after f and w).
+
+What a piece is does not change (§3, §9): every (path, ensemble) pair with a nonzero weight gives the path
+cut at its first frame past the ensemble's M (searched from the core start), and with `--reversed` the part
+before its last M crossing, read backwards. M of ensemble column e is λ_max(e−1, 0), as in the toytis
+folders. RETIS/REPPTIS paths are all core. Burn-in, `--thin` and `--paths-per-ensemble` act per ensemble on
+the rows of `infretis_data.txt` in file order (the order in which paths ended); the initial load paths are
+skipped. The path number of a piece is the infretis path number, shared by its pieces in different ensembles.
+Checks: the RETIS example `F_cond_analysis/1D_ASE_infretis/flat_lgv/gamma5` gives identical arrays from
+`load/` and from an h5 archive; on 735 random (path, ensemble) pairs of the KCl staple run every core lies
+inside (L, R), is entered and left at L or R, and crosses M (the toytis core convention).
+
+**Weights.** Per (path, ensemble), infretis writes path_f (occupancy summed over the cycles the path was
+alive: the infinite-swap fraction, or 1 per cycle without it) and path_w (the entry of the W matrix: 1 for a
+valid path, the high-acceptance weight for wire fencing, and for StapleTIS 0.5 for LML/RMR paths in the inner
+ensembles). infretis/inftools analyse with path_f / path_w. `--weights rejections` = path_f, `staple` =
+path_f / path_w (the same factor 2 as the toytis staple weights), `none` = 1.
+
+*Which is right depends on how the sampler used w.* A weight that undoes a sampling factor is right; one
+that adds a factor the sampler did not apply biases the pieces, because LML vs LMR is decided after the cut
+(the future of the piece). toytis staple: shooting and swaps never use w, the plain repeat counts gave the
+exact committor and the factor 2 did not (§9.3). infretis StapleTIS:
+- the permanent (infinite swap) uses W with the staple w; the nearest-neighbour `staple_swap` accepts with
+  min(1, w_i(X_j) w_j(X_i) / (w_i(X_i) w_j(X_j))). Both target ∏ w P;
+- `staple_sh` accepts every valid path, with no min(1, w_new / w_old) (unlike the high-acceptance wire
+  fencing). It targets P.
+
+*Test on the data* (`infretis_data.weight_consistency`, needs no committor). With correct weights, a path
+valid in ensembles e and e′ has weight_e / weight_e′ = C_e / C_e′, the same for every path. So the ratio
+Σ weight_e / Σ weight_e′ over the paths of a class (w_e, w_e′) must not depend on the class. On the two KCl
+staple runs (infinite swap, 30643 and 56958 paths, 27–28 ensemble pairs), relative to class (1, 1):
+
+| Class (w_e, w_e′) | path_f | path_f / path_w |
+|---|---|---|
+| (0.5, 1) | 0.497 ± 0.006, 0.502 ± 0.005 | 0.994 ± 0.013, 1.004 ± 0.011 |
+| (1, 0.5) | 1.986 ± 0.032, 1.977 ± 0.020 | 0.993 ± 0.016, 0.989 ± 0.010 |
+
+(χ² against 1: path_f 1000–8300, path_f / path_w 19–36, for 27–28 pairs.) So the occupancy of each path is
+split over its ensembles in proportion to w, and **path_f / path_w is the right weight for these runs**;
+path_f alone would bias the pieces by a factor 2 for the 42% of the occupancy with w = 0.5. That is the
+loader's default for every infretis run, except StapleTIS with shooting only (no infinite swap and
+`staple_swap_frac = 0`), where nothing uses w and path_f is right.
+
+*What is left.* The test sees only how a path's occupancy is split over its ensembles, not which paths are
+present: those come from shooting, which accepts LML/RMR paths (w = 0.5) as readily as w = 1 paths. For a
+chain with the swaps' target ∏ w P, the shooting acceptance would need min(1, w_new / w_old). Without it,
+paths that are LML/RMR in the ensemble that generates them are over-generated by up to a factor 2 relative
+to that target, and no weighting of the output undoes this. The size of the effect is not known. It is
+largest where w changes between the old and new path of a shooting move. Two ways to make the sampler
+consistent: add the factor to `staple_sh` (like wire fencing; path_f / path_w is then exact), or use
+w = 1 in W and the staple swaps and apply the staple factor only where the crossing probability is computed
+(path_f is then exact). A run of a toy system with a known committor (the flat Brownian staple test of §9.3,
+in infretis with turtlemd) would measure the effect; not done yet.

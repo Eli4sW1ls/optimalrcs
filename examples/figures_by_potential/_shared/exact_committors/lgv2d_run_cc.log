@@ -1,0 +1,28 @@
+===== curved channel: kT 0.05, gamma 2.0, dt 0.005, A: y <= 0.15, B: y >= 0.85 (sim_istar_cc_lgv, test_cc_lgv (staple); MD of toy2d_md-lgv.ipynb checks every 50 steps); Fri Nov 13 21:21:14 2026 =====
+grid 36 x 35, 657 points with V - V_min < 10 kT
+  qbar_maxwell: 20000 shots per point, 46 s; s.e. max 0.0035, mean steps to absorption 283
+  q_vy_minus: 10000 shots per point, 19 s; s.e. max 0.0050, mean steps to absorption 298
+  q_vy_zero: 10000 shots per point, 18 s; s.e. max 0.0050, mean steps to absorption 287
+  q_vy_plus: 10000 shots per point, 18 s; s.e. max 0.0050, mean steps to absorption 268
+Interfaces from /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/PyRETIS3/toytis/simulations/test_cc_lgv/logging.log: [0.15, 0.22, 0.29, 0.36, 0.43, 0.5, 0.57, 0.64, 0.71, 0.78, 0.85]
+State A: order <= 0.15, state B: order >= 0.85
+Found 11 ensemble folders in /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/PyRETIS3/toytis/simulations/test_cc_lgv
+  /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/PyRETIS3/toytis/simulations/test_cc_lgv/001: loaded 232 paths, 37379 frames, total weight 367, cut at M = 0.15
+  /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/PyRETIS3/toytis/simulations/test_cc_lgv/002: loaded 300 paths, 67496 frames, total weight 538, cut at M = 0.22
+  /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/PyRETIS3/toytis/simulations/test_cc_lgv/003: loaded 300 paths, 81003 frames, total weight 547, cut at M = 0.29
+  /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/PyRETIS3/toytis/simulations/test_cc_lgv/004: loaded 300 paths, 85540 frames, total weight 521, cut at M = 0.36
+  /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/PyRETIS3/toytis/simulations/test_cc_lgv/005: loaded 300 paths, 104654 frames, total weight 550, cut at M = 0.43
+  /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/PyRETIS3/toytis/simulations/test_cc_lgv/006: loaded 300 paths, 100017 frames, total weight 561, cut at M = 0.5
+  /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/PyRETIS3/toytis/simulations/test_cc_lgv/007: loaded 300 paths, 93244 frames, total weight 576, cut at M = 0.57
+  /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/PyRETIS3/toytis/simulations/test_cc_lgv/008: loaded 300 paths, 84577 frames, total weight 578, cut at M = 0.64
+  /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/PyRETIS3/toytis/simulations/test_cc_lgv/009: loaded 300 paths, 64438 frames, total weight 609, cut at M = 0.71
+  /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/PyRETIS3/toytis/simulations/test_cc_lgv/010: loaded 300 paths, 55049 frames, total weight 572, cut at M = 0.78
+Loaded 2932 paths, 773397 frames total
+Using 4 of 4 CV(s)
+Frames in A: 1100, in B: 936
+  frames: 300 frames of test_cc_lgv x 20000 shots, 17 s; s.e. max 0.0035
+  frames: RMS(q(frame) - qbar(position)) = 0.120 (how much the velocity changes the committor)
+ALL DONE
+===== staggered channels: kT 0.25, gamma 0.1, dt 0.02, A: y <= -1.6, B: y >= 1.6 (staggered_channels_run.py defaults (istar, friction 0.1, dt 0.02)); Fri Nov 13 21:23:18 2026 =====
+grid 33 x 39, 374 points with V - V_min < 10 kT
+  qbar_maxwell: 10000 shots per point, 346 s; s.e. max 0.0042, mean steps to absorption 1364

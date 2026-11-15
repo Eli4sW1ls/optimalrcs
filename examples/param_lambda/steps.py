@@ -463,3 +463,96 @@ def cmd_export(cfg, args):
 def cmd_report(systems, args):
     import report
     report.write(systems)
+
+
+# ---------------------------------------------------------------------------------------------------
+# loss values (training objective on train / validation / test paths)
+# ---------------------------------------------------------------------------------------------------
+
+
+def _loss_terms(z, ts):
+    """The M3 training objective of a score z on the frames of a TrainSet (z[k] for ts.frame_idx[k]):
+    point = sum_a w (z - logit q_np)^2 / sum_a w over the anchors; inc[lag] = sum w (dz - d logit q_np)^2 / sum w
+    over the within-piece pairs (all of them, not a sample); total = point + beta * sum_lag inc[lag]."""
+    a, w, t = ts.anchors, ts.w, ts.z
+    out = dict(point=float(np.sum(w[a] * (z[a] - t[a]) ** 2) / np.sum(w[a])), inc={})
+    for lag, (i0, i1) in ts.pairs.items():
+        d = (z[i1] - z[i0]) - (t[i1] - t[i0])
+        out['inc'][int(lag)] = float(np.sum(w[i0] * d ** 2) / np.sum(w[i0]))
+    out['inc_sum'] = float(sum(out['inc'].values()))
+    return out
+
+
+def _torch_scores(params, X, device):
+    """z of an exported MLP on standardized features X (float32), on the GPU."""
+    import torch
+    n = int(params['n_layers'])
+    h = torch.as_tensor(X, device=device)
+    with torch.no_grad():
+        for i in range(n):
+            W = torch.as_tensor(params[f'W{i}'], dtype=torch.float32, device=device)
+            b = torch.as_tensor(params[f'b{i}'], dtype=torch.float32, device=device)
+            h = h @ W.T + b
+            if i < n - 1:
+                h = h * torch.sigmoid(h)
+        return h[:, 0].double().cpu().numpy()
+
+
+def cmd_losses(cfg, args):
+    """Loss values of every fitted run with the M3 training objective (weighted MSE of logit q_np, x5 for
+    0.05 < q < 0.95, plus beta x the increment MSE at the training lags) on the training, validation and test
+    paths. M3: at every saved checkpoint (from <id>_checkpoints.npz) plus the per-epoch minibatch training loss
+    recorded during the fit. M1 and the exact committor (z = logit q_exact: the label-noise floor): the final
+    model. Writes fit/losses.json."""
+    import torch
+    ctx = Context(cfg)
+    f = ctx.f
+    dev = 'cuda' if torch.cuda.is_available() else 'cpu'
+    with open(os.path.join(cfg['out_dir'], 'fit', 'results.json')) as fh:
+        results = json.load(fh)
+    sets = {}
+
+    def sets_for(specs):
+        key = tuple(specs)
+        if key not in sets:
+            tr = ctx.ts(list(specs))
+            sets[key] = {'train': tr}
+            for split in ('val', 'test'):
+                sets[key][split] = models.TrainSet(f, cfg, list(specs), split=split, stats=(tr.mu, tr.sd))
+        return sets[key]
+
+    out = {'runs': {}, 'refs': {}}
+    first = sets_for(results[0]['features'])
+    if f.has_exact:
+        out['refs']['exact'] = {sp: _loss_terms(common.logit(np.clip(f.q_exact[ts.frame_idx].astype(float),
+                                                                      common.Q_CLIP, 1 - common.Q_CLIP)), ts)
+                                for sp, ts in first.items()}
+    for r in results:
+        S = sets_for(r['features'])
+        beta = float(r.get('beta', 0.0))
+        row = dict(family=r['family'], set=r['set'], beta=beta, arch=r.get('arch'), selected_epoch=r.get('selected_epoch'))
+        if r['family'] == 'M3':
+            ck = np.load(os.path.join(cfg['out_dir'], 'fit', 'runs', r['id'] + '_checkpoints.npz'))
+            epochs = sorted({int(k.split('__')[0][1:]) for k in ck.files})
+            row['checkpoints'] = []
+            for e in epochs:
+                p = {k.split('__', 1)[1]: ck[k] for k in ck.files if k.startswith(f'e{e}__')}
+                c = {'epoch': e}
+                for sp, ts in S.items():
+                    c[sp] = _loss_terms(_torch_scores(p, ts.X, dev), ts)
+                    c[sp]['total'] = c[sp]['point'] + beta * c[sp]['inc_sum']
+                row['checkpoints'].append(c)
+            row['history'] = [dict(epoch=h['epoch'], point=h['loss_point'], inc_sum=h['loss_inc'],
+                                   total=h['loss_point'] + beta * h['loss_inc']) for h in r['history']]
+            row['val_sdzqs'] = [c['sdzqs'] for c in r['checkpoints']]
+        else:
+            p = dict(np.load(os.path.join(cfg['out_dir'], 'fit', 'runs', r['id'] + '.npz')))
+            sm = ScoreModel(p)
+            row['final'] = {sp: _loss_terms(sm.raw(f.cv[ts.frame_idx]), ts) for sp, ts in S.items()}
+        out['runs'][r['id']] = row
+        common.say(f'{r["id"]:30s} ' + (' '.join(
+            f'{sp} {row["checkpoints"][-1][sp]["point"]:.3f}/{row["checkpoints"][-1][sp]["inc_sum"]:.3f}'
+            for sp in ('train', 'val', 'test')) if 'checkpoints' in row else ' '.join(
+            f'{sp} {row["final"][sp]["point"]:.3f}/{row["final"][sp]["inc_sum"]:.3f}' for sp in ('train', 'val', 'test'))),
+            log=ctx.log)
+    _save_json(out, os.path.join(cfg['out_dir'], 'fit', 'losses.json'))

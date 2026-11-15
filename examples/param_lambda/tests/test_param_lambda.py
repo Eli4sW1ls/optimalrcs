@@ -101,12 +101,18 @@ def test_one_frame_equals_batch(kind):
     assert np.max(np.abs(m(cv) - np.array([m.one(c) for c in cv.tolist()]))) < 1e-12
 
 
+def _system_of(name):
+    """System of an exported model: exported/<system>_<family>.npz (the system name may contain '_m')."""
+    import re
+    return re.sub(r'_(m1-logit|m1-gam|m3-fast|m3|seed)$', '', name)
+
+
 @pytest.mark.parametrize('path', EXPORTED)
 def test_exported_one_equals_batch_and_training_run(path):
     m = LambdaModel(path)
     name = os.path.basename(path)[:-4]
-    system = name.split('_m')[0].split('_seed')[0]
-    frames_file = os.path.join(common.OUT_ROOT, system, 'frames.npz')
+    system = _system_of(name)
+    frames_file = os.path.join(common.out_dir(system), 'frames.npz')
     if not os.path.isfile(frames_file):
         pytest.skip('no frame cache')
     z = np.load(frames_file, mmap_mode='r')
@@ -114,12 +120,12 @@ def test_exported_one_equals_batch_and_training_run(path):
     assert np.max(np.abs(m(cv) - np.array([m.one(c) for c in cv.tolist()]))) < 1e-12
     # the exported score is the training run's score
     import json
-    summary = os.path.join(common.OUT_ROOT, system, 'eval', 'export.json')
+    summary = os.path.join(common.out_dir(system), 'eval', 'export.json')
     if os.path.isfile(summary):
         run_id = next((info['run'] for info in json.load(open(summary)).values()
                        if info['file'].endswith(os.path.basename(path))), None)
         if run_id:
-            p = dict(np.load(os.path.join(common.OUT_ROOT, system, 'fit', 'runs', run_id + '.npz')))
+            p = dict(np.load(os.path.join(common.out_dir(system), 'fit', 'runs', run_id + '.npz')))
             assert np.max(np.abs(ScoreModel(p).raw(cv) - m.raw(cv))) == 0
 
 
@@ -173,8 +179,8 @@ def test_exported_continuous_along_paths(path):
     """No jumps of lambda along held-out paths: on each frame-to-frame step, refined into 32 and 64 sub-steps, the
     largest sub-step change shrinks about by half (a continuous function); a discontinuity would keep its size."""
     m = LambdaModel(path)
-    system = os.path.basename(path)[:-4].split('_m')[0].split('_seed')[0]
-    frames_file = os.path.join(common.OUT_ROOT, system, 'frames.npz')
+    system = _system_of(os.path.basename(path)[:-4])
+    frames_file = os.path.join(common.out_dir(system), 'frames.npz')
     if not os.path.isfile(frames_file):
         pytest.skip('no frame cache')
     z = np.load(frames_file, mmap_mode='r')
@@ -372,3 +378,96 @@ def test_embed_ou_stationary_and_independent():
         r = np.corrcoef(x[:, 10], x[:, 11])[0, 1]
         assert abs(r - np.exp(-1 / tau)) < 0.05
         assert abs(np.corrcoef(x[:-1, -1], x[1:, 0])[0, 1]) < 0.05
+
+
+# ---------------------------------------------------------------------------------------------------
+# infretis order parameter
+# ---------------------------------------------------------------------------------------------------
+
+INFRETIS_DW = '/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/APPTIS/infretis/examples/turtlemd/double_well'
+
+
+def _dw_model(path, lambda_a=-0.99, lambda_b=1.0):
+    """A small LambdaModel on one CV x: z = 4x, logistic calibration; states x <= lambda_a, x >= lambda_b."""
+    from scipy.interpolate import PchipInterpolator
+    feat = Features(['x'], ['x'])
+    zk = np.linspace(-8, 8, 81)
+    qk = 1 / (1 + np.exp(-zk))
+    p = dict(kind='linear', mu=np.zeros(1), sd=np.ones(1), w=np.array([4.0]), b=0.0, **feat.to_dict(),
+             cal_z=zk, cal_q=qk, cal_d=PchipInterpolator(zk, qk).derivative()(zk), lambda_a=lambda_a,
+             lambda_b=lambda_b, state_cv=0, ramp=0.05, scale_eps=1e-3, cv_min=np.array([-1.5]),
+             cv_max=np.array([1.5]), maha_mean=np.zeros(1), maha_icov=np.ones((1, 1)), maha_thr=1e9)
+    np.savez(path, **p)
+    return str(path)
+
+
+def test_infretis_orderparameter(tmp_path):
+    """Loaded the way infretis loads it (create_orderparameter, external module): [lambda, x] with lambda = the
+    model, the states of x, refusal of wrong CV counts and of velocity-dependent CV sources; relabel of load paths."""
+    pytest.importorskip('infretis')
+    import types
+    from infretis.classes.orderparameter import create_orderparameter
+    import infretis_orderp
+    model = _dw_model(tmp_path / 'm.npz')
+    cfg = {'orderparameter': {'class': 'LearnedLambda', 'module': os.path.join(PKG, 'infretis_orderp.py'),
+                              'model': model, 'cvs': [{'class': 'position', 'index': [0, 0], 'periodic': False}]}}
+    op = create_orderparameter(cfg)
+    m = LambdaModel(model)
+    for x in (-1.2, -0.99, -0.9899, -0.5, 0.3, 0.999, 1.0, 1.3):
+        out = op.calculate(types.SimpleNamespace(pos=np.array([[x]]), vel=np.zeros((1, 1)), box=None))
+        assert len(out) == 2 and out[1] == x and out[0] == m.one(np.array([x]))
+        assert (out[0] <= m.lambda_a) == (x <= m.lambda_a) and (out[0] >= m.lambda_b) == (x >= m.lambda_b)
+    two = dict(cfg['orderparameter'], cvs=cfg['orderparameter']['cvs'] * 2)
+    with pytest.raises(ValueError, match='cv_columns'):
+        create_orderparameter({'orderparameter': two}).calculate(
+            types.SimpleNamespace(pos=np.array([[0.1]]), vel=np.zeros((1, 1)), box=None))
+    assert create_orderparameter({'orderparameter': dict(two, cv_columns=[1])}).calculate(
+        types.SimpleNamespace(pos=np.array([[0.1]]), vel=np.zeros((1, 1)), box=None))[0] == m.one(np.array([0.1]))
+    with pytest.raises(ValueError, match='velocities'):
+        create_orderparameter({'orderparameter': dict(cfg['orderparameter'], cvs=[
+            {'class': 'velocity', 'index': 0, 'dim': 'x'}])})
+    # relabel: lambda in front of the old values, infretis' number format
+    (tmp_path / 'load' / '0').mkdir(parents=True)
+    (tmp_path / 'load' / '0' / 'order.txt').write_text('#     Time       Orderp\n         0     -1.0070\n'
+                                                      '         1     -0.5000\n')
+    infretis_orderp.relabel(model, tmp_path / 'load', tmp_path / 'new')
+    a = np.loadtxt(tmp_path / 'new' / '0' / 'order.txt')
+    assert np.allclose(a[:, 2], [-1.007, -0.5]) and np.allclose(a[:, 1], [m.one(np.array([v])) for v in a[:, 2]], atol=1e-6)
+
+
+@pytest.mark.slow
+def test_infretis_turtlemd_run(tmp_path):
+    """A short infretis run (turtlemd double well, 2 workers forked) with LearnedLambda as the order parameter:
+    every new frame has lambda = model(x) in order.txt, and every path end point has the states of x."""
+    import shutil
+    import subprocess
+    import infretis_orderp
+    if not os.path.isdir(INFRETIS_DW) or shutil.which('infretisrun') is None and not os.path.isfile(
+            os.path.join(os.path.dirname(sys.executable), 'infretisrun')):
+        pytest.skip('no infretis example or infretisrun')
+    for f in ('orderp.py', 'infretis.toml'):
+        shutil.copy(os.path.join(INFRETIS_DW, f), tmp_path)
+    model = _dw_model(tmp_path / 'm.npz')
+    intf = infretis_orderp.interfaces_for_q(model, [1e-3, 3e-3, 1e-2, 3e-2, 0.1, 0.3])
+    infretis_orderp.relabel(model, os.path.join(INFRETIS_DW, 'load_copy'), tmp_path / 'load')
+    import re
+    s = (tmp_path / 'infretis.toml').read_text()
+    s = re.sub(r'interfaces = \[.*?\]', 'interfaces = [' + ', '.join(repr(x) for x in intf) + ']', s)
+    s = s.replace('workers = 4', 'workers = 2').replace('steps = 50', 'steps = 8')
+    s = re.sub(r'\[orderparameter\].*?(?=\n\[output\])', '[orderparameter]\nclass = "LearnedLambda"\n'
+               f'module = "{os.path.join(PKG, "infretis_orderp.py")}"\nmodel = "m.npz"\n'
+               'cvs = [{class = "PositionX", module = "orderp.py", index = [0, 0], periodic = false}]\n',
+               s, flags=re.S)
+    (tmp_path / 'infretis.toml').write_text(s)
+    assert infretis_orderp.check(str(tmp_path / 'infretis.toml'))
+    exe = shutil.which('infretisrun') or os.path.join(os.path.dirname(sys.executable), 'infretisrun')
+    subprocess.run([exe, '-i', 'infretis.toml'], cwd=tmp_path, check=True, capture_output=True, timeout=600)
+    m = LambdaModel(model)
+    new = [d for d in (tmp_path / 'load').iterdir() if int(d.name) >= 8]
+    assert new
+    for d in new:
+        a = np.loadtxt(d / 'order.txt')
+        lam, x = a[:, 1], a[:, 2]
+        assert np.max(np.abs(lam - np.array([m.one(np.array([v])) for v in x]))) < 1e-4    # 6-decimal x
+        for k in (0, -1):
+            assert (lam[k] <= m.lambda_a) == (x[k] <= m.lambda_a) and (lam[k] >= m.lambda_b) == (x[k] >= m.lambda_b)

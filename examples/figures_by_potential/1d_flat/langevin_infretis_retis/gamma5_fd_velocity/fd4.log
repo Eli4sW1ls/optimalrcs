@@ -1,0 +1,29 @@
+State A: order <= -0.1, state B: order >= 0.1
+Weights: staple (path_f / path_w), the default for this run: RETIS/REPPTIS: every move samples with w
+infretis run /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/F_cond_analysis/1D_ASE_infretis/flat_lgv/gamma5: mode retis, infinite swap True, 3 ensembles, 385 finished paths in /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/F_cond_analysis/1D_ASE_infretis/flat_lgv/gamma5/infretis_data.txt
+Interfaces: [-0.1, 0.0, 0.1]
+Order parameters from /tmp/claude-1001/-mnt-0bf0c339-34bb-4500-a5fb-f3c2a863de29-DATA-OP-improvement-optimalrcs/2b1057ba-fb32-4017-9220-4fd87bc266d1/scratchpad/flat_g5_archive.h5: 127 paths read
+  ensemble 001: 110 paths, 148 pieces, 26252 frames, total weight 331.5, cut at M = -0.1
+  ensemble 002: 73 paths, 146 pieces, 19830 frames, total weight 496.0, cut at M = 0.0
+Loaded 294 pieces, 46082 frames total
+Using 2 of 2 CV(s)
+Frames in A: 169, in B: 125
+Starting CommittorNE training for 5000 iterations...
+#=500, dr2=49.9287, zqs_z=4.58093, sdzqs=16.6025, |dx|=0.394451, time=1.99974
+#=1000, dr2=50.2735, zqs_z=4.553, sdzqs=16.4124, |dx|=0.0084766, time=3.8232
+#=1500, dr2=51.0733, zqs_z=4.49599, sdzqs=16.1107, |dx|=0.00920032, time=5.66484
+#=2000, dr2=52.6459, zqs_z=4.46891, sdzqs=15.8909, |dx|=0.0109811, time=7.49945
+#=2500, dr2=52.5379, zqs_z=4.47289, sdzqs=15.7316, |dx|=0.00498518, time=9.32668
+#=3000, dr2=52.9412, zqs_z=4.468, sdzqs=15.9284, |dx|=0.00333573, time=11.0971
+#=3500, dr2=52.8816, zqs_z=4.45436, sdzqs=15.9963, |dx|=0.00337682, time=12.9295
+#=4000, dr2=53.1138, zqs_z=4.40591, sdzqs=15.9954, |dx|=0.00471128, time=14.7597
+#=4500, dr2=53.0734, zqs_z=4.42182, sdzqs=16.1018, |dx|=0.00643365, time=16.5935
+#=5000, dr2=53.4305, zqs_z=4.40047, sdzqs=16.0329, |dx|=0.00556839, time=18.5049
+CommittorNE training complete.
+  saved /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures/infretis_flat_lgv_g5/fd4/feps.png
+  saved /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures/infretis_flat_lgv_g5/fd4/tis_diagnostics.png
+  saved /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures/infretis_flat_lgv_g5/fd4/metrics.png
+  saved /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures/infretis_flat_lgv_g5/fd4/committor.npz
+  saved /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures/infretis_flat_lgv_g5/fd4/committor_vs_order.png
+No engine.py in tis_dir, skipping the potential plot.
+Figures written to /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures/infretis_flat_lgv_g5/fd4

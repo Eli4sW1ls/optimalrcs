@@ -149,7 +149,8 @@ def read_run(cfg, loader_args=None):
         order_file = os.path.join(folder, 'order.txt')
         lambda_m = interfaces[max(k - 1, 0)]
         with contextlib.redirect_stdout(io.StringIO()):
-            path_info = td.read_path_info(folder, k, n_ens, args.weights)
+            # prepare_data's default for toytis/PyRETIS runs (--weights defaults to None since infretis support)
+            path_info = td.read_path_info(folder, k, n_ens, args.weights or 'rejections')
         kept, n_cycles = _kept_cycles(td, order_file, path_info, args, rng_mine)
         n_cycles_all = max(n_cycles_all, n_cycles)
         kw = dict(lambda_m=lambda_m, burn_in=args.burn_in, burn_in_fraction=getattr(args, 'burn_in_fraction', 0.0),
