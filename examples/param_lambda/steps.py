@@ -97,6 +97,14 @@ def feature_sets(cfg, frames):
     return sets
 
 
+def family_suffix(cfg, set_name):
+    """'-<set>' for a reference set ([features.sets.<set>] reference = true), else ''. Runs on a reference set form
+    their own families (M3-<set>, M1-logit-<set>, ...): evaluated, exported and reported for comparison, but never
+    selected as M1, M3 or M3-fast (e.g. a lambda without the slow coordinate w, to show what it misses)."""
+    spec = cfg['features'].get('sets', {}).get(set_name, {})
+    return f'-{set_name}' if spec.get('reference') else ''
+
+
 # ---------------------------------------------------------------------------------------------------
 # M2 screening
 # ---------------------------------------------------------------------------------------------------
@@ -161,7 +169,7 @@ def cmd_fit(cfg, args):
                 sel = ctx.select_metrics(m.export())
                 np.savez(os.path.join(runs_dir, rid + '.npz'), **m.export())
                 extra = dict(n_nonzero=getattr(m, 'n_nonzero', None))
-                record(dict(id=rid, family=f'M1-{fam}', name=m.name, features=specs, set=set_name, hp=hp,
+                record(dict(id=rid, family=f'M1-{fam}' + family_suffix(cfg, set_name), name=m.name, features=specs, set=set_name, hp=hp,
                             train_seconds=secs, **sel, **extra))
                 common.say(f'{rid:28s} {secs:6.1f} s  sdzqs {sel["sdzqs"]:8.3f}  spread {sel["spread_mean"]:.4f}',
                            log=ctx.log)
@@ -201,7 +209,7 @@ def cmd_fit(cfg, args):
                     np.savez(os.path.join(runs_dir, rid + '.npz'), **m.export())
                     np.savez(os.path.join(runs_dir, rid + '_checkpoints.npz'),
                              **{f'e{c["epoch"]}__{k}': v for c in m.checkpoints for k, v in c['params'].items()})
-                    record(dict(id=rid, family='M3', name=m.name, features=specs, set=set_name, arch=arch, beta=beta,
+                    record(dict(id=rid, family='M3' + family_suffix(cfg, set_name), name=m.name, features=specs, set=set_name, arch=arch, beta=beta,
                                 train_seconds=m.train_seconds, selected_epoch=m.epoch, checkpoints=ckpts,
                                 history=m.history, sdzqs=ckpts[best]['sdzqs'],
                                 spread_mean=ckpts[best]['spread_mean'], zq_sd=ckpts[best]['zq_sd']))
@@ -531,7 +539,7 @@ def cmd_losses(cfg, args):
         S = sets_for(r['features'])
         beta = float(r.get('beta', 0.0))
         row = dict(family=r['family'], set=r['set'], beta=beta, arch=r.get('arch'), selected_epoch=r.get('selected_epoch'))
-        if r['family'] == 'M3':
+        if r['family'].startswith('M3'):
             ck = np.load(os.path.join(cfg['out_dir'], 'fit', 'runs', r['id'] + '_checkpoints.npz'))
             epochs = sorted({int(k.split('__')[0][1:]) for k in ck.files})
             row['checkpoints'] = []

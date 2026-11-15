@@ -10,7 +10,7 @@ seed = 0
 tis_dir = "../toytis/simulations/sim_istarzw_br_g10_dV3_s1"
 loader_args = ["--reversed", "--paths-per-ensemble", "1500"]
 q_np = "examples/figures_by_potential/3d_zpot_w/brownian_g10/staple/param_lambda/zw_br/qnp/committor.npz"
-qnp_fit_args = ["--max-iter", "25000", "--lazy-basis", "--gamma", "0.1"]   # as many iterations as the Z fit; to check
+qnp_fit_args = ["--max-iter", "30000", "--lazy-basis", "--gamma", "0.1"]   # as many iterations as the Z fit; to check
 cv_names = ["y", "x", "w"]
 state_cv = 0
 
@@ -25,6 +25,10 @@ test_blocks = [3, 7]                # reported (in-distribution test)
 # Monomials of linear forms of the CVs (see lambda_runtime.Features): u = (y + x)/sqrt2, v = (y - x)/sqrt2
 library = ["y", "x", "w", "u", "v", "y^2", "x^2", "w^2", "y*x", "x*w", "y*w", "u*w", "v*w", "u^2", "v^2", "y^3", "x^3", "y^2*x", "y*x^2"]
 top_k = [3, 5]
+
+[features.sets.yx]                  # reference: lambda from y and x only (w left out). Its runs form the families
+exclude = ["w"]                     # M3-yx, M1-logit-yx, M1-gam-yx: evaluated and reported, never selected
+reference = true
 
 [train]
 lags = [1, 2, 4, 8]
@@ -54,7 +58,7 @@ max_anchors = 3000000
 [m3.lean]                           # `run.py fit z_br --lean`: the short sweep (the full one above is the reference)
 archs = [[64, 64], [128, 128, 128]]
 betas = [0.0, 10.0]
-sets = ["cvs"]
+sets = ["cvs", "yx"]
 
 [eval]
 q_lo = 1e-4                         # planned interfaces: n levels equally spaced in ln q on [q_lo, q_hi]

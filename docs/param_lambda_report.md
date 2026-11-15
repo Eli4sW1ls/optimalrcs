@@ -292,6 +292,10 @@ file changes.
 Runs analysed with `tis_data` read λ as the order parameter. The states there must still come from y:
 order.txt rounds λ to 6 decimals, and `tis_data` tests `lam <= lambda_A`.
 
+**infretis.** `infretis_orderp.LearnedLambda` is the same λ as an infretis order parameter class. It is set in
+`[orderparameter]` with `class`, `module`, `model`, and `cvs` (the order parameter classes of the training run as
+the CV source). The README has the toml, the `interfaces` / `check` / `relabel` helpers, and the tested setup.
+
 ## Caveats
 
 - The OOD block's q_np labels come from fits that saw those frames (see Splits).

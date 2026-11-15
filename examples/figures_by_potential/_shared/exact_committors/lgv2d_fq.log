@@ -7,3 +7,6 @@ shooting: 723 s; max s.e. 0.0158
 F(q): max over 0.1 < q < 0.9 is 15.41 kT; fraction of phase points with 0.1 < q < 0.9: 1.05e-02 (equilibrium weight; 1329 sampled points)
 ALL DONE
 staggered channels: 8000 phase points x 1000 shots; cells allowed 11920
+shooting: 1266 s; max s.e. 0.0146
+F(q): max over 0.1 < q < 0.9 is 13.55 kT; fraction of phase points with 0.1 < q < 0.9: 8.11e-05 (equilibrium weight; 7 sampled points)
+ALL DONE

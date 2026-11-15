@@ -1449,3 +1449,9 @@ train:   3751 paths,   5160451 frames, cycles 40003..84982
 val  :   1510 paths,   2151143 frames, cycles 45002..69999
 test :   1485 paths,   2082642 frames, cycles 55019..79991
 ood  :   2208 paths,   3133243 frames, cycles 85001..99994
+== z_br
+burnin:   6046 paths,   8393473 frames, cycles 13..39992
+train:   3751 paths,   5160451 frames, cycles 40003..84982
+val  :   1510 paths,   2151143 frames, cycles 45002..69999
+test :   1485 paths,   2082642 frames, cycles 55019..79991
+ood  :   2208 paths,   3133243 frames, cycles 85001..99994

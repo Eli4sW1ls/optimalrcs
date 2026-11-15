@@ -25,6 +25,24 @@ TOL_SPREAD, TOL_ZQS = 0.10, 0.5         # "M1 within tolerance of M3" (confirmed
 FAMILIES = ['M1-logit', 'M1-gam', 'M3', 'M3-fast']
 
 
+def _families(present):
+    """FAMILIES, then the reference families (runs on a reference feature set, e.g. 'M3-yx') found in `present`."""
+    return FAMILIES + sorted(k for k in present if k not in FAMILIES and k not in STYLE)
+
+
+def _style(ent):
+    """STYLE[ent]; a reference family '<family>-<set>' gets its family's colour, dash-dotted, labelled as reference."""
+    if ent in STYLE:
+        return STYLE[ent]
+    base = next((f for f in sorted(FAMILIES, key=len, reverse=True) if ent.startswith(f + '-')), None)
+    if base is None:
+        return dict(color='#8c8b86', marker='', ls='-.', label=ent)
+    st = dict(STYLE[base])
+    st.update(ls='-.', marker='', label=f'{st["label"].split(" (")[0].split(",")[0]} on [{ent[len(base) + 1:]}] '
+                                         f'(reference, not selectable)')
+    return st
+
+
 def _load(system):
     cfg = common.load_config(system)
     d = cfg['out_dir']
@@ -44,7 +62,7 @@ def _rows(metrics):
     rows = [('seed', 'seed'), ('q_np', 'q_np')]
     if 'exact' in metrics:
         rows.append(('exact', 'exact'))
-    for fam in FAMILIES:
+    for fam in _families(metrics['_best']):
         if fam in metrics['_best']:
             rows.append((fam, metrics['_best'][fam]))
     return rows
@@ -73,7 +91,7 @@ def fig_spread(cfg, metrics, out):
             ax = axes[i, j]
             for ent, cid in _rows(metrics):
                 v = np.array(metrics[cid][split][key], dtype=float)
-                st = STYLE[ent]
+                st = _style(ent)
                 ax.plot(levels, v, color=st['color'], marker=st['marker'], ls=st['ls'], label=st['label'])
             ax.set(xscale='log', yscale='log', title=f'{"test paths" if split == "test" else "OOD block (later cycles)"}',
                    ylabel=f'variance of {title} in the slab')
@@ -96,7 +114,7 @@ def fig_zq(cfg, metrics, out):
     for j, split in enumerate(('test', 'ood')):
         for ent, cid in _rows(metrics):
             r = metrics[cid][split]
-            st = STYLE[ent]
+            st = _style(ent)
             for i, key in enumerate(('zq_z', 'zq_sd')):
                 axes[i, j].plot(r['zq_lags'], r[key], color=st['color'], marker=st['marker'], ls=st['ls'],
                                 label=st['label'])
@@ -132,7 +150,7 @@ def fig_map(cfg, metrics, export, out):
     qx = data._exact_q(cfg, cv, cv[:, 0] <= f.lambda_a, cv[:, 0] >= f.lambda_b, f.lambda_a, f.lambda_b).reshape(Y.shape)
     H, _, _ = np.histogram2d(y, x, bins=[np.linspace(gy[0], gy[-1], 41), np.linspace(gx[0], gx[-1], 31)])
     levels = ev.planned_levels(cfg)
-    ents = [e for e in ['seed'] + FAMILIES if e in export]
+    ents = [e for e in ['seed'] + _families(export) if e in export]
     fig, axes = plt.subplots(1, len(ents), figsize=(3.6 * len(ents), 4.2), sharey=True, squeeze=False)
     for ax, ent in zip(axes[0], ents):
         m = LambdaModel(os.path.join(common.REPO, export[ent]['file']))
@@ -140,8 +158,8 @@ def fig_map(cfg, metrics, export, out):
         ax.pcolormesh(np.linspace(gy[0], gy[-1], 41), np.linspace(gx[0], gx[-1], 31), np.log1p(H).T, cmap='Greys',
                       alpha=0.35, shading='flat')
         ax.contour(gy, gx, qx.T, levels=levels, colors='#0b0b0b', linewidths=1.0, linestyles='--')
-        ax.contour(gy, gx, mq.T, levels=levels, colors=STYLE[ent]['color'], linewidths=1.6)
-        ax.set(title=STYLE[ent]['label'], xlabel=str(f.cv_names[0]))
+        ax.contour(gy, gx, mq.T, levels=levels, colors=_style(ent)['color'], linewidths=1.6)
+        ax.set(title=_style(ent)['label'], xlabel=str(f.cv_names[0]))
     axes[0, 0].set_ylabel(str(f.cv_names[1]))
     fig.suptitle(f'{cfg["name"]}: planned interfaces $g(\\lambda) = q_k$ (colour) vs exact isocommittors (black dashed); '
                  'grey: frame density')
@@ -154,7 +172,7 @@ def fig_map(cfg, metrics, export, out):
 
 def _label(ent, cid, runs):
     """Row label: the entity, and for fitted models the selected run's features and settings."""
-    base = STYLE[ent]['label'].split(' (')[0]
+    base = _style(ent)['label'].split(' (')[0]
     r = runs.get(cid)
     if r is None:
         return base
@@ -199,7 +217,7 @@ def fig_selection(cfg, metrics, runs, out):
             axes[0, j].plot(ep, [c['sdzqs'] for c in r['checkpoints']], color=BETA_RAMP[b % 4], marker='o',
                             label=f'β = {beta:g}')
             axes[0, j].plot([r['selected_epoch']], [r['sdzqs']], marker='o', ms=10, mfc='none', color='#0b0b0b')
-        for name, st in (('exact', STYLE['exact']), ('q_np', STYLE['q_np'])):
+        for name, st in (('exact', _style('exact')), ('q_np', _style('q_np'))):
             if name in ref:
                 axes[0, j].axhline(ref[name]['sdzqs'], color=st['color'], ls=st['ls'], lw=1.2,
                                    label=st['label'].split(' (')[0])
@@ -259,7 +277,7 @@ def fig_losses(cfg, metrics, losses, out):
         row[3].axvline(r['selected_epoch'], color='#8c8b86', lw=0.8, ls=':')
         row[3].set_title('validation SD($Z_q$) (selection metric)', fontsize=8)
         row[3].set_xlabel('epoch')
-        row[0].set_ylabel(f'{STYLE[fam]["label"].split(",")[0]}\n{_arch(r)}')
+        row[0].set_ylabel(f'{_style(fam)["label"].split(",")[0]}\n{_arch(r)}')
     h, l = axes[0, 0].get_legend_handles_labels()
     fig.legend(h, l, loc='lower center', ncol=5, fontsize=8)
     fig.suptitle(f'{cfg["name"]}: loss values of the selected M3 runs (dotted: selected checkpoint)')
@@ -285,18 +303,18 @@ def loss_table(metrics, losses, runs):
     ex = losses['refs'].get('exact')
     if ex is not None:
         lines.append(f'| exact committor (floor) | {fmt(ex, "point")} | {fmt(ex, "inc_sum")} | – |')
-    for fam in FAMILIES:
+    for fam in _families(metrics['_best']):
         rid = metrics['_best'].get(fam)
         if rid is None or rid not in losses['runs']:
             continue
         r = losses['runs'][rid]
         if 'checkpoints' in r:
             c = next(c for c in r['checkpoints'] if c['epoch'] == r['selected_epoch'])
-            lines.append(f'| {STYLE[fam]["label"]} ({_arch(r)}, epoch {r["selected_epoch"]}) | {fmt(c, "point")} | '
+            lines.append(f'| {_style(fam)["label"]} ({_arch(r)}, epoch {r["selected_epoch"]}) | {fmt(c, "point")} | '
                          f'{fmt(c, "inc_sum")} | {c["val"]["total"]:.3g} |')
         else:
             d = r['final']
-            lines.append(f'| {STYLE[fam]["label"]} | {fmt(d, "point")} | {fmt(d, "inc_sum")} | {d["val"]["point"]:.3g} |')
+            lines.append(f'| {_style(fam)["label"]} | {fmt(d, "point")} | {fmt(d, "inc_sum")} | {d["val"]["point"]:.3g} |')
     return '\n'.join(lines)
 
 
@@ -345,10 +363,10 @@ def fig_committor_maps(cfg, export, out):
         mid = (e1[1:] + e1[:-1]) / 2
         ref = _binned((x,), (e1,), qx, w)
         fig, (ax, axd) = plt.subplots(2, 1, figsize=(8, 6.4), sharex=True, gridspec_kw={'height_ratios': [2, 1]})
-        ax.plot(mid, ref, color=STYLE['exact']['color'], ls='--', lw=2, label=STYLE['exact']['label'], zorder=5)
+        ax.plot(mid, ref, color=_style('exact')['color'], ls='--', lw=2, label=_style('exact')['label'], zorder=5)
         for e in ents:
             P = _binned((x,), (e1,), qs[e], w)
-            st = STYLE[e]
+            st = _style(e)
             lab = f'{st["label"]} (RMS {_rms_transition(P - ref, ref):.4f})'
             ax.plot(mid, P, color=st['color'], ls=st['ls'], lw=1.5, label=lab)
             axd.plot(mid, P - ref, color=st['color'], ls=st['ls'], lw=1.5)
@@ -399,7 +417,7 @@ def fig_committor_maps(cfg, export, out):
           'Greys', None, None, '')
     for k, e in enumerate(ents, start=1):
         M = _binned((y, x), (e1, e2), qs[e], w)
-        lab = STYLE[e]['label'].split(' (')[0]
+        lab = _style(e)['label'].split(' (')[0]
         panel(axes[k, 0], M, f'{lab}: g($\\lambda$)', 'coolwarm', 0, 1, '$q$')
         panel(axes[k, 1], M - ref, f'{lab} $-$ exact, RMS {_rms_transition(M - ref, ref):.4f}', 'PuOr',
               -DIFF_LIM, DIFF_LIM, '')
@@ -470,7 +488,7 @@ def sensitivity_table(metrics, runs):
     head = ['family', 'selected by', 'run', 'val SD(Z_q)', 'val spread (q_np)', 'test spread (q_np)',
             'test spread (exact)', 'test zqs_z', 'test SD(Z_q)']
     lines = ['| ' + ' | '.join(head) + ' |', '|' + '---|' * len(head)]
-    for fam in FAMILIES:
+    for fam in _families({r['family'] for r in runs.values()}):
         cands = [c for c, r in runs.items() if r['family'] == fam and c in metrics and 'val' in metrics[c]]
         if not cands:
             continue
@@ -495,7 +513,7 @@ def recommendation(metrics, runs):
     ok_spread = a['spread_mean'] <= (1 + TOL_SPREAD) * b['spread_mean']
     ok_zq = a['zqs_z'] <= b['zqs_z'] + TOL_ZQS
     choice = m1 if (ok_spread and ok_zq) else 'M3'
-    why = (f'{STYLE[m1]["label"]} vs M3 on the test paths: spread {a["spread_mean"]:.4g} vs {b["spread_mean"]:.4g} '
+    why = (f'{_style(m1)["label"]} vs M3 on the test paths: spread {a["spread_mean"]:.4g} vs {b["spread_mean"]:.4g} '
            f'({"within" if ok_spread else "outside"} +{100 * TOL_SPREAD:.0f}%), zqs_z {a["zqs_z"]:.2f} vs {b["zqs_z"]:.2f} '
            f'({"within" if ok_zq else "outside"} +{TOL_ZQS})')
     return choice, why
@@ -560,7 +578,7 @@ def write(systems):
             s.append('Loss values: the M3 training objective on each split (see [Loss values](#loss-values)); '
                      'the selected checkpoint for M3, the final model for M1:\n')
             s.append(lt + '\n')
-        s.append(f'Recommendation: **{STYLE[choice]["label"] if choice in STYLE else choice}**. {why}.\n')
+        s.append(f'Recommendation: **{_style(choice)["label"] if choice in STYLE else choice}**. {why}.\n')
         for p in figs:
             if p:
                 s.append(f'![{os.path.basename(p)}]({rel(p)})\n')
@@ -578,7 +596,7 @@ def write(systems):
             'Generated by `examples/param_lambda/run.py report`; every number comes from the configs in '
             '`examples/param_lambda/configs/` (fixed seeds).\n',
             '| system | recommended | reason |', '|---|---|---|']
-    head += [f'| {s} | {STYLE[c]["label"] if c in STYLE else c} | {w} |' for s, c, w in summary_rows]
+    head += [f'| {s} | {_style(c)["label"] if c in STYLE else c} | {w} |' for s, c, w in summary_rows]
     with open(DOC, 'w') as f:
         f.write('\n'.join(head) + '\n\n' + '\n\n'.join(parts) + '\n')
     common.say('wrote ' + DOC)

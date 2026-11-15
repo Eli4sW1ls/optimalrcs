@@ -471,3 +471,23 @@ def test_infretis_turtlemd_run(tmp_path):
         assert np.max(np.abs(lam - np.array([m.one(np.array([v])) for v in x]))) < 1e-4    # 6-decimal x
         for k in (0, -1):
             assert (lam[k] <= m.lambda_a) == (x[k] <= m.lambda_a) and (lam[k] >= m.lambda_b) == (x[k] >= m.lambda_b)
+
+
+def test_reference_feature_set_family(tmp_path):
+    """Runs on a reference set ([features.sets.<set>] reference = true, e.g. zw_br's yx: lambda without w) form their
+    own families: never selected as M3 / M3-fast, but present in _best and styled in the report."""
+    import json
+    import report
+    import steps
+    cfg = common.load_config('zw_br')
+    assert steps.family_suffix(cfg, 'yx') == '-yx' and steps.family_suffix(cfg, 'cvs') == ''
+    runs = [dict(id='m3_cvs_a', family='M3', arch=[128, 128, 128], features=['y', 'x', 'w'], sdzqs=2.0),
+            dict(id='m3_cvs_b', family='M3', arch=[64, 64], features=['y', 'x', 'w'], sdzqs=2.1),
+            dict(id='m3_yx_a', family='M3' + steps.family_suffix(cfg, 'yx'), arch=[32], features=['y', 'x'], sdzqs=1.0)]
+    (tmp_path / 'fit').mkdir()
+    (tmp_path / 'fit' / 'results.json').write_text(json.dumps(runs))
+    _, best = steps.best_runs(dict(cfg, out_dir=str(tmp_path)))
+    assert best['M3']['id'] == 'm3_cvs_a' and best['M3-fast']['id'] == 'm3_cvs_b'   # the better yx run is not chosen
+    assert best['M3-yx']['id'] == 'm3_yx_a'
+    assert report._families(best) == report.FAMILIES + ['M3-yx']
+    assert 'reference' in report._style('M3-yx')['label'] and report._style('M3-yx')['color'] == report.STYLE['M3']['color']
