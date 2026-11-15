@@ -89,7 +89,7 @@ print(f"F(q): max over 0.1 < q < 0.9 is {barrier:.2f} kT; fraction of phase poin
 fig, axes = plt.subplots(1, 2, figsize=(13, 4.6))
 axes[0].errorbar(mid, Fq, yerr=Fe, fmt="o-", ms=3, capsize=2, color="k")
 axes[0].set(xlabel="q", ylabel="F(q) / kT", title=f"{S['name']}, Langevin γ = {S['gamma']:g}: free energy along the committor "
-            f"({CFG['N_POINTS']} phase points × {CFG['N_SHOTS']} shots)", ylim=(-0.3, None))
+            f"({q.size} phase points, {int(CFG['N_SHOTS'])} shots each)", ylim=(-0.3, None))
 axes[0].title.set_fontsize(9)
 axes[1].plot(my, Fy, "C0-o", ms=3, label="F(y) of the same points")
 axes[1].set(xlabel="order parameter y", ylabel="F / kT", title="for comparison: free energy along the order parameter")
