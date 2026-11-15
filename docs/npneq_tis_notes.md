@@ -1367,6 +1367,18 @@ at fixed velocity over ~0.02–0.05, shifted by ±0.2 by v_op = ±√(kT/m); pas
 for q̄, max difference 0.015 ≈ 2 s.e.), a check of force, integrator and absorption together. Z: q̄ jumps across the ridge
 to a plateau of 0.75–0.85 and reaches 0.9 near y = 0.8.
 
+**F(q) of the Langevin systems** (`lgv2d_fq.py`, `lgv2d_fq_zpot_refine.py`, `lgv2d_fq_stag_refine.py`; `fq.png`, `fq.npz` next to the
+maps). p(q) is the equilibrium density of q(y, x, v_y, v_x) between A and B: phase points are drawn from the tempered position density
+exp(−0.35 V/kT) with Maxwell velocities, shot N times each (1000–2000, so q-hat has s.e. ≤ 0.016, which smears the bins next to 0 and 1) and
+reweighted by exp(−0.65 V/kT) to the Boltzmann density. The transition region is so rare (Z: weight 1e-2, stag 8e-5) that a second batch was
+added around the ridge (Z, |x + y − 0.6| < 0.12) and the barrier tops (stag), merged with mixture weights exp(−V/kT)/m (unbiased); bin
+errors are sqrt(Σw²)/Σw. Results (F relative to the q ≈ 0 and 1 bins, in kT): curved channel dome, maximum 6.5 (F(y) peaks at 3.9),
+20000 points; Z plateau ≈ 15 ± 1 over 0.1 < q < 0.7, minimum 5 near q = 0.85 (the plateau behind the ridge), 18000 points; staggered
+channels flat plateau ≈ 15 over 0.1 < q < 0.9 (the committor is a step), 18000 points. Caveat: for stag 90% of the transition mass comes from a
+few low-energy points (channel mouths) with large weights, so the plateau level has an uncertainty of 1–2 kT beyond the error bars, and
+the single-bin dips (q ≈ 0.21, 0.81, 0.91) are not real. The Brownian F(q) plots are in `2d_zpot/exact/fq_exact.png` and
+`2d_curved_channel/exact/fq_and_cuts.png`.
+
 ## 14. Fit settings of the runs
 
 **Defaults** (checked in `optimalrcs-cupy/optimalrcs.py`): `envelope_scale` 0.01 (module

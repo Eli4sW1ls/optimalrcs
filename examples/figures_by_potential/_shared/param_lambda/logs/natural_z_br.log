@@ -1,0 +1,56 @@
+z_br: natural-coordinate export /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/param_lambda/exported/z_br_m3-fast-nat.npz
+  lam: equal in log1p scale        q [0.001  0.003  0.0069 0.0149 0.0306 0.0621 0.125  0.2504 0.5006]
+                                   predicted median [ 1602   837   285    32     8     8    10    20 17616]
+  y: equal median y                q [2.000e-04 7.000e-04 1.600e-03 2.900e-03 4.900e-03 6.823e-01 7.139e-01
+ 7.689e-01 8.564e-01]
+                                   predicted median [ 495  555  396  306  291 2374  804  752  524]
+  max(y, lam)                      q [5.000e-04 1.800e-03 4.500e-03 1.340e-02 4.300e-02 1.336e-01 4.110e-01
+ 7.059e-01 7.961e-01]
+                                   predicted median [1142  852  628  124   14   18 3140 7670 1584]
+  natural, ratio <= 10             q [3.000e-04 9.000e-04 2.100e-03 5.400e-03 4.580e-02 3.876e-01 6.750e-01
+ 7.201e-01 7.701e-01 8.515e-01]
+                                   predicted median [ 637  591  656  604  135  972 3240 1026  647  497]
+  run test_istarz_br_g10_lam-m3-fast_a0.5_c2000_s1: observed / predicted median per ensemble
+     k  1  h 4.22e-04     1037 /     932
+     k  2  h 1.35e-03      964 /     634
+     k  3  h 2.95e-03     1006 /     455
+     k  4  h 5.68e-03     1001 /     287
+     k  5  h 1.62e-02      566 /      87
+     k  6  h 6.74e-02      414 /      18
+     k  7  h 2.71e-01      736 /     254
+     k  8  h 6.96e-01    11089 /    8616
+     k  9  h 7.92e-01     5594 /    1960
+  run test_istarz_br_g10_lam-m3-fast_c2000_s1: observed / predicted median per ensemble
+     k  1  h 9.95e-04     1205 /    1602
+     k  2  h 2.98e-03     1100 /     837
+     k  3  h 6.95e-03      888 /     285
+     k  4  h 1.49e-02     1384 /      32
+     k  5  h 3.06e-02     1183 /       8
+     k  6  h 6.21e-02      882 /       8
+     k  7  h 1.25e-01       15 /      10
+     k  8  h 2.50e-01     1980 /      20
+     k  9  h 5.01e-01    24200 /   17616
+  run test_istarz_br_g10_lam-m3-fast_max15_c2000_s1: observed / predicted median per ensemble
+     k  1  h 2.60e-04      667 /     652
+     k  2  h 9.53e-04      899 /     606
+     k  3  h 2.09e-03      840 /     416
+     k  4  h 3.98e-03      789 /     355
+     k  5  h 7.90e-03      454 /     165
+     k  6  h 1.88e-02      422 /      25
+     k  7  h 4.30e-02      224 /       9
+     k  8  h 9.68e-02      181 /      10
+     k  9  h 2.16e-01      631 /      21
+     k 10  h 4.82e-01     1825 /    2662
+     k 11  h 6.97e-01     5750 /    4202
+     k 12  h 7.49e-01     2670 /     998
+     k 13  h 8.36e-01     1618 /     700
+  run test_istarz_br_g10_lam-m3-fast_max_c2000_s1: observed / predicted median per ensemble
+     k  1  h 4.81e-04     1125 /    1142
+     k  2  h 1.81e-03     1260 /     852
+     k  3  h 4.49e-03     1232 /     628
+     k  4  h 1.34e-02      908 /     124
+     k  5  h 4.30e-02      612 /      14
+     k  6  h 1.34e-01      749 /      18
+     k  7  h 4.11e-01      773 /    3140
+     k  8  h 7.06e-01     8920 /    7670
+     k  9  h 7.96e-01     4680 /    1584

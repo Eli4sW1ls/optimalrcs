@@ -107,3 +107,110 @@ It is worth a separate test once the fixed-A version is in production.
 - Tests: the placed interfaces are increasing, inside (λ_A, λ_B), and satisfy the three tests on the data used.
 - After a production run with the new interfaces, re-run the placement: those paths sample the new interfaces
   better.
+
+## Staple runs with the learned λ: path lengths and the natural coordinate (2026-11-15)
+
+The rules above keep interfaces apart in MD steps. For StapleTIS the path length per ensemble matters as well: some ensembles must not run far longer than the rest. This section is from test runs of the sampler with the learned λ. `staple_run.py --check` measures the skip and distance-to-A tests above; the `place_interfaces` function listed under Implementation is still not written.
+
+`examples/param_lambda/staple_run.py` runs toytis StapleTIS with an exported λ (`toytis_adapter`) and the settings of
+the run it was trained on (Z: `sim_istarz_br_g10`; cc: `test_cc_br`). `--model none` is the control with plain y.
+Test runs of 2000 cycles: `toytis/simulations/test_*lam-*`; `examples/param_lambda/staple_stats.py` tabulates
+them.
+
+**States.** A and B stay those of y: λ = y outside (λ_A, λ_B) and strictly inside otherwise, and the first and
+last interfaces are λ_A and λ_B. In 2.6M frames of learned-λ runs, A/B from λ and from y never differed.
+
+**Interface placement sets the path lengths.** All interfaces are λ isosurfaces; only their levels differ.
+Median accepted path length per ensemble [k*] (frames). Runs of 2000 cycles, except those marked: I stopped
+them early because their long paths made them slow, so their statistics are rougher.
+
+| system | placement | median path length over the ensembles | longest / shortest |
+|---|---|---|---|
+| cc | plain y (control) | 220–493 | 2.2 |
+| cc | equal in λ (log1p scale, ≈ ln q), from q = 0.007 (stopped at 1033 cycles) | 66–834 | 12.6 |
+| cc | `y`: isosurfaces at equally spaced median y | 209–590 | 2.8 |
+| Z | plain y (control) | 617–1391 | 2.3 |
+| Z | equal in λ (from q = 0.001) (stopped at 46 cycles) | 15 … 24 200 | > 100 |
+| Z | `blend` (α = 0.5) (stopped at about 330 cycles) | 414 … 11 100 | 27 |
+| Z | `max(y, λ)`, 11 / 15 interfaces | 670 … 9 365 / 200 … 5 660 | 14 / 28 |
+
+- **cc:** with equal λ spacing the low-q isosurfaces hug the A boundary, so those paths are short. The q ≈ 0.5
+  ensemble's paths are long.
+- **Z:** past the tilted ridge lies a plateau where q ≈ 0.6–0.85 changes very slowly. There λ is flat, and a
+  staple turns only after a long excursion. More interfaces in the plateau (15 instead of 11) shorten its paths
+  only to about 5000 frames.
+- **Too close to A:** interfaces below q ≈ 3·10⁻³ on cc lie 1–2 MD steps from A for 5% of their crossings, and up
+  to 9% of upward crossings skip the next interface (`staple_run.py --check`, on the training run's test paths).
+- **A kick bug, fixed:** with interfaces closer than 2% of their value (dense near λ_B), toytis' `kick_star` put
+  the kick point beyond the neighbouring interface and retried forever. `toytis_adapter` now uses a tenth of the
+  gap in that case.
+
+**Why: the committor is a martingale.** For overdamped dynamics q has no mean drift along a trajectory; it only
+diffuses, with D(q) = ⟨Δq²⟩/2 per frame. Two consequences:
+- **Crossing probabilities** follow from the levels alone: from q_k, the chance of reaching q_{k+1} before q_{k−1}
+  is (q_k − q_{k−1})/(q_{k+1} − q_{k−1}). At small q this needs a bounded ratio q_{k+1}/q_k.
+- **Path lengths** follow from D(q): crossing a gap Δq takes about Δq²/D frames.
+
+On Z, D(h) (h = the export's calibrated committor after the A/B ramps) is about 2·10⁻³ per frame on the ridge but
+only about 10⁻⁶ in the plateau (`natural.png`). At small q, D ∝ q², so the natural coordinate behaves like ln q
+there, as the log1p scale already does.
+
+**Natural coordinate.** u(h) = ∫ dh/√(2D(h)), scaled to [0, 1], is the coordinate in which diffusion is uniform.
+Interfaces equally spaced in u take about equally long to cross.
+- **Reparametrizing alone changes nothing.** A monotone reparametrization of λ leaves the isosurfaces unchanged, so
+  with the same interfaces the sampler does exactly the same. What u changes is where "equally spaced" interfaces
+  land.
+- **The export.** `run.py natural <system>` estimates D(h) from the training run's lag-1 increments (path weights)
+  and exports the same model with λ = λ_A + (λ_B − λ_A)·u(h): a monotone table in `LambdaModel`, the
+  `exported/<sys>_<fam>-nat.npz` files.
+- **Below the data** D is continued as (h + ε)², as in the log1p scale; **above it**, as constant.
+- **Ratio cap.** `staple_run.py --max-ratio R` inserts interfaces until neighbouring levels differ by at most a
+  factor R (so crossing probabilities are at least about 1/R). On Z this adds one interface on the ridge.
+
+**Predicting path lengths from the training run alone, without long MD.** A 1D Markov chain in h resamples the
+observed increments of each h bin and applies the sampler's turn rule (`pgmoves.turn_detected`). An ensemble
+[k*]'s path length is modelled as two independent walks, started just past λ_k and stopped at a turn or in A/B
+(`natural.predict_lengths`). Against the test runs (`natural.png`, right panel):
+- **Long paths: within 1.3–1.4×.** The predictor finds the plateau ensembles of every Z run: observed / predicted
+  median 24 200 / 17 600, 11 100 / 8 600, 8 900 / 7 700, 5 750 / 4 200.
+- **Low q: within about 2×,** on both systems.
+- **Ridge: far too short (10–60×).** The training run has only about 30–50 frames per h bin there, and h is not
+  Markov across the ridge. The real ridge paths are moderate, 200–1400 frames.
+
+So it is reliable as a warning for long paths, which is what placement needs, but not as an absolute cost model.
+
+**Predicted for the natural placement** (11 interfaces requested, plus the ratio cap R = 10):
+- **cc:** 174–405 frames, as balanced as the y run, with the first interface at q = 0.012.
+- **Z:** 135–3144. With 15 requested (16 after the cap) the longest becomes 1794, and with 19 requested, 1352. More
+  ensembles also lower the total cost per cycle.
+
+Tests of the natural placement (all 2000 cycles; medians over the ensembles [1*] …):
+
+| system | placement | median path length | longest / shortest | longest 90th percentile |
+|---|---|---|---|---|
+| cc | plain y (control) | 220–493 | 2.2 | 933 |
+| cc | natural, 11 interfaces | 228–496 | 2.2 | 902 |
+| Z | plain y (control) | 617–1391 | 2.3 | 2556 |
+| Z | `max(y, λ)`, 11 interfaces | 670–9365 | 14 | 22 695 |
+| Z | `max(y, λ)`, 15 interfaces | 200–5660 | 28 | 13 819 |
+| Z | natural, 16 interfaces | 388–2940 | 7.6 | 5 734 |
+
+- **cc:** as balanced as plain y, with interfaces starting at q = 0.012.
+- **Z:** the natural placement's longest median is half that of the best earlier placement (2940 against 5660),
+  and its 90th percentile 2.4× smaller. It is still 2.1× the plain-y run's longest median (1391).
+- **Predictor vs. run:** predicted 1794 for the longest median, observed 2940, so the plateau factor is about 1.6
+  here, not the 1.3 of the earlier runs. Multiply the predicted longest median by 1.3–1.6.
+
+**Recipe.** `run.py natural <system>`, then `staple_run.py --model <fam>-nat --max-ratio 10`. Raise
+`--n-interfaces` until the predicted longest median (printed by `run.py natural`; multiply by 1.3–1.6) is
+acceptable.
+
+**What placement cannot fix.** The Z plateau is a property of the committor's shape: its isosurfaces there are far
+apart in time. Placement can only add interfaces. The alternative is to change the isosurfaces where q is flat:
+blend λ toward y there, steered by D(h) or |∇q|. Where q carries no gradient, its isosurfaces matter least for the
+alignment criterion.
+
+Figures (per system: `natural.png` for D(h), the two scales and predicted vs observed; `interfaces.png` for the
+potential with the interfaces of each placement):
+- Z: `examples/figures_by_potential/2d_zpot/brownian_g10/staple/param_lambda/z_br/natural/`
+- cc: `examples/figures_by_potential/2d_curved_channel/brownian_g10/param_lambda/cc_br/natural/`

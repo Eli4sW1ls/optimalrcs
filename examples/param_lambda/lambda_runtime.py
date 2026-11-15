@@ -22,8 +22,10 @@ What lambda is, step by step (all of it depends on the current frame only):
    whatever the model does (lambda is also kept at least one float away from lambda_A and lambda_B, so the
    comparisons hold after rounding). h = m except within w of A or B.
 5. output scale: lambda = lambda_A + (lambda_B - lambda_A) * log1p(h / eps) / log1p(1 / eps), a strictly
-   increasing map that spreads small committor values (eps = scale_eps). Crossings and turns depend only on
-   the order of lambda and the interfaces, so this only sets where interfaces land: `interface_for_q`.
+   increasing map that spreads small committor values (eps = scale_eps); or, if the export has a scale table
+   (scale_h, scale_u, scale_d: natural.py), lambda = lambda_A + (lambda_B - lambda_A) * u(h) with u the monotone
+   PCHIP through it (the natural coordinate of the committor). Crossings and turns depend only on the order of
+   lambda and the interfaces, so this only sets where interfaces land: `interface_for_q`.
 """
 import bisect
 import math
@@ -116,6 +118,20 @@ def pchip_eval(zk, qk, dk, z):
     return h00 * qk[i] + h10 * hk * dk[i] + h01 * qk[i + 1] + h11 * hk * dk[i + 1]
 
 
+def _pchip_one(zk, qk, dk, z):
+    """pchip_eval for one float and plain-Python knot lists."""
+    if z <= zk[0]:
+        return qk[0]
+    if z >= zk[-1]:
+        return qk[-1]
+    i = bisect.bisect_right(zk, z) - 1
+    hk = zk[i + 1] - zk[i]
+    t = (z - zk[i]) / hk
+    t2, t3 = t * t, t * t * t
+    return ((2 * t3 - 3 * t2 + 1) * qk[i] + (t3 - 2 * t2 + t) * hk * dk[i]
+            + (-2 * t3 + 3 * t2) * qk[i + 1] + (t3 - t2) * hk * dk[i + 1])
+
+
 def _smoothstep(u):
     u = np.clip(u, 0.0, 1.0)
     return u * u * (3 - 2 * u)
@@ -183,6 +199,10 @@ class LambdaModel(ScoreModel):
         self.ramp_w = float(p['ramp']) * (self.lambda_b - self.lambda_a)
         self.eps = float(p['scale_eps'])
         self._log1p_inv_eps = math.log1p(1 / self.eps)
+        self.scale_table = 'scale_h' in p                     # natural-coordinate scale (natural.py)
+        if self.scale_table:
+            self._sh, self._su, self._sd = (np.asarray(p[k], float) for k in ('scale_h', 'scale_u', 'scale_d'))
+            self._sh_l, self._su_l, self._sd_l = self._sh.tolist(), self._su.tolist(), self._sd.tolist()
         # inside (lambda_A, lambda_B) lambda stays strictly inside, also after rounding: then <, <=, >, >= against
         # lambda_A and lambda_B all agree with the state CV
         self._in_lo, self._in_hi = math.nextafter(self.lambda_a, math.inf), math.nextafter(self.lambda_b, -math.inf)
@@ -211,7 +231,17 @@ class LambdaModel(ScoreModel):
         return (1 - a) * (1 - b) * m + b
 
     def scale(self, h):
+        if self.scale_table:
+            return self.lambda_a + (self.lambda_b - self.lambda_a) * pchip_eval(self._sh, self._su, self._sd, h)
         return self.lambda_a + (self.lambda_b - self.lambda_a) * np.log1p(h / self.eps) / self._log1p_inv_eps
+
+    def h_of_lambda(self, lam):
+        """Inverse of scale (arrays, lambda between lambda_A and lambda_B)."""
+        f = (np.asarray(lam, float) - self.lambda_a) / (self.lambda_b - self.lambda_a)
+        if self.scale_table:
+            hh = np.linspace(0, 1, 20001) ** 3                  # dense in h near 0, where u changes fastest
+            return np.interp(f, pchip_eval(self._sh, self._su, self._sd, hh), hh)
+        return self.eps * np.expm1(f * self._log1p_inv_eps)
 
     def interface_for_q(self, q):
         """lambda value of committor level q away from the A/B ramps (where h = m = q)."""
@@ -287,24 +317,15 @@ class LambdaModel(ScoreModel):
         la, lb = self.lambda_a, self.lambda_b
         if s <= la or s >= lb:
             return s
-        z = self.raw_one(cv)
-        zk = self._zk
-        if z <= zk[0]:
-            m = self._qk[0]
-        elif z >= zk[-1]:
-            m = self._qk[-1]
-        else:
-            i = bisect.bisect_right(zk, z) - 1
-            hk = zk[i + 1] - zk[i]
-            t = (z - zk[i]) / hk
-            t2, t3 = t * t, t * t * t
-            m = ((2 * t3 - 3 * t2 + 1) * self._qk[i] + (t3 - 2 * t2 + t) * hk * self._dk[i]
-                 + (-2 * t3 + 3 * t2) * self._qk[i + 1] + (t3 - t2) * hk * self._dk[i + 1])
+        m = _pchip_one(self._zk, self._qk, self._dk, self.raw_one(cv))
         w = self.ramp_w
         u = (s - la) / w
         a = 0.0 if u >= 1 else 1 - u * u * (3 - 2 * u)
         u = (lb - s) / w
         b = 0.0 if u >= 1 else 1 - u * u * (3 - 2 * u)
         h = (1 - a) * (1 - b) * m + b
-        lam = la + (lb - la) * math.log1p(h / self.eps) / self._log1p_inv_eps
+        if self.scale_table:
+            lam = la + (lb - la) * _pchip_one(self._sh_l, self._su_l, self._sd_l, h)
+        else:
+            lam = la + (lb - la) * math.log1p(h / self.eps) / self._log1p_inv_eps
         return min(max(lam, self._in_lo), self._in_hi)

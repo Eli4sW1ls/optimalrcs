@@ -1,0 +1,7 @@
+batch 2: 10000 points in the barrier-top bands (1644 cells), 1000 shots
+shooting: 41 s
+points with 0.1 < q < 0.9: 755 (batch 1: 7); effective sample size 3852 of 18000
+staggered channels: 8000 phase points x 1000 shots; cells allowed 11920
+loaded /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/2d_staggered_channels/exact/langevin_g0.1/fq.npz
+F(q): max over 0.1 < q < 0.9 is 16.23 kT; fraction of phase points with 0.1 < q < 0.9: 8.39e-05 (equilibrium weight; 755 sampled points)
+ALL DONE

@@ -6,7 +6,7 @@ interfaces 0.15, 0.22, ..., 0.85 (A: y ≤ 0.15, B: y ≥ 0.85); kT = 0.05, dt =
 | Folder | Old folder (figures/) | Contents |
 |---|---|---|
 | `exact/` | `exact_committors/cc`, `cc_exact.py`, `cc_run.log` | exact committor of the overdamped dynamics |
-| `exact/langevin_g2/` | (new, 2026-11-13) | Langevin (BBK, γ = 2, dt 0.005) reference by GPU shooting (`_shared/exact_committors/lgv2d_exact.py cc`): velocity-averaged q̄(y, x) (20000 shots/point), q(y, x \| v_y = -s, 0, +s) (10000), and 300 frames of `test_cc_lgv` with their own velocities (20000); standard errors ≤ 0.005 |
+| `exact/langevin_g2/` | (new, 2026-11-13) | Langevin (BBK, γ = 2, dt 0.005) reference by GPU shooting (`_shared/exact_committors/lgv2d_exact.py cc`): velocity-averaged q̄(y, x) (20000 shots/point), q(y, x \| v_y = -s, 0, +s) (10000), and 300 frames of `test_cc_lgv` with their own velocities (20000); standard errors ≤ 0.005; `fq.png`: F(q) of the Langevin phase-space density (20000 phase points × 2000 shots) |
 | `toy2d_check/` | `toy2d_check` | potential and committor check |
 | `brownian_g10/staple/` | `nb_toy2d_staple/sim_istar_cc_br` | `toy2d_staple_analysis.ipynb` on `sim_istar_cc_br` (γ = 10) |
 | `brownian_g10/staple_test/` | `nb_toy2d_staple/test_cc_br` | the same on the test run |

@@ -1,0 +1,5 @@
+/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/PyRETIS3/toytis/simulations/test_istarz_br_g10_lam-m3-fast_max_c2000_s1 
+interfaces [0.05    0.09549 0.1695  0.2472  0.35866 0.48817 0.61769 0.7472  0.80971
+ 0.82363 0.85   ] 
+q levels ['4.81e-04', '1.81e-03', '4.49e-03', '1.34e-02', '4.30e-02', '1.34e-01', '4.11e-01', '7.06e-01', '7.96e-01']
+wall 4552.10 s
