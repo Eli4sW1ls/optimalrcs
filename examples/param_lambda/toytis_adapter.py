@@ -35,7 +35,7 @@ import numpy as np
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from lambda_runtime import LambdaModel  # noqa: E402
 
-TOYTIS = '/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/PyRETIS3/toytis'
+TOYTIS = os.environ.get('TOYTIS', '/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/PyRETIS3/toytis')   # env TOYTIS on other machines
 logger = logging.getLogger(__name__)
 
 _DEFAULT_MODEL = None
@@ -84,7 +84,7 @@ class LearnedOrderX:
         # every retry of kick_star makes a new kick point at exactly s = marker; propagated frames never are
         if not isinstance(ph[0], np.ndarray) or cv[s] != k['marker']:
             return cv
-        target = k['marker']                                    # in lambda units
+        target = k['target']                                    # in lambda units (see _kick_target)
         if not m.lambda_a < target < m.lambda_b:                # in A or B lambda = s: the kick is already right
             return cv
         other = 1 - s
@@ -118,11 +118,29 @@ def _kick_marker(ens):
     return i['M'] * (1 - np.sign(i['M']) * 0.02) - 0.0001
 
 
+def _kick_target(ens, marker):
+    """lambda of the kick point. kick_star puts it 2% of the interface value (+ 1e-4) below M ([0*]: above L); with
+    learned-lambda interfaces that can be closer together than that (e.g. dense near lambda_B), that point would lie
+    beyond the neighbouring interface and kick_star would retry forever. Then: a tenth of the gap from M (L)."""
+    i = ens.intfs
+    allv = np.asarray(i['all'], float)
+    if ens.id == 0:                                             # [0-]: inside A, lambda = s there
+        return marker
+    if ens.id == 1:
+        lo = i['L']
+        hi = allv[allv > lo].min()
+        return marker if marker - lo < (hi - lo) / 2 else lo + (hi - lo) / 10
+    hi = i['M']
+    lo = allv[allv < hi].max()
+    return marker if hi - marker < (hi - lo) / 2 else hi - (hi - lo) / 10
+
+
 def kick_star(ens):
     op = ens.orderparameter
     if not isinstance(op, LearnedOrderX) or ens.settings['dim'] == 1:
         return _original_kick_star(ens)
-    op._kick = dict(marker=_kick_marker(ens), potential=ens.engine.potential)
+    marker = _kick_marker(ens)
+    op._kick = dict(marker=marker, target=_kick_target(ens, marker), potential=ens.engine.potential)
     try:
         return _original_kick_star(ens)
     finally:

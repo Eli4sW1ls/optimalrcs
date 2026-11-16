@@ -83,6 +83,9 @@ Pilot (`simulations/test_zw_pilot`, 300 cycles):
 
 ## Analysis (optimalrcs `examples/param_lambda`, config `zw_br`)
 
+Results so far: `docs/param_lambda_coupled_w.md`. After any refit, check the models against the exact
+shooting committor with `python check_vs_shooting.py`.
+
 ```bash
 python run.py fit-qnp zw_br && python run.py extract zw_br && python run.py screen zw_br
 python run.py fit zw_br --lean && python run.py evaluate zw_br

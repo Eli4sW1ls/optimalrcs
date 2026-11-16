@@ -106,7 +106,8 @@ series:
   The q_np labels have path-correlated errors (a whole path's q_np can be a bit high or low), and a model can fit
   those errors through w. The resulting λ then shifts its interfaces from path to path.
 - **The tunnelling case** is different: a slow coordinate that does change the committor (a hidden barrier or
-  gate). It needs new runs with a coupled potential.
+  gate). It needs new runs with a coupled potential: first results in
+  [`param_lambda_coupled_w.md`](param_lambda_coupled_w.md).
 
 **Why appending afterwards is exact.**
 - The extra coordinates do not interact with (y, x), so the probability of a path factorizes into a (y, x) part

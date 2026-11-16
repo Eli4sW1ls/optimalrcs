@@ -7,6 +7,7 @@
     python run.py evaluate <system>
     python run.py export   <system>
     python run.py report   [<system> ...]
+    python run.py natural  <system>     D(q), natural-coordinate export, predicted path lengths, interface maps
     python run.py variants <system> [--variants loss_variants] [--seeds 0 1 2]   loss variants (lean sweep)
     python run.py embed    <system>     embedded system: base frames + extra coordinates (embed.py)
     python run.py fit-qnp-embedded <system>   NPNEq on the embedded CVs (labels of an embedded system)
@@ -59,6 +60,7 @@ def main():
     args = p.parse_args()
     commands = {'extract': cmd_extract, 'fit-qnp': cmd_fit_qnp,
                 'variants': lambda cfg, a: __import__('variants').cmd_variants(cfg, a),
+                'natural': lambda cfg, a: __import__('natural').cmd_natural(cfg, a),
                 'embed': lambda cfg, a: __import__('embed').cmd_embed(cfg, a),
                 'fit-qnp-embedded': lambda cfg, a: __import__('embed').cmd_fit_qnp_embedded(cfg, a)}
     if args.command not in commands:

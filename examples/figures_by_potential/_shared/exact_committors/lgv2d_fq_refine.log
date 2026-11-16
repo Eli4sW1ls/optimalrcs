@@ -1,1 +1,7 @@
 batch 2: 10000 points in the ridge band (2832 cells), 1000 shots
+shooting: 1508 s
+points with 0.1 < q < 0.6: 120 (batch 1: 11); effective sample size 3274 of 18000
+Z potential: 8000 phase points x 1000 shots; cells allowed 9440
+loaded /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/2d_zpot/exact/langevin_g2/fq.npz
+F(q): max over 0.1 < q < 0.9 is 16.90 kT; fraction of phase points with 0.1 < q < 0.9: 1.09e-02 (equilibrium weight; 5182 sampled points)
+ALL DONE

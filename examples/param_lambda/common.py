@@ -32,7 +32,7 @@ OUT_DIRS = {'flat1d': '1d_flat/brownian_staple/param_lambda', 'bumps1d': '1d_two
 def out_dir(name):
     """Output folder of a system (config name), below figures_by_potential/; others in _shared/param_lambda/."""
     return os.path.join(FIGURES, OUT_DIRS[name]) if name in OUT_DIRS else os.path.join(OUT_ROOT, name)
-TOYTIS = '/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/PyRETIS3/toytis'
+TOYTIS = os.environ.get('TOYTIS', '/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/PyRETIS3/toytis')   # env TOYTIS on other machines
 
 Q_CLIP = 1e-6
 

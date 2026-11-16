@@ -491,3 +491,26 @@ def test_reference_feature_set_family(tmp_path):
     assert best['M3-yx']['id'] == 'm3_yx_a'
     assert report._families(best) == report.FAMILIES + ['M3-yx']
     assert 'reference' in report._style('M3-yx')['label'] and report._style('M3-yx')['color'] == report.STYLE['M3']['color']
+
+
+def test_natural_scale_export():
+    """A natural-coordinate export (scale table): one frame = batch, monotone scale, h_of_lambda inverts scale,
+    the states those of the state CV, and the same isosurfaces as the log1p export."""
+    path = os.path.join(common.HERE, 'exported', 'cc_br_m3-nat.npz')
+    if not os.path.isfile(path):
+        pytest.skip('run `run.py natural cc_br` first')
+    m, m0 = LambdaModel(path), LambdaModel(path.replace('-nat', ''))
+    rng = np.random.default_rng(3)
+    cv = np.c_[rng.uniform(0.1, 0.9, 3000), rng.uniform(-0.15, 0.35, 3000)]
+    lam = m(cv)
+    assert np.allclose([m.one(c) for c in cv], lam, atol=1e-12, rtol=0)
+    hh = np.linspace(0, 1, 2001)
+    assert np.all(np.diff(m.scale(hh)) >= 0)
+    q = np.array([1e-3, 0.03, 0.4, 0.9])
+    assert np.allclose(m.h_of_lambda(m.scale(q)), q, rtol=2e-3)
+    s = cv[:, 0]
+    assert np.array_equal(lam <= m.lambda_a, s <= m.lambda_a) and np.array_equal(lam >= m.lambda_b, s >= m.lambda_b)
+    # same isosurfaces: the order of lambda is the order of the log1p lambda (both increasing in h)
+    inside = (s > m.lambda_a) & (s < m.lambda_b)
+    o = np.argsort(m0(cv[inside]), kind='stable')
+    assert np.all(np.diff(lam[inside][o]) >= -1e-12)
