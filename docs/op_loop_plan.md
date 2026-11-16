@@ -170,3 +170,11 @@ mutates `staridx`/`meta` of shared Path objects; infretis `staple_extender` over
   still carries a frame of an initial load path (kick point, synthetic path, steered or high-temperature frame) can be
   excluded from training (constraint 7). infretis records it (`traj.txt`, hard-linked `accepted/` files, the
   generating move); toytis records nothing, so it was going to be reconstructed in the adapter (postponed).
+- **Refill after thinning (2026-11-16).** On Z the spacing gate removed every planned level on the ridge between
+  the basin and the plateau, leaving one ensemble over q 0.007 -> 0.645. The exact committor shows the ridge is
+  crossed in about 10 saved frames, so no lambda can hold interfaces there; the placement margin had also removed
+  one level the gate itself accepts. `interfaces.place` now ends with `interfaces.refill`: for interior neighbour
+  pairs over `max_ratio`, insert the best-splitting candidate that passes the placement limits (with the margin;
+  against the bare gate, refill undid the thinning and the set failed verification three times), or leave the
+  pair if none does; end pairs use the effective state levels of `interfaces.state_levels` (mean h at the first
+  frames past the state). Details and numbers in `op_loop_report.md`; test `test_refill_splits_wide_pairs_only_where_the_gate_allows`.
