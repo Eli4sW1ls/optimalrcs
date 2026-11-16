@@ -1,0 +1,4 @@
+== loop loop_cc (cc_br, infretis) in /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_cc
+pass 0: 2 iterations, reached B: True, 696217 saved frames, final interfaces [0.15, 0.165, 0.202, 0.253, 0.295, 0.312, 0.361, 0.463, 0.85]
+production: running /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_cc/production
+production: P_cross 0.0007615 (rel. error 0.24), rate 0.001844 per time unit (rel. error 0.19); exact rate 0.00155

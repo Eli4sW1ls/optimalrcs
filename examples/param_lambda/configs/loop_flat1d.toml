@@ -1,0 +1,69 @@
+# Learning loop, infretis + ASE, 1D flat walls (the smoke-test system; exact committor from the discrete chain).
+name = "loop_flat1d"
+system = "flat1d"
+backend = "infretis"
+seed = 0
+
+[run]                               # the sampler settings of every pass k >= 1 and of the production run
+workers = 2
+mode = "staple"                     # staple | retis
+shooting = "sh"
+# infinite swap; the training pieces use path_f (pool.weighting): one LML/RMR core gives two stored staples
+# (the extension's coin flip), each sampled at w = 1/2, so path_f counts the core once (op_loop_report)
+staple_infinite_swap = true
+cycles_per_pass = 500
+screen = 50
+
+[pass0]                             # infinit with the seed order parameter until B is reached
+mode = "retis"
+steps_per_iter = 100
+max_iter = 8
+n_b = 20                            # finished paths that must have reached B
+pL = 0.3
+lamres = 0.001
+skip = 0.1
+
+[pool]
+burn_in = 0.2                       # fraction of each pass's paths dropped after a lambda switch
+block = 0.1                         # MC blocks (of the rows of the path table) for the splits
+val_blocks = [1]
+test_blocks = [3]
+lineage = "exclude"
+weighting = "rejections"            # path_f: the unbiased weight of the training pieces (op_loop_report)
+passes = "all"
+cap_paths_per_ensemble = 1500
+
+[teacher]
+max_iter = 3000
+gamma = 0.1
+ny = 6
+max_frames = 4000000
+lags = [1]
+provisional_b = true
+
+[student]
+arch = [64, 64]
+beta = 10.0
+epochs = 24
+checkpoints = 8
+batch = 4096
+lr = 3e-3
+weight_decay = 1e-4
+warm_start = true
+
+[interfaces]
+n_interfaces = 8                    # planned interior levels in the natural coordinate (plus lambda_A, lambda_B)
+max_ratio = 10.0
+eps = 0.01
+c = 1.0
+n_a = 3
+n_sh = 3
+place_margin = 1.25                 # placement limits stricter than the gate by this factor (c, n_A, n_sh x; eps /)
+length_budget = 5000                # frames: predicted longest median x 1.3 must stay below
+
+[production.run]                    # the frozen production run: infinite swap (rates by inftools' iSTAR analysis)
+staple_infinite_swap = true
+
+[stop]
+max_passes = 4
+max_md_steps = 50000000

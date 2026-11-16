@@ -1,0 +1,474 @@
+== loop loop_cc (cc_br, infretis) in /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_cc
+pass 0: infinit in /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_cc/pass_0
+pass 0: 2 iterations, reached B: True, 696217 saved frames, final interfaces [0.15, 0.165, 0.202, 0.253, 0.295, 0.312, 0.361, 0.463, 0.85]
+Weights: staple (path_f / path_w), the default for this run: RETIS/REPPTIS: every move samples with w
+infretis run /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_cc/pass_0: mode retis, infinite swap True, 5 ensembles, 211 finished paths in /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_cc/pass_0/infretis_data_1.txt
+Interfaces: [0.15, 0.15517301581806847, 0.16034603163613698, 0.16551904745420548, 0.85]
+  path_w != 1 for 39 (path, ensemble) pairs, 10.5% of the occupancy; path_f and path_f / path_w differ there by a factor [0.    0.001 0.002 0.003 0.008 0.011 0.012 0.014 0.016 0.019 0.02  0.023
+ 0.024 0.026 0.027 0.038 0.077 0.091 0.333 0.5  ]
+Order parameters from /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_cc/pass_0/load: 120 paths read
+  ensemble 001: 103 paths, 103 pieces, 12673 frames, total weight 177.0, cut at M = 0.15
+  ensemble 002: 16 paths, 16 pieces, 8299 frames, total weight 14.0, cut at M = 0.15517301581806847
+  ensemble 003: 11 paths, 11 pieces, 6453 frames, total weight 12.0, cut at M = 0.16034603163613698
+  ensemble 004: 15 paths, 15 pieces, 4532 frames, total weight 14.0, cut at M = 0.16551904745420548
+Loaded 145 pieces, 31957 frames total
+pool: pass 0 (infinit iteration 0): 145 pieces, 31957 frames, 211 paths
+Weights: staple (path_f / path_w), the default for this run: RETIS/REPPTIS: every move samples with w
+infretis run /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_cc/pass_0: mode retis, infinite swap True, 9 ensembles, 203 finished paths in /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_cc/pass_0/infretis_data_2.txt
+Interfaces: [0.15, 0.164, 0.218, 0.271, 0.315, 0.372, 0.375, 0.393, 0.85]
+  path_w != 1 for 628 (path, ensemble) pairs, 69.5% of the occupancy; path_f and path_f / path_w differ there by a factor [0.    0.001 0.002 0.003 0.004 0.005 0.006 0.007 0.008 0.009 0.01  0.011
+ 0.012 0.013 0.014 0.015 0.016 0.017 0.019 0.02  0.021 0.023 0.024 0.026
+ 0.027 0.029 0.03  0.034 0.043 0.05  0.056 0.062 0.071 0.077 0.083 0.091
+ 0.1   0.111 0.143 0.167 0.2   0.25  0.333 0.5  ]
+Order parameters from /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_cc/pass_0/load: 164 paths read
+  ensemble 001: 125 paths, 125 pieces, 147684 frames, total weight 177.0, cut at M = 0.15
+  ensemble 002: 119 paths, 119 pieces, 175792 frames, total weight 130.0, cut at M = 0.164
+  ensemble 003: 105 paths, 105 pieces, 175566 frames, total weight 106.9, cut at M = 0.218
+  ensemble 004: 103 paths, 103 pieces, 160072 frames, total weight 121.0, cut at M = 0.271
+  ensemble 005: 89 paths, 89 pieces, 148491 frames, total weight 122.0, cut at M = 0.315
+  ensemble 006: 70 paths, 70 pieces, 123970 frames, total weight 97.5, cut at M = 0.372
+  ensemble 007: 73 paths, 73 pieces, 127034 frames, total weight 96.5, cut at M = 0.375
+  ensemble 008: 71 paths, 71 pieces, 123308 frames, total weight 113.0, cut at M = 0.393
+Loaded 755 pieces, 1181917 frames total
+pool: pass 1 (infinit iteration 1): 755 pieces, 1181917 frames, 203 paths
+== pass 1
+#=250, dr2=186.306, zqs_z=2.21179, sdzqs=22.648, |dx|=0.156982, time=4.47549
+#=500, dr2=203.252, zqs_z=2.28491, sdzqs=7.85807, |dx|=0.0581681, time=8.40749
+#=750, dr2=202.568, zqs_z=2.51338, sdzqs=8.16456, |dx|=0.00962137, time=12.661
+#=1000, dr2=202.642, zqs_z=2.52571, sdzqs=8.40313, |dx|=0.00169146, time=16.8499
+#=1250, dr2=202.643, zqs_z=2.52302, sdzqs=8.44875, |dx|=0.000897095, time=20.9373
+#=1500, dr2=202.663, zqs_z=2.52313, sdzqs=8.44404, |dx|=0.000498279, time=24.981
+#=1750, dr2=202.719, zqs_z=2.528, sdzqs=8.45758, |dx|=0.000557651, time=29.3064
+#=2000, dr2=202.744, zqs_z=2.52141, sdzqs=8.43634, |dx|=0.000477204, time=33.7822
+#=2250, dr2=202.835, zqs_z=2.52296, sdzqs=8.44398, |dx|=0.000381055, time=38.0734
+#=2500, dr2=202.957, zqs_z=2.51965, sdzqs=8.4392, |dx|=0.000346487, time=42.3113
+#=2750, dr2=202.938, zqs_z=2.51773, sdzqs=8.43559, |dx|=0.00030084, time=46.3854
+#=3000, dr2=203.085, zqs_z=2.52285, sdzqs=8.44365, |dx|=0.000402868, time=50.5592
+#=3250, dr2=203.071, zqs_z=2.51822, sdzqs=8.41163, |dx|=0.000500656, time=54.7127
+#=3500, dr2=203.031, zqs_z=2.51693, sdzqs=8.39734, |dx|=0.000289846, time=58.8765
+#=3750, dr2=203.138, zqs_z=2.51959, sdzqs=8.40322, |dx|=0.000235165, time=62.8418
+#=4000, dr2=203.129, zqs_z=2.51721, sdzqs=8.39483, |dx|=0.000232349, time=67.4602
+#=4250, dr2=203.208, zqs_z=2.52117, sdzqs=8.40036, |dx|=0.000238144, time=71.5872
+#=4500, dr2=203.219, zqs_z=2.51832, sdzqs=8.3904, |dx|=0.000226857, time=75.5581
+#=4750, dr2=203.238, zqs_z=2.5174, sdzqs=8.38084, |dx|=0.000225956, time=80.1546
+#=5000, dr2=203.291, zqs_z=2.52045, sdzqs=8.3867, |dx|=0.000244891, time=84.9104
+#=5250, dr2=203.317, zqs_z=2.52016, sdzqs=8.37929, |dx|=0.000223765, time=89.0925
+#=5500, dr2=203.338, zqs_z=2.52127, sdzqs=8.37629, |dx|=0.000215251, time=93.223
+#=5750, dr2=203.399, zqs_z=2.51907, sdzqs=8.36899, |dx|=0.000175761, time=97.7374
+#=6000, dr2=203.356, zqs_z=2.519, sdzqs=8.36863, |dx|=0.000222296, time=102.02
+teacher: 1040177 frames, 6000 iterations, 104 s
+teacher: {'n_frames': 1040177, 'seconds': 103.76443767547607, 'iterations': 6000, 'provisional_b': None, 'final': {'iter': 6000.0, 'delta_r2': 203.35634252878975, 'max_z_zq_stopped': 2.5190048575700104, 'max_sd_zq_stopped': 8.368634398153713, 'delta_x': 0.0002222964623776626, 'time_elapsed': 102.01954221725464}, 'rms_vs_exact': 0.18971659786836112}
+   student epoch   3: sdzqs    8.357 spread 0.0360
+   student epoch   6: sdzqs    8.612 spread 0.0319
+   student epoch   9: sdzqs    8.711 spread 0.0862
+   student epoch  12: sdzqs    8.805 spread 0.0667
+   student epoch  15: sdzqs    8.729 spread 0.0861
+   student epoch  18: sdzqs    8.708 spread 0.0659
+   student epoch  21: sdzqs    8.682 spread 0.0656
+   student epoch  24: sdzqs    8.680 spread 0.0645
+export: sigma_s 0.007066, kappa_A 3.31, kappa_B 0.245, maha thr 14.8
+diagnostics: SD(Z_q) new 7.795; exact: spread 0.0662, logit RMSE 1.555
+plan: 10 interior levels (natural coordinate, ratio <= 10); predicted longest median 314 frames (budget 6000); levels q = [0.0041, 0.0218, 0.0678, 0.1645, 0.3242, 0.5334, 0.7242, 0.8624, 0.931, 0.9684]
+placement: 12 interfaces kept of 12 planned; removed none
+run: 12 interfaces, 1000 cycles in /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_cc/pass_1/run
+Weights: staple (path_f / path_w), the default for this run: StapleTIS with infinite swap: the permanent of W splits the occupancies by w
+infretis run /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_cc/pass_1/run: mode staple, infinite swap True, 12 ensembles, 601 finished paths in /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_cc/pass_1/run/infretis_data.txt
+Interfaces: [0.15, 0.31571596636910965, 0.4668430140240635, 0.5786902664144544, 0.6676353044818267, 0.7360917130721821, 0.7864009063576264, 0.8173368340532869, 0.8350145991458743, 0.8427638851696607, 0.8467492466699154, 0.85]
+  path_w != 1 for 535 (path, ensemble) pairs, 33.7% of the occupancy; path_f and path_f / path_w differ there by a factor [2.]
+  Note (StapleTIS): infretis' staple shooting accepts new paths without the w ratio, while the permanent and the staple swaps use w, so no weighting is exact; see docs/npneq_tis_notes.md section 15.
+Order parameters from /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_cc/pass_1/run/load: 503 paths read
+  ensemble 001: 106 paths, 182 pieces, 6416 frames, total weight 1306.3, cut at M = 0.15
+  ensemble 002: 94 paths, 188 pieces, 22550 frames, total weight 1605.2, cut at M = 0.31571596636910965
+  ensemble 003: 126 paths, 252 pieces, 37863 frames, total weight 1399.5, cut at M = 0.4668430140240635
+  ensemble 004: 129 paths, 258 pieces, 41943 frames, total weight 1372.0, cut at M = 0.5786902664144544
+  ensemble 005: 120 paths, 240 pieces, 43955 frames, total weight 1414.6, cut at M = 0.6676353044818267
+  ensemble 006: 128 paths, 256 pieces, 45459 frames, total weight 1462.6, cut at M = 0.7360917130721821
+  ensemble 007: 131 paths, 262 pieces, 46431 frames, total weight 1465.4, cut at M = 0.7864009063576264
+  ensemble 008: 123 paths, 246 pieces, 45645 frames, total weight 1333.4, cut at M = 0.8173368340532869
+  ensemble 009: 122 paths, 244 pieces, 48554 frames, total weight 1239.7, cut at M = 0.8350145991458743
+  ensemble 010: 112 paths, 224 pieces, 48711 frames, total weight 1385.2, cut at M = 0.8427638851696607
+  ensemble 011: 69 paths, 138 pieces, 41977 frames, total weight 968.8, cut at M = 0.8467492466699154
+Loaded 2490 pieces, 429504 frames total
+pass 1 re-check on its own paths: OK
+| k | lambda_k | up / down crossings | skip up | skip down | gap/delta | dist A | dist B | note |
+|---|---|---|---|---|---|---|---|---|
+| 1 | 0.3157 | 580 / 583 | 0.000 | 0.000 | 2.69 | 7.1 | – |  |
+| 2 | 0.4668 | 610 / 612 | 0.000 | 0.000 | 2.61 | – | – |  |
+| 3 | 0.5787 | 627 / 638 | 0.000 | 0.000 | 2.58 | – | – |  |
+| 4 | 0.6676 | 667 / 668 | 0.000 | 0.000 | 2.45 | – | – |  |
+| 5 | 0.7361 | 502 / 506 | 0.000 | 0.000 | 2.41 | – | – |  |
+| 6 | 0.7864 | 572 / 580 | 0.000 | 0.000 | 2.06 | – | – |  |
+| 7 | 0.8173 | 553 / 558 | 0.000 | 0.000 | 2.09 | – | – |  |
+| 8 | 0.8350 | 495 / 488 | 0.000 | 0.000 | 1.44 | – | – |  |
+| 9 | 0.8428 | 401 / 402 | 0.000 | 0.000 | 1.56 | – | – |  |
+| 10 | 0.8467 | 443 / 440 | 0.000 | 0.000 | 2.66 | – | 32.3 |  |
+
+| ensemble | window (L, M, R) | excursions | P(empty region) | 5% frames inside |
+|---|---|---|---|---|
+| 1 | (0.1500, 0.1500, 0.3157) | 392 | 0.000 | 1 |
+| 2 | (0.1500, 0.3157, 0.4668) | 179 | 0.000 | 12 |
+| 3 | (0.3157, 0.4668, 0.5787) | 258 | 0.000 | 8 |
+| 4 | (0.4668, 0.5787, 0.6676) | 261 | 0.000 | 9 |
+| 5 | (0.5787, 0.6676, 0.7361) | 215 | 0.000 | 12 |
+| 6 | (0.6676, 0.7361, 0.7864) | 228 | 0.000 | 12 |
+| 7 | (0.7361, 0.7864, 0.8173) | 235 | 0.000 | 11 |
+| 8 | (0.7864, 0.8173, 0.8350) | 219 | 0.000 | 11 |
+| 9 | (0.8173, 0.8350, 0.8428) | 235 | 0.000 | 7 |
+| 10 | (0.8350, 0.8428, 0.8467) | 211 | 0.000 | 6 |
+| 11 | (0.8428, 0.8467, 0.8500) | 106 | 0.000 | 14 |
+
+single-step turns: 0.000 of 16071; failures: none
+== pass 2
+#=250, dr2=239.302, zqs_z=2.41254, sdzqs=11.1552, |dx|=0.0914265, time=5.43542
+#=500, dr2=240.688, zqs_z=1.89331, sdzqs=6.90857, |dx|=0.0209049, time=10.5531
+#=750, dr2=241.359, zqs_z=1.80941, sdzqs=7.73645, |dx|=0.0034348, time=15.8262
+#=1000, dr2=241.634, zqs_z=1.86252, sdzqs=7.80594, |dx|=0.000754165, time=21.1098
+#=1250, dr2=241.852, zqs_z=1.8538, sdzqs=7.82183, |dx|=0.000564969, time=26.251
+#=1500, dr2=242.485, zqs_z=1.80865, sdzqs=7.89744, |dx|=0.000716514, time=31.4609
+#=1750, dr2=242.534, zqs_z=1.81992, sdzqs=7.80988, |dx|=0.000574634, time=36.9453
+#=2000, dr2=242.657, zqs_z=1.81436, sdzqs=7.82148, |dx|=0.000416107, time=42.6882
+#=2250, dr2=242.678, zqs_z=1.83953, sdzqs=7.81762, |dx|=0.00042625, time=48.2713
+#=2500, dr2=242.646, zqs_z=1.82838, sdzqs=7.77989, |dx|=0.000368165, time=54.002
+#=2750, dr2=242.899, zqs_z=1.83576, sdzqs=7.85925, |dx|=0.000344052, time=59.9956
+#=3000, dr2=242.842, zqs_z=1.83459, sdzqs=7.85711, |dx|=0.000322399, time=65.2701
+#=3250, dr2=243.128, zqs_z=1.83032, sdzqs=7.81571, |dx|=0.000386562, time=70.5718
+#=3500, dr2=243.228, zqs_z=1.82743, sdzqs=7.79127, |dx|=0.000258719, time=75.8811
+#=3750, dr2=243.09, zqs_z=1.8151, sdzqs=7.75939, |dx|=0.000349381, time=81.1581
+#=4000, dr2=243.315, zqs_z=1.84021, sdzqs=7.82762, |dx|=0.000358062, time=86.4123
+#=4250, dr2=243.302, zqs_z=1.81644, sdzqs=7.76013, |dx|=0.000400729, time=91.6761
+#=4500, dr2=243.44, zqs_z=1.82873, sdzqs=7.69335, |dx|=0.000332061, time=97.1174
+#=4750, dr2=243.55, zqs_z=1.8109, sdzqs=7.71706, |dx|=0.000392282, time=102.379
+#=5000, dr2=243.563, zqs_z=1.82271, sdzqs=7.76122, |dx|=0.000433865, time=107.757
+#=5250, dr2=243.542, zqs_z=1.80781, sdzqs=7.78114, |dx|=0.000300239, time=113.09
+#=5500, dr2=243.594, zqs_z=1.80412, sdzqs=7.7932, |dx|=0.000268814, time=118.384
+#=5750, dr2=243.635, zqs_z=1.80062, sdzqs=7.76154, |dx|=0.000228438, time=124.235
+#=6000, dr2=243.713, zqs_z=1.80846, sdzqs=7.72534, |dx|=0.000265062, time=129.942
+teacher: 1383579 frames, 6000 iterations, 130 s
+teacher: {'n_frames': 1383579, 'seconds': 130.13804721832275, 'iterations': 6000, 'provisional_b': None, 'final': {'iter': 6000.0, 'delta_r2': 243.71294432857934, 'max_z_zq_stopped': 1.8084614120238534, 'max_sd_zq_stopped': 7.7253400856054855, 'delta_x': 0.0002650622424967036, 'time_elapsed': 129.94161939620972}, 'rms_vs_exact': 0.08545703697780481}
+   student epoch   3: sdzqs   10.035 spread 0.0666
+   student epoch   6: sdzqs    9.692 spread 0.0309
+   student epoch   9: sdzqs    9.340 spread 0.0219
+   student epoch  12: sdzqs    9.232 spread 0.0295
+   student epoch  15: sdzqs    9.283 spread 0.0208
+   student epoch  18: sdzqs    9.302 spread 0.0200
+   student epoch  21: sdzqs    9.280 spread 0.0200
+   student epoch  24: sdzqs    9.280 spread 0.0201
+export: sigma_s 0.007074, kappa_A 3.31, kappa_B 0.245, maha thr 14.2
+diagnostics: SD(Z_q) new 9.232, previous model on the newest data 43.163; exact: spread 0.0240, logit RMSE 0.661
+plan: 10 interior levels (natural coordinate, ratio <= 10); predicted longest median 316 frames (budget 6000); levels q = [0.0049, 0.024, 0.0693, 0.1749, 0.3508, 0.5488, 0.7379, 0.8593, 0.9255, 0.9663]
+placement: 12 interfaces kept of 12 planned; removed none
+run: 12 interfaces, 1000 cycles in /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_cc/pass_2/run
+Weights: staple (path_f / path_w), the default for this run: StapleTIS with infinite swap: the permanent of W splits the occupancies by w
+infretis run /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_cc/pass_2/run: mode staple, infinite swap True, 12 ensembles, 610 finished paths in /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_cc/pass_2/run/infretis_data.txt
+Interfaces: [0.15, 0.3303886187198353, 0.47621024203447715, 0.5809277033996092, 0.6738209271124448, 0.7440515605851964, 0.7892809736449564, 0.8192343334247514, 0.8346561300040516, 0.8421647174007033, 0.8465341694413434, 0.85]
+  path_w != 1 for 503 (path, ensemble) pairs, 34.9% of the occupancy; path_f and path_f / path_w differ there by a factor [2.]
+  Note (StapleTIS): infretis' staple shooting accepts new paths without the w ratio, while the permanent and the staple swaps use w, so no weighting is exact; see docs/npneq_tis_notes.md section 15.
+Order parameters from /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_cc/pass_2/run/load: 499 paths read
+  ensemble 001: 121 paths, 225 pieces, 5245 frames, total weight 1458.4, cut at M = 0.15
+  ensemble 002: 99 paths, 198 pieces, 32011 frames, total weight 1506.5, cut at M = 0.3303886187198353
+  ensemble 003: 116 paths, 232 pieces, 40829 frames, total weight 1539.1, cut at M = 0.47621024203447715
+  ensemble 004: 112 paths, 224 pieces, 41241 frames, total weight 1445.4, cut at M = 0.5809277033996092
+  ensemble 005: 110 paths, 220 pieces, 47378 frames, total weight 1514.0, cut at M = 0.6738209271124448
+  ensemble 006: 120 paths, 240 pieces, 52907 frames, total weight 1290.3, cut at M = 0.7440515605851964
+  ensemble 007: 117 paths, 234 pieces, 52289 frames, total weight 1388.8, cut at M = 0.7892809736449564
+  ensemble 008: 120 paths, 240 pieces, 54379 frames, total weight 1405.3, cut at M = 0.8192343334247514
+  ensemble 009: 122 paths, 244 pieces, 53446 frames, total weight 1417.4, cut at M = 0.8346561300040516
+  ensemble 010: 112 paths, 224 pieces, 46467 frames, total weight 1367.8, cut at M = 0.8421647174007033
+  ensemble 011: 66 paths, 132 pieces, 35016 frames, total weight 1137.7, cut at M = 0.8465341694413434
+Loaded 2413 pieces, 461208 frames total
+pass 2 re-check on its own paths: OK
+| k | lambda_k | up / down crossings | skip up | skip down | gap/delta | dist A | dist B | note |
+|---|---|---|---|---|---|---|---|---|
+| 1 | 0.3304 | 713 / 703 | 0.000 | 0.000 | 2.94 | 7.8 | – |  |
+| 2 | 0.4762 | 707 / 702 | 0.000 | 0.000 | 2.76 | – | – |  |
+| 3 | 0.5809 | 593 / 581 | 0.000 | 0.000 | 3.15 | – | – |  |
+| 4 | 0.6738 | 460 / 461 | 0.000 | 0.000 | 2.84 | – | – |  |
+| 5 | 0.7441 | 514 / 512 | 0.000 | 0.000 | 2.53 | – | – |  |
+| 6 | 0.7893 | 490 / 493 | 0.000 | 0.000 | 2.81 | – | – |  |
+| 7 | 0.8192 | 525 / 525 | 0.000 | 0.000 | 2.18 | – | – |  |
+| 8 | 0.8347 | 546 / 546 | 0.000 | 0.000 | 1.91 | – | – |  |
+| 9 | 0.8422 | 410 / 404 | 0.000 | 0.000 | 1.78 | – | – |  |
+| 10 | 0.8465 | 444 / 444 | 0.000 | 0.000 | 3.53 | – | 23.2 |  |
+
+| ensemble | window (L, M, R) | excursions | P(empty region) | 5% frames inside |
+|---|---|---|---|---|
+| 1 | (0.1500, 0.1500, 0.3304) | 436 | 0.000 | 1 |
+| 2 | (0.1500, 0.3304, 0.4762) | 174 | 0.000 | 21 |
+| 3 | (0.3304, 0.4762, 0.5809) | 240 | 0.000 | 14 |
+| 4 | (0.4762, 0.5809, 0.6738) | 219 | 0.000 | 11 |
+| 5 | (0.5809, 0.6738, 0.7441) | 190 | 0.000 | 16 |
+| 6 | (0.6738, 0.7441, 0.7893) | 208 | 0.000 | 16 |
+| 7 | (0.7441, 0.7893, 0.8192) | 201 | 0.000 | 14 |
+| 8 | (0.7893, 0.8192, 0.8347) | 198 | 0.000 | 14 |
+| 9 | (0.8192, 0.8347, 0.8422) | 211 | 0.000 | 14 |
+| 10 | (0.8347, 0.8422, 0.8465) | 202 | 0.000 | 7 |
+| 11 | (0.8422, 0.8465, 0.8500) | 131 | 0.000 | 13 |
+
+single-step turns: 0.000 of 16397; failures: none
+stop test: continue (stability 0.1666; prospective SD(Z_q) 43.162993246542825 vs refit 9.232; interfaces changed)
+== pass 3
+#=250, dr2=305.367, zqs_z=2.01118, sdzqs=9.23588, |dx|=0.0184407, time=6.69225
+#=500, dr2=305.439, zqs_z=1.99708, sdzqs=9.23324, |dx|=0.00217698, time=13.9563
+#=750, dr2=305.985, zqs_z=2.04973, sdzqs=9.12617, |dx|=0.000847669, time=20.8283
+#=1000, dr2=306.343, zqs_z=2.01726, sdzqs=9.16503, |dx|=0.000496991, time=27.4767
+#=1250, dr2=306.306, zqs_z=2.01798, sdzqs=9.14114, |dx|=0.000445939, time=34.6432
+#=1500, dr2=306.541, zqs_z=2.03097, sdzqs=9.21191, |dx|=0.000333813, time=41.3284
+#=1750, dr2=306.797, zqs_z=2.01832, sdzqs=9.16049, |dx|=0.000318874, time=48.8121
+#=2000, dr2=306.831, zqs_z=2.01463, sdzqs=9.16377, |dx|=0.000369272, time=55.4659
+#=2250, dr2=307.065, zqs_z=2.03348, sdzqs=9.15553, |dx|=0.000408134, time=62.1392
+#=2500, dr2=307.078, zqs_z=2.0341, sdzqs=9.17384, |dx|=0.000280429, time=68.8468
+#=2750, dr2=307.151, zqs_z=2.03133, sdzqs=9.0973, |dx|=0.000274228, time=75.474
+#=3000, dr2=307.308, zqs_z=2.01415, sdzqs=9.13318, |dx|=0.000280097, time=82.1885
+#=3250, dr2=307.291, zqs_z=2.02076, sdzqs=9.18505, |dx|=0.000249994, time=88.8688
+#=3500, dr2=307.345, zqs_z=2.01565, sdzqs=9.19393, |dx|=0.000158896, time=95.5976
+#=3750, dr2=307.32, zqs_z=2.00243, sdzqs=9.12171, |dx|=0.000189952, time=102.283
+#=4000, dr2=307.369, zqs_z=2.00725, sdzqs=9.13727, |dx|=0.000172155, time=109.651
+#=4250, dr2=307.468, zqs_z=2.01032, sdzqs=9.12474, |dx|=0.000186109, time=117.22
+#=4500, dr2=307.438, zqs_z=2.00937, sdzqs=9.11882, |dx|=0.000141574, time=124.734
+#=4750, dr2=307.516, zqs_z=2.00271, sdzqs=9.16044, |dx|=0.000126482, time=131.864
+#=5000, dr2=307.629, zqs_z=2.01319, sdzqs=9.1514, |dx|=0.000154069, time=139.116
+#=5250, dr2=307.761, zqs_z=2.00736, sdzqs=9.14044, |dx|=0.000160091, time=145.886
+#=5500, dr2=307.673, zqs_z=2.01624, sdzqs=9.16303, |dx|=0.000169305, time=152.626
+#=5750, dr2=307.646, zqs_z=1.99854, sdzqs=9.1399, |dx|=0.000148874, time=159.767
+#=6000, dr2=307.631, zqs_z=1.99912, sdzqs=9.12068, |dx|=0.000143195, time=166.507
+teacher: 1769715 frames, 6000 iterations, 167 s
+teacher: {'n_frames': 1769715, 'seconds': 166.76386213302612, 'iterations': 6000, 'provisional_b': None, 'final': {'iter': 6000.0, 'delta_r2': 307.63067930197053, 'max_z_zq_stopped': 1.9991156840751498, 'max_sd_zq_stopped': 9.120681675547653, 'delta_x': 0.00014319544953775507, 'time_elapsed': 166.50706505775452}, 'rms_vs_exact': 0.06711825503814517}
+   student epoch   3: sdzqs    6.203 spread 0.0215
+   student epoch   6: sdzqs    6.308 spread 0.0202
+   student epoch   9: sdzqs    6.270 spread 0.0205
+   student epoch  12: sdzqs    6.340 spread 0.0202
+   student epoch  15: sdzqs    6.373 spread 0.0203
+   student epoch  18: sdzqs    6.301 spread 0.0197
+   student epoch  21: sdzqs    6.330 spread 0.0199
+   student epoch  24: sdzqs    6.341 spread 0.0199
+export: sigma_s 0.007046, kappa_A 3.32, kappa_B 0.246, maha thr 13.8
+diagnostics: SD(Z_q) new 11.305, previous model on the newest data 15.055; exact: spread 0.0161, logit RMSE 0.507
+plan: 10 interior levels (natural coordinate, ratio <= 10); predicted longest median 332 frames (budget 6000); levels q = [0.005, 0.0233, 0.0673, 0.1673, 0.3324, 0.5301, 0.7274, 0.8525, 0.9218, 0.9651]
+placement: 12 interfaces kept of 12 planned; removed none
+run: 12 interfaces, 1000 cycles in /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_cc/pass_3/run
+Weights: staple (path_f / path_w), the default for this run: StapleTIS with infinite swap: the permanent of W splits the occupancies by w
+infretis run /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_cc/pass_3/run: mode staple, infinite swap True, 12 ensembles, 611 finished paths in /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_cc/pass_3/run/infretis_data.txt
+Interfaces: [0.15, 0.3310730414933743, 0.47344170077912684, 0.5779121918296829, 0.6693710430686529, 0.738601153710864, 0.7857800428678913, 0.8177943957067254, 0.8338518452294958, 0.8417540122978414, 0.8464035696794091, 0.85]
+  path_w != 1 for 508 (path, ensemble) pairs, 36.9% of the occupancy; path_f and path_f / path_w differ there by a factor [2.]
+  Note (StapleTIS): infretis' staple shooting accepts new paths without the w ratio, while the permanent and the staple swaps use w, so no weighting is exact; see docs/npneq_tis_notes.md section 15.
+Order parameters from /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_cc/pass_3/run/load: 498 paths read
+  ensemble 001: 122 paths, 220 pieces, 6381 frames, total weight 1485.5, cut at M = 0.15
+  ensemble 002: 87 paths, 174 pieces, 27325 frames, total weight 1517.2, cut at M = 0.3310730414933743
+  ensemble 003: 99 paths, 198 pieces, 34380 frames, total weight 1512.2, cut at M = 0.47344170077912684
+  ensemble 004: 109 paths, 218 pieces, 45759 frames, total weight 1388.1, cut at M = 0.5779121918296829
+  ensemble 005: 112 paths, 224 pieces, 52546 frames, total weight 1402.8, cut at M = 0.6693710430686529
+  ensemble 006: 104 paths, 208 pieces, 50009 frames, total weight 1334.1, cut at M = 0.738601153710864
+  ensemble 007: 111 paths, 222 pieces, 56224 frames, total weight 1426.7, cut at M = 0.7857800428678913
+  ensemble 008: 111 paths, 222 pieces, 51082 frames, total weight 1333.0, cut at M = 0.8177943957067254
+  ensemble 009: 121 paths, 242 pieces, 52992 frames, total weight 1349.3, cut at M = 0.8338518452294958
+  ensemble 010: 115 paths, 230 pieces, 49865 frames, total weight 1268.8, cut at M = 0.8417540122978414
+  ensemble 011: 87 paths, 174 pieces, 46456 frames, total weight 1340.4, cut at M = 0.8464035696794091
+Loaded 2332 pieces, 473019 frames total
+pass 3 re-check on its own paths: OK
+| k | lambda_k | up / down crossings | skip up | skip down | gap/delta | dist A | dist B | note |
+|---|---|---|---|---|---|---|---|---|
+| 1 | 0.3311 | 757 / 769 | 0.000 | 0.000 | 2.73 | 7.8 | – |  |
+| 2 | 0.4734 | 675 / 681 | 0.000 | 0.000 | 2.87 | – | – |  |
+| 3 | 0.5779 | 571 / 577 | 0.000 | 0.000 | 3.13 | – | – |  |
+| 4 | 0.6694 | 620 / 625 | 0.000 | 0.000 | 3.02 | – | – |  |
+| 5 | 0.7386 | 571 / 563 | 0.000 | 0.000 | 2.74 | – | – |  |
+| 6 | 0.7858 | 532 / 529 | 0.000 | 0.000 | 2.72 | – | – |  |
+| 7 | 0.8178 | 509 / 506 | 0.000 | 0.000 | 2.26 | – | – |  |
+| 8 | 0.8339 | 521 / 522 | 0.000 | 0.000 | 2.17 | – | – |  |
+| 9 | 0.8418 | 480 / 492 | 0.000 | 0.000 | 1.93 | – | – |  |
+| 10 | 0.8464 | 483 / 489 | 0.000 | 0.000 | 3.26 | – | 22.8 |  |
+
+| ensemble | window (L, M, R) | excursions | P(empty region) | 5% frames inside |
+|---|---|---|---|---|
+| 1 | (0.1500, 0.1500, 0.3311) | 435 | 0.000 | 1 |
+| 2 | (0.1500, 0.3311, 0.4734) | 180 | 0.000 | 15 |
+| 3 | (0.3311, 0.4734, 0.5779) | 218 | 0.000 | 12 |
+| 4 | (0.4734, 0.5779, 0.6694) | 212 | 0.000 | 13 |
+| 5 | (0.5779, 0.6694, 0.7386) | 203 | 0.000 | 15 |
+| 6 | (0.6694, 0.7386, 0.7858) | 175 | 0.000 | 16 |
+| 7 | (0.7386, 0.7858, 0.8178) | 186 | 0.000 | 12 |
+| 8 | (0.7858, 0.8178, 0.8339) | 194 | 0.000 | 13 |
+| 9 | (0.8178, 0.8339, 0.8418) | 204 | 0.000 | 11 |
+| 10 | (0.8339, 0.8418, 0.8464) | 229 | 0.000 | 6 |
+| 11 | (0.8418, 0.8464, 0.8500) | 138 | 0.000 | 10 |
+
+single-step turns: 0.000 of 16168; failures: none
+stop test: continue (stability 0.0401; prospective SD(Z_q) 15.05471094834467 vs refit 11.305)
+== pass 4
+#=250, dr2=370.786, zqs_z=1.9397, sdzqs=10.8416, |dx|=0.020971, time=10.9898
+#=500, dr2=369.562, zqs_z=1.90264, sdzqs=10.3789, |dx|=0.00462045, time=21.7449
+#=750, dr2=369.823, zqs_z=1.81067, sdzqs=10.3451, |dx|=0.000707246, time=32.4941
+#=1000, dr2=370.038, zqs_z=1.82111, sdzqs=10.326, |dx|=0.000333988, time=43.2045
+#=1250, dr2=370.14, zqs_z=1.79995, sdzqs=10.3171, |dx|=0.000268683, time=54.1837
+#=1500, dr2=370.365, zqs_z=1.81498, sdzqs=10.3309, |dx|=0.000292343, time=65.4118
+#=1750, dr2=370.587, zqs_z=1.80863, sdzqs=10.3261, |dx|=0.000217441, time=76.619
+#=2000, dr2=370.562, zqs_z=1.7868, sdzqs=10.324, |dx|=0.000202904, time=87.4512
+#=2250, dr2=370.69, zqs_z=1.80741, sdzqs=10.3179, |dx|=0.000180611, time=98.4508
+#=2500, dr2=370.828, zqs_z=1.81123, sdzqs=10.286, |dx|=0.000191281, time=110.211
+#=2750, dr2=370.857, zqs_z=1.81028, sdzqs=10.2546, |dx|=0.000186231, time=122.385
+#=3000, dr2=370.953, zqs_z=1.80516, sdzqs=10.2717, |dx|=0.000142034, time=133.732
+#=3250, dr2=370.919, zqs_z=1.79817, sdzqs=10.2725, |dx|=0.000117082, time=144.751
+#=3500, dr2=370.877, zqs_z=1.80073, sdzqs=10.2641, |dx|=0.00014927, time=156.027
+#=3750, dr2=370.866, zqs_z=1.78949, sdzqs=10.2872, |dx|=0.000162547, time=167.884
+#=4000, dr2=370.978, zqs_z=1.80416, sdzqs=10.2796, |dx|=0.000174569, time=179.042
+#=4250, dr2=371.023, zqs_z=1.80393, sdzqs=10.2553, |dx|=0.000141559, time=190.951
+#=4500, dr2=371.03, zqs_z=1.79521, sdzqs=10.2614, |dx|=0.000113929, time=204.472
+#=4750, dr2=371.064, zqs_z=1.793, sdzqs=10.2687, |dx|=0.000102664, time=216.11
+#=5000, dr2=371.044, zqs_z=1.79613, sdzqs=10.2714, |dx|=0.00011412, time=228.551
+#=5250, dr2=371.025, zqs_z=1.78951, sdzqs=10.2704, |dx|=0.000106234, time=239.531
+#=5500, dr2=371.061, zqs_z=1.79425, sdzqs=10.2578, |dx|=9.6544e-05, time=250.487
+#=5750, dr2=371.036, zqs_z=1.80373, sdzqs=10.2559, |dx|=9.07206e-05, time=262.289
+#=6000, dr2=371.057, zqs_z=1.79462, sdzqs=10.2468, |dx|=0.000101022, time=274.138
+teacher: 2163608 frames, 6000 iterations, 275 s
+teacher: {'n_frames': 2163608, 'seconds': 274.6718156337738, 'iterations': 6000, 'provisional_b': None, 'final': {'iter': 6000.0, 'delta_r2': 371.05652927538256, 'max_z_zq_stopped': 1.7946182507305684, 'max_sd_zq_stopped': 10.246752684221114, 'delta_x': 0.00010102177775182392, 'time_elapsed': 274.1376495361328}, 'rms_vs_exact': 0.04406253559703363}
+   student epoch   3: sdzqs    3.294 spread 0.0224
+   student epoch   6: sdzqs    3.341 spread 0.0252
+   student epoch   9: sdzqs    3.314 spread 0.0233
+   student epoch  12: sdzqs    3.382 spread 0.0220
+   student epoch  15: sdzqs    3.337 spread 0.0223
+   student epoch  18: sdzqs    3.367 spread 0.0213
+   student epoch  21: sdzqs    3.352 spread 0.0211
+   student epoch  24: sdzqs    3.365 spread 0.0213
+export: sigma_s 0.007052, kappa_A 3.32, kappa_B 0.245, maha thr 13.3
+diagnostics: SD(Z_q) new 12.136, previous model on the newest data 18.785; exact: spread 0.0285, logit RMSE 0.346
+plan: 10 interior levels (natural coordinate, ratio <= 10); predicted longest median 287 frames (budget 6000); levels q = [0.005, 0.023, 0.0671, 0.163, 0.3253, 0.5263, 0.7183, 0.8462, 0.9175, 0.9634]
+placement: 12 interfaces kept of 12 planned; removed none
+run: 12 interfaces, 1000 cycles in /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_cc/pass_4/run
+Weights: staple (path_f / path_w), the default for this run: StapleTIS with infinite swap: the permanent of W splits the occupancies by w
+infretis run /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_cc/pass_4/run: mode staple, infinite swap True, 12 ensembles, 587 finished paths in /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_cc/pass_4/run/infretis_data.txt
+Interfaces: [0.15, 0.3311683346326241, 0.47186333509886647, 0.5776717216981521, 0.6667000577968558, 0.7364361687920814, 0.7850530541913233, 0.8165227086324863, 0.8330946825456093, 0.841286237231166, 0.8462280738941851, 0.85]
+  path_w != 1 for 483 (path, ensemble) pairs, 37.4% of the occupancy; path_f and path_f / path_w differ there by a factor [2.]
+  Note (StapleTIS): infretis' staple shooting accepts new paths without the w ratio, while the permanent and the staple swaps use w, so no weighting is exact; see docs/npneq_tis_notes.md section 15.
+Order parameters from /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_cc/pass_4/run/load: 492 paths read
+  ensemble 001: 95 paths, 168 pieces, 7141 frames, total weight 1391.9, cut at M = 0.15
+  ensemble 002: 99 paths, 198 pieces, 35909 frames, total weight 1321.7, cut at M = 0.3311683346326241
+  ensemble 003: 108 paths, 216 pieces, 42294 frames, total weight 1443.7, cut at M = 0.47186333509886647
+  ensemble 004: 127 paths, 254 pieces, 62741 frames, total weight 1416.6, cut at M = 0.5776717216981521
+  ensemble 005: 123 paths, 246 pieces, 66694 frames, total weight 1415.3, cut at M = 0.6667000577968558
+  ensemble 006: 119 paths, 238 pieces, 62937 frames, total weight 1465.2, cut at M = 0.7364361687920814
+  ensemble 007: 113 paths, 226 pieces, 61682 frames, total weight 1359.4, cut at M = 0.7850530541913233
+  ensemble 008: 95 paths, 190 pieces, 47648 frames, total weight 1398.5, cut at M = 0.8165227086324863
+  ensemble 009: 109 paths, 218 pieces, 52441 frames, total weight 1403.3, cut at M = 0.8330946825456093
+  ensemble 010: 109 paths, 218 pieces, 52416 frames, total weight 1436.6, cut at M = 0.841286237231166
+  ensemble 011: 99 paths, 198 pieces, 52963 frames, total weight 1344.0, cut at M = 0.8462280738941851
+Loaded 2370 pieces, 544866 frames total
+pass 4 re-check on its own paths: OK
+| k | lambda_k | up / down crossings | skip up | skip down | gap/delta | dist A | dist B | note |
+|---|---|---|---|---|---|---|---|---|
+| 1 | 0.3312 | 818 / 818 | 0.000 | 0.000 | 2.83 | 7.8 | – |  |
+| 2 | 0.4719 | 658 / 660 | 0.000 | 0.000 | 2.91 | – | – |  |
+| 3 | 0.5777 | 776 / 769 | 0.000 | 0.000 | 3.26 | – | – |  |
+| 4 | 0.6667 | 689 / 686 | 0.000 | 0.000 | 3.03 | – | – |  |
+| 5 | 0.7364 | 584 / 580 | 0.000 | 0.000 | 2.82 | – | – |  |
+| 6 | 0.7851 | 570 / 563 | 0.000 | 0.000 | 2.60 | – | – |  |
+| 7 | 0.8165 | 449 / 450 | 0.000 | 0.000 | 2.38 | – | – |  |
+| 8 | 0.8331 | 551 / 550 | 0.000 | 0.000 | 2.11 | – | – |  |
+| 9 | 0.8413 | 579 / 588 | 0.000 | 0.000 | 2.37 | – | – |  |
+| 10 | 0.8462 | 633 / 640 | 0.000 | 0.000 | 4.16 | – | 17.0 |  |
+
+| ensemble | window (L, M, R) | excursions | P(empty region) | 5% frames inside |
+|---|---|---|---|---|
+| 1 | (0.1500, 0.1500, 0.3312) | 373 | 0.000 | 1 |
+| 2 | (0.1500, 0.3312, 0.4719) | 197 | 0.000 | 14 |
+| 3 | (0.3312, 0.4719, 0.5777) | 251 | 0.000 | 14 |
+| 4 | (0.4719, 0.5777, 0.6667) | 220 | 0.000 | 14 |
+| 5 | (0.5777, 0.6667, 0.7364) | 223 | 0.000 | 11 |
+| 6 | (0.6667, 0.7364, 0.7851) | 217 | 0.000 | 12 |
+| 7 | (0.7364, 0.7851, 0.8165) | 182 | 0.000 | 16 |
+| 8 | (0.7851, 0.8165, 0.8331) | 168 | 0.000 | 14 |
+| 9 | (0.8165, 0.8331, 0.8413) | 201 | 0.000 | 13 |
+| 10 | (0.8331, 0.8413, 0.8462) | 241 | 0.000 | 9 |
+| 11 | (0.8413, 0.8462, 0.8500) | 174 | 0.000 | 16 |
+
+single-step turns: 0.000 of 16831; failures: none
+stop test: continue (stability 0.0403; prospective SD(Z_q) 18.784572817545055 vs refit 12.136; OOD 0.0024 (previous 0.0008))
+== pass 5
+#=250, dr2=476.971, zqs_z=1.7388, sdzqs=11.4146, |dx|=0.0162947, time=13.7101
+#=500, dr2=479.342, zqs_z=1.85884, sdzqs=11.9256, |dx|=0.00238319, time=27.4335
+#=750, dr2=479.274, zqs_z=1.86963, sdzqs=11.9986, |dx|=0.000327206, time=41.186
+#=1000, dr2=479.4, zqs_z=1.87699, sdzqs=12.0036, |dx|=0.000202968, time=54.3284
+#=1250, dr2=479.456, zqs_z=1.8748, sdzqs=11.9914, |dx|=0.000195129, time=67.69
+#=1500, dr2=479.529, zqs_z=1.87438, sdzqs=12.0209, |dx|=0.000162596, time=82.3095
+#=1750, dr2=479.706, zqs_z=1.8787, sdzqs=12.0221, |dx|=0.000226494, time=96.703
+#=2000, dr2=479.733, zqs_z=1.87648, sdzqs=12.018, |dx|=0.000136127, time=110.386
+#=2250, dr2=479.762, zqs_z=1.87755, sdzqs=12.0294, |dx|=0.000140064, time=124.332
+#=2500, dr2=479.942, zqs_z=1.8768, sdzqs=12.0236, |dx|=0.000163927, time=138.47
+#=2750, dr2=479.975, zqs_z=1.87818, sdzqs=12.0257, |dx|=0.00014105, time=152.479
+#=3000, dr2=479.918, zqs_z=1.87868, sdzqs=12.0562, |dx|=0.000151947, time=165.631
+#=3250, dr2=479.997, zqs_z=1.87929, sdzqs=12.0677, |dx|=0.000146348, time=178.623
+#=3500, dr2=479.934, zqs_z=1.8803, sdzqs=12.0513, |dx|=0.000135798, time=193.065
+#=3750, dr2=479.996, zqs_z=1.88321, sdzqs=12.0766, |dx|=0.000130722, time=206.477
+#=4000, dr2=480.037, zqs_z=1.87878, sdzqs=12.0702, |dx|=0.000108141, time=219.583
+#=4250, dr2=480.027, zqs_z=1.88008, sdzqs=12.0606, |dx|=0.000104203, time=233.784
+#=4500, dr2=480.084, zqs_z=1.88106, sdzqs=12.0623, |dx|=9.02348e-05, time=247.91
+#=4750, dr2=480.121, zqs_z=1.88327, sdzqs=12.0707, |dx|=0.000102697, time=261.834
+#=5000, dr2=480.116, zqs_z=1.88426, sdzqs=12.081, |dx|=7.55607e-05, time=277.101
+#=5250, dr2=480.208, zqs_z=1.88281, sdzqs=12.0741, |dx|=9.85926e-05, time=290.556
+#=5500, dr2=480.237, zqs_z=1.88463, sdzqs=12.0782, |dx|=7.80997e-05, time=304.052
+#=5750, dr2=480.251, zqs_z=1.88407, sdzqs=12.0853, |dx|=7.50512e-05, time=318.784
+#=6000, dr2=480.252, zqs_z=1.88369, sdzqs=12.084, |dx|=9.67355e-05, time=332.208
+teacher: 2612045 frames, 6000 iterations, 333 s
+teacher: {'n_frames': 2612045, 'seconds': 332.5691752433777, 'iterations': 6000, 'provisional_b': None, 'final': {'iter': 6000.0, 'delta_r2': 480.2520062621516, 'max_z_zq_stopped': 1.8836895621571548, 'max_sd_zq_stopped': 12.083977844076637, 'delta_x': 9.673549177448058e-05, 'time_elapsed': 332.2080693244934}, 'rms_vs_exact': 0.032988452380066334}
+   student epoch   3: sdzqs    5.662 spread 0.0186
+   student epoch   6: sdzqs    5.719 spread 0.0174
+   student epoch   9: sdzqs    5.723 spread 0.0163
+   student epoch  12: sdzqs    5.755 spread 0.0160
+   student epoch  15: sdzqs    5.731 spread 0.0158
+   student epoch  18: sdzqs    5.726 spread 0.0151
+   student epoch  21: sdzqs    5.729 spread 0.0148
+   student epoch  24: sdzqs    5.729 spread 0.0149
+export: sigma_s 0.007058, kappa_A 3.32, kappa_B 0.245, maha thr 13.3
+diagnostics: SD(Z_q) new 19.294, previous model on the newest data 24.865; exact: spread 0.0180, logit RMSE 0.313
+plan: 10 interior levels (natural coordinate, ratio <= 10); predicted longest median 362 frames (budget 6000); levels q = [0.0047, 0.0206, 0.0581, 0.1394, 0.2821, 0.4782, 0.6978, 0.8473, 0.921, 0.965]
+placement: 12 interfaces kept of 12 planned; removed none
+run: 12 interfaces, 1000 cycles in /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_cc/pass_5/run
+Weights: staple (path_f / path_w), the default for this run: StapleTIS with infinite swap: the permanent of W splits the occupancies by w
+infretis run /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_cc/pass_5/run: mode staple, infinite swap True, 12 ensembles, 631 finished paths in /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_cc/pass_5/run/infretis_data.txt
+Interfaces: [0.15, 0.3272018384584429, 0.46140873296272533, 0.563271063631219, 0.6510032776425928, 0.7220280499951718, 0.7753550715275799, 0.8135874251285239, 0.8332234415780052, 0.8416728389511936, 0.8463946251518616, 0.85]
+  path_w != 1 for 496 (path, ensemble) pairs, 33.4% of the occupancy; path_f and path_f / path_w differ there by a factor [2.]
+  Note (StapleTIS): infretis' staple shooting accepts new paths without the w ratio, while the permanent and the staple swaps use w, so no weighting is exact; see docs/npneq_tis_notes.md section 15.
+Order parameters from /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_cc/pass_5/run/load: 510 paths read
+  ensemble 001: 139 paths, 239 pieces, 10922 frames, total weight 1400.3, cut at M = 0.15
+  ensemble 002: 115 paths, 230 pieces, 41344 frames, total weight 1403.9, cut at M = 0.3272018384584429
+  ensemble 003: 127 paths, 254 pieces, 49556 frames, total weight 1541.1, cut at M = 0.46140873296272533
+  ensemble 004: 130 paths, 260 pieces, 54662 frames, total weight 1266.6, cut at M = 0.563271063631219
+  ensemble 005: 132 paths, 264 pieces, 58806 frames, total weight 1464.6, cut at M = 0.6510032776425928
+  ensemble 006: 122 paths, 244 pieces, 56433 frames, total weight 1391.5, cut at M = 0.7220280499951718
+  ensemble 007: 103 paths, 206 pieces, 50562 frames, total weight 1392.0, cut at M = 0.7753550715275799
+  ensemble 008: 93 paths, 186 pieces, 45119 frames, total weight 1506.6, cut at M = 0.8135874251285239
+  ensemble 009: 106 paths, 212 pieces, 47660 frames, total weight 1430.9, cut at M = 0.8332234415780052
+  ensemble 010: 112 paths, 224 pieces, 47454 frames, total weight 1383.9, cut at M = 0.8416728389511936
+  ensemble 011: 73 paths, 146 pieces, 40773 frames, total weight 1268.8, cut at M = 0.8463946251518616
+Loaded 2465 pieces, 503291 frames total
+pass 5 re-check on its own paths: OK
+| k | lambda_k | up / down crossings | skip up | skip down | gap/delta | dist A | dist B | note |
+|---|---|---|---|---|---|---|---|---|
+| 1 | 0.3272 | 828 / 834 | 0.000 | 0.000 | 2.65 | 7.7 | – |  |
+| 2 | 0.4614 | 734 / 742 | 0.000 | 0.000 | 2.89 | – | – |  |
+| 3 | 0.5633 | 759 / 753 | 0.000 | 0.000 | 3.14 | – | – |  |
+| 4 | 0.6510 | 662 / 669 | 0.000 | 0.000 | 2.90 | – | – |  |
+| 5 | 0.7220 | 505 / 512 | 0.000 | 0.000 | 2.87 | – | – |  |
+| 6 | 0.7754 | 406 / 411 | 0.000 | 0.000 | 2.69 | – | – |  |
+| 7 | 0.8136 | 394 / 391 | 0.000 | 0.000 | 2.32 | – | – |  |
+| 8 | 0.8332 | 470 / 477 | 0.000 | 0.000 | 1.91 | – | – |  |
+| 9 | 0.8417 | 482 / 490 | 0.000 | 0.000 | 2.01 | – | – |  |
+| 10 | 0.8464 | 523 / 517 | 0.000 | 0.000 | 3.29 | – | 21.8 |  |
+
+| ensemble | window (L, M, R) | excursions | P(empty region) | 5% frames inside |
+|---|---|---|---|---|
+| 1 | (0.1500, 0.1500, 0.3272) | 482 | 0.000 | 1 |
+| 2 | (0.1500, 0.3272, 0.4614) | 215 | 0.000 | 16 |
+| 3 | (0.3272, 0.4614, 0.5633) | 249 | 0.000 | 14 |
+| 4 | (0.4614, 0.5633, 0.6510) | 249 | 0.000 | 14 |
+| 5 | (0.5633, 0.6510, 0.7220) | 242 | 0.000 | 13 |
+| 6 | (0.6510, 0.7220, 0.7754) | 193 | 0.000 | 12 |
+| 7 | (0.7220, 0.7754, 0.8136) | 162 | 0.000 | 16 |
+| 8 | (0.7754, 0.8136, 0.8332) | 141 | 0.000 | 16 |
+| 9 | (0.8136, 0.8332, 0.8417) | 177 | 0.000 | 12 |
+| 10 | (0.8332, 0.8417, 0.8464) | 223 | 0.000 | 10 |
+| 11 | (0.8417, 0.8464, 0.8500) | 140 | 0.000 | 11 |
+
+single-step turns: 0.000 of 17351; failures: none
+stop test: continue (stability 0.1446; prospective SD(Z_q) 24.864892541819707 vs refit 19.294; interfaces changed)
+stop: pass or MD-step budget reached (5 passes, 1618587 MD steps)
+freeze: production run prepared in /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_cc/production (not started)

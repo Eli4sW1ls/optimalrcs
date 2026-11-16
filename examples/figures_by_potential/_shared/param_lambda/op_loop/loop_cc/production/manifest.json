@@ -1,0 +1,187 @@
+{
+ "model": "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_cc/models/lambda_5.npz",
+ "model_md5": "0e0f37d30948c6e3ed39724e8f3a4c5e",
+ "interfaces": [
+  0.15,
+  0.3272018384584429,
+  0.46140873296272533,
+  0.563271063631219,
+  0.6510032776425928,
+  0.7220280499951718,
+  0.7753550715275799,
+  0.8135874251285239,
+  0.8332234415780052,
+  0.8416728389511936,
+  0.8463946251518616,
+  0.85
+ ],
+ "seeds": {
+  "0": {
+   "pass_index": 6,
+   "pnr": 0,
+   "frames": [
+    0,
+    2
+   ],
+   "tainted": false
+  },
+  "1": {
+   "pass_index": 6,
+   "pnr": 2,
+   "frames": [
+    0,
+    665
+   ],
+   "tainted": false,
+   "pptype": "RML",
+   "sh_region": [
+    571,
+    664
+   ]
+  },
+  "2": {
+   "pass_index": 6,
+   "pnr": 1,
+   "frames": [
+    0,
+    590
+   ],
+   "tainted": false,
+   "pptype": "RML",
+   "sh_region": [
+    514,
+    589
+   ]
+  },
+  "3": {
+   "pass_index": 6,
+   "pnr": 8,
+   "frames": [
+    0,
+    1281
+   ],
+   "tainted": false,
+   "pptype": "LMR",
+   "sh_region": [
+    244,
+    332
+   ]
+  },
+  "4": {
+   "pass_index": 6,
+   "pnr": 4,
+   "frames": [
+    0,
+    843
+   ],
+   "tainted": false,
+   "pptype": "RML",
+   "sh_region": [
+    453,
+    605
+   ]
+  },
+  "5": {
+   "pass_index": 6,
+   "pnr": 6,
+   "frames": [
+    0,
+    491
+   ],
+   "tainted": false,
+   "pptype": "RML",
+   "sh_region": [
+    170,
+    227
+   ]
+  },
+  "6": {
+   "pass_index": 6,
+   "pnr": 7,
+   "frames": [
+    0,
+    863
+   ],
+   "tainted": false,
+   "pptype": "LMR",
+   "sh_region": [
+    30,
+    186
+   ]
+  },
+  "7": {
+   "pass_index": 6,
+   "pnr": 5,
+   "frames": [
+    0,
+    377
+   ],
+   "tainted": false,
+   "pptype": "RML",
+   "sh_region": [
+    158,
+    228
+   ]
+  },
+  "8": {
+   "pass_index": 6,
+   "pnr": 14,
+   "frames": [
+    0,
+    379
+   ],
+   "tainted": false,
+   "pptype": "LMR",
+   "sh_region": [
+    97,
+    144
+   ]
+  },
+  "9": {
+   "pass_index": 6,
+   "pnr": 9,
+   "frames": [
+    0,
+    459
+   ],
+   "tainted": false,
+   "pptype": "LMR",
+   "sh_region": [
+    32,
+    171
+   ]
+  },
+  "10": {
+   "pass_index": 6,
+   "pnr": 10,
+   "frames": [
+    0,
+    656
+   ],
+   "tainted": false,
+   "pptype": "RML",
+   "sh_region": [
+    594,
+    630
+   ]
+  },
+  "11": {
+   "pass_index": 6,
+   "pnr": 21,
+   "frames": [
+    0,
+    293
+   ],
+   "tainted": false,
+   "pptype": "LMR",
+   "sh_region": [
+    177,
+    292
+   ]
+  }
+ },
+ "passes": 5,
+ "initialization_md_steps": 1618587,
+ "recheck_ok": true,
+ "written": "2026-11-16 14:55:44"
+}

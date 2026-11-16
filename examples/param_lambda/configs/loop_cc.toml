@@ -1,0 +1,35 @@
+# Learning loop, infretis + ASE, 2D Brownian curved channel (toytis curved_channel; the settings of test_cc_br:
+# gamma 10, kT 0.05, dt 0.005; A y <= 0.15, B y >= 0.85). Exact committor of the discrete chain.
+inherit = "loop_flat1d"
+name = "loop_cc"
+system = "cc_br"
+
+[run]
+workers = 4
+mode = "staple"
+cycles_per_pass = 1000
+screen = 100
+
+[pass0]
+mode = "retis"
+steps_per_iter = 200
+max_iter = 12
+n_b = 20
+
+[teacher]
+max_iter = 6000
+features = []
+
+[interfaces]
+n_interfaces = 10
+length_budget = 6000
+
+[stop]
+max_passes = 5
+max_md_steps = 400000000
+
+[production]
+cycles = 20000
+
+[production.run]
+staple_infinite_swap = true

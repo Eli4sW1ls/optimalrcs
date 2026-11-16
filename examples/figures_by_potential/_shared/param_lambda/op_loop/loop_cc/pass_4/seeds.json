@@ -1,0 +1,168 @@
+{
+ "report": {
+  "0": {
+   "pass_index": 4,
+   "pnr": 0,
+   "frames": [
+    0,
+    2
+   ],
+   "tainted": false
+  },
+  "1": {
+   "pass_index": 4,
+   "pnr": 1,
+   "frames": [
+    0,
+    377
+   ],
+   "tainted": false,
+   "pptype": "LMR",
+   "sh_region": [
+    1,
+    76
+   ]
+  },
+  "2": {
+   "pass_index": 4,
+   "pnr": 2,
+   "frames": [
+    3,
+    373
+   ],
+   "tainted": false,
+   "pptype": "RML",
+   "sh_region": [
+    184,
+    369
+   ]
+  },
+  "3": {
+   "pass_index": 4,
+   "pnr": 5,
+   "frames": [
+    0,
+    607
+   ],
+   "tainted": false,
+   "pptype": "LMR",
+   "sh_region": [
+    51,
+    203
+   ]
+  },
+  "4": {
+   "pass_index": 4,
+   "pnr": 18,
+   "frames": [
+    1,
+    439
+   ],
+   "tainted": false,
+   "pptype": "RML",
+   "sh_region": [
+    15,
+    105
+   ]
+  },
+  "5": {
+   "pass_index": 4,
+   "pnr": 22,
+   "frames": [
+    0,
+    590
+   ],
+   "tainted": false,
+   "pptype": "RML",
+   "sh_region": [
+    95,
+    147
+   ]
+  },
+  "6": {
+   "pass_index": 4,
+   "pnr": 40,
+   "frames": [
+    0,
+    547
+   ],
+   "tainted": false,
+   "pptype": "LMR",
+   "sh_region": [
+    234,
+    287
+   ]
+  },
+  "7": {
+   "pass_index": 4,
+   "pnr": 127,
+   "frames": [
+    165,
+    388
+   ],
+   "tainted": false,
+   "pptype": "LMR",
+   "sh_region": [
+    36,
+    137
+   ]
+  },
+  "8": {
+   "pass_index": 4,
+   "pnr": 32,
+   "frames": [
+    3,
+    226
+   ],
+   "tainted": false,
+   "pptype": "RML",
+   "sh_region": [
+    145,
+    203
+   ]
+  },
+  "9": {
+   "pass_index": 4,
+   "pnr": 98,
+   "frames": [
+    11,
+    219
+   ],
+   "tainted": false,
+   "pptype": "LMR",
+   "sh_region": [
+    102,
+    147
+   ]
+  },
+  "10": {
+   "pass_index": 4,
+   "pnr": 9,
+   "frames": [
+    246,
+    448
+   ],
+   "tainted": false,
+   "pptype": "LMR",
+   "sh_region": [
+    8,
+    48
+   ]
+  },
+  "11": {
+   "pass_index": 4,
+   "pnr": 23,
+   "frames": [
+    0,
+    711
+   ],
+   "tainted": false,
+   "pptype": "RMR",
+   "sh_region": [
+    1,
+    710
+   ]
+  }
+ },
+ "written": "2026-11-16 14:44:02"
+}

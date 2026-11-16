@@ -1,0 +1,55 @@
+{
+ "iterations": [
+  {
+   "cstep": 0,
+   "steps": 40,
+   "interfaces": [
+    -0.1,
+    -0.09320104107050073,
+    0.3
+   ],
+   "data_file": "./infretis_data_1.txt",
+   "saved_frames": 6836,
+   "n_reached_b": 1,
+   "wall_seconds": 3.1419718265533447,
+   "toml": "infretis_1.toml"
+  },
+  {
+   "cstep": 1,
+   "steps": 40,
+   "interfaces": [
+    -0.1,
+    -0.067,
+    -0.007,
+    0.3
+   ],
+   "data_file": "infretis_data_2.txt",
+   "saved_frames": 45360,
+   "n_reached_b": 7,
+   "wall_seconds": 9.450642347335815,
+   "toml": "infretis_2.toml"
+  }
+ ],
+ "n_b": 5,
+ "reached_b": true,
+ "zero_paths": {
+  "max_op": -0.08640208214100145,
+  "interfaces": [
+   -0.1,
+   -0.09320104107050073,
+   0.3
+  ]
+ },
+ "final_interfaces": [
+  -0.1,
+  -0.09,
+  0.044,
+  0.3
+ ],
+ "data_files": [
+  "./infretis_data_1.txt",
+  "infretis_data_2.txt"
+ ],
+ "saved_frames": 52196,
+ "wall_seconds": 12.914895057678223
+}

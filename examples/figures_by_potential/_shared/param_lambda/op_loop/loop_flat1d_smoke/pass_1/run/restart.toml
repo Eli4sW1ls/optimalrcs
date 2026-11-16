@@ -1,0 +1,285 @@
+[runner]
+workers = 2
+files = []
+wmdrun = [
+    "not used",
+    "not used",
+    "not used",
+    "not used",
+    "not used",
+    "not used",
+    "not used",
+    "not used",
+]
+
+[simulation]
+interfaces = [
+    -0.1,
+    -0.008640877492647761,
+    0.09948776023992231,
+    0.16602978233923468,
+    0.21660802599566162,
+    0.25076403395220637,
+    0.27331898614372707,
+    0.28708974639115115,
+    0.3,
+]
+steps = 100
+seed = 1
+load_dir = "load"
+shooting_moves = [
+    "sh",
+    "sh",
+    "sh",
+    "sh",
+    "sh",
+    "sh",
+    "sh",
+    "sh",
+    "sh",
+]
+mode = "staple"
+staple_infinite_swap = true
+ensemble_engines = [
+    [
+        "engine",
+    ],
+    [
+        "engine",
+    ],
+    [
+        "engine",
+    ],
+    [
+        "engine",
+    ],
+    [
+        "engine",
+    ],
+    [
+        "engine",
+    ],
+    [
+        "engine",
+    ],
+    [
+        "engine",
+    ],
+    [
+        "engine",
+    ],
+]
+zeroswap = 0.5
+pick_scheme = 0
+
+[simulation.tis_set]
+maxlength = 100000
+allowmaxlength = false
+zero_momentum = false
+n_jumps = 4
+staple = true
+quantis = false
+lambda_minus_one = false
+accept_all = false
+
+[engine]
+class = "ase"
+engine = "ase"
+temperature = 11604.522060401008
+input_path = "."
+timestep = 0.002036101134231345
+subcycles = 1
+integrator = "overdamped_lgv"
+langevin_fixcm = false
+langevin_friction = 0.4911347394232031
+
+[engine.calculator_settings]
+class = "FlatWalls1D"
+xleft = -0.2
+xright = 0.4
+k = 100.0
+module = "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/param_lambda/loop/ase_calcs.py"
+
+[engine.particles]
+mass = [
+    1.0,
+]
+name = [
+    "H",
+]
+pos = [
+    [
+        -0.101,
+    ],
+]
+
+[engine.box]
+periodic = [
+    false,
+]
+
+[orderparameter]
+class = "LearnedLambda"
+module = "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/param_lambda/infretis_orderp.py"
+model = "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_flat1d_smoke/models/lambda_1.npz"
+
+[[orderparameter.cvs]]
+class = "Position"
+index = [
+    0,
+    0,
+]
+periodic = false
+
+[output]
+data_dir = "./"
+screen = 50
+pattern = false
+delete_old = false
+delete_old_all = false
+visual_validation = false
+data_file = "./infretis_data.txt"
+keep_maxop_trajs = false
+keep_traj_fnames = []
+keep_status = []
+
+[current]
+traj_num = 71
+cstep = 100
+active = [
+    68,
+    61,
+    67,
+    70,
+    69,
+    59,
+    66,
+    39,
+    48,
+]
+locked = []
+size = 9
+wsubcycles = [
+    4837,
+    5046,
+]
+tsubcycles = 9883
+
+[current.frac]
+39 = [
+    "0.0",
+    "0.0",
+    "0.0",
+    "1.9800870311051655842",
+    "4.393103632376730189",
+    "4.1991674013539634198",
+    "3.7200660429422601808",
+    "19.080283934747185223",
+    "21.62729195747469541",
+    "0.0",
+]
+48 = [
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+    "1.7600747541750494602",
+    "15.897361076731329454",
+    "21.342564169093621083",
+    "0.0",
+]
+59 = [
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+    "2.2771305763707476294",
+    "4.626884134993846058",
+    "3.2766119026889458763",
+    "5.1609061343661982112",
+    "2.6584672515802622262",
+    "0.0",
+]
+61 = [
+    "0.0",
+    "0.7276375404530744337",
+    "5.1670192741835381496",
+    "3.5027685378068856654",
+    "3.8187275387778139245",
+    "0.78384710877868782726",
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+]
+66 = [
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+    "4.1717627759386738296",
+    "3.8282372240613261702",
+    "0.0",
+    "0.0",
+    "0.0",
+]
+67 = [
+    "0.0",
+    "0.0",
+    "3.2375555555555555556",
+    "1.7624444444444444444",
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+]
+68 = [
+    "2.0",
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+]
+69 = [
+    "0.0",
+    "1.2723624595469255664",
+    "0.16",
+    "0.16",
+    "0.40763754045307443364",
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+]
+70 = [
+    "0.0",
+    "0.0",
+    "0.11444444444444444445",
+    "0.2288888888888888889",
+    "0.5577777777777777778",
+    "0.09888888888888888889",
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+]
+
+[current.rng_state]
+bit_generator = "PCG64"
+has_uint32 = 0
+uinteger = 0
+
+[current.rng_state.state]
+state = 166021559712913848203985912048432238763
+inc = 194290289479364712180083596243593368443

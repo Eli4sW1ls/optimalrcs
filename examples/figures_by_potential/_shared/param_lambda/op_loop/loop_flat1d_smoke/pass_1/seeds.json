@@ -1,0 +1,126 @@
+{
+ "report": {
+  "0": {
+   "pass_index": 1,
+   "pnr": 45,
+   "frames": [
+    0,
+    2
+   ],
+   "tainted": false
+  },
+  "1": {
+   "pass_index": 1,
+   "pnr": 47,
+   "frames": [
+    0,
+    185
+   ],
+   "tainted": false,
+   "pptype": "LMR",
+   "sh_region": [
+    1,
+    11
+   ]
+  },
+  "2": {
+   "pass_index": 1,
+   "pnr": 48,
+   "frames": [
+    0,
+    185
+   ],
+   "tainted": false,
+   "pptype": "LMR",
+   "sh_region": [
+    1,
+    35
+   ]
+  },
+  "3": {
+   "pass_index": 1,
+   "pnr": 49,
+   "frames": [
+    0,
+    117
+   ],
+   "tainted": false,
+   "pptype": "LMR",
+   "sh_region": [
+    23,
+    74
+   ]
+  },
+  "4": {
+   "pass_index": 1,
+   "pnr": 50,
+   "frames": [
+    76,
+    210
+   ],
+   "tainted": false,
+   "pptype": "LMR",
+   "sh_region": [
+    27,
+    41
+   ]
+  },
+  "5": {
+   "pass_index": 1,
+   "pnr": 51,
+   "frames": [
+    0,
+    330
+   ],
+   "tainted": false,
+   "pptype": "LMR",
+   "sh_region": [
+    199,
+    237
+   ]
+  },
+  "6": {
+   "pass_index": 1,
+   "pnr": 52,
+   "frames": [
+    683,
+    839
+   ],
+   "tainted": false,
+   "pptype": "LMR",
+   "sh_region": [
+    83,
+    106
+   ]
+  },
+  "7": {
+   "pass_index": 1,
+   "pnr": 54,
+   "frames": [
+    163,
+    226
+   ],
+   "tainted": false,
+   "pptype": "LMR",
+   "sh_region": [
+    31,
+    49
+   ]
+  },
+  "8": {
+   "pass_index": 1,
+   "pnr": 53,
+   "frames": [
+    1760,
+    1937
+   ],
+   "tainted": false,
+   "pptype": "LMR",
+   "sh_region": [
+    50,
+    176
+   ]
+  }
+ },
+ "written": "2026-11-16 14:17:15"
+}

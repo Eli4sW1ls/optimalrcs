@@ -1,0 +1,168 @@
+{
+ "report": {
+  "0": {
+   "pass_index": 3,
+   "pnr": 0,
+   "frames": [
+    0,
+    2
+   ],
+   "tainted": false
+  },
+  "1": {
+   "pass_index": 3,
+   "pnr": 12,
+   "frames": [
+    0,
+    411
+   ],
+   "tainted": false,
+   "pptype": "LMR",
+   "sh_region": [
+    1,
+    75
+   ]
+  },
+  "2": {
+   "pass_index": 3,
+   "pnr": 3,
+   "frames": [
+    0,
+    373
+   ],
+   "tainted": false,
+   "pptype": "RML",
+   "sh_region": [
+    187,
+    372
+   ]
+  },
+  "3": {
+   "pass_index": 3,
+   "pnr": 4,
+   "frames": [
+    22,
+    389
+   ],
+   "tainted": false,
+   "pptype": "RML",
+   "sh_region": [
+    235,
+    318
+   ]
+  },
+  "4": {
+   "pass_index": 3,
+   "pnr": 5,
+   "frames": [
+    2,
+    298
+   ],
+   "tainted": false,
+   "pptype": "RML",
+   "sh_region": [
+    168,
+    262
+   ]
+  },
+  "5": {
+   "pass_index": 3,
+   "pnr": 25,
+   "frames": [
+    0,
+    608
+   ],
+   "tainted": false,
+   "pptype": "LMR",
+   "sh_region": [
+    209,
+    299
+   ]
+  },
+  "6": {
+   "pass_index": 3,
+   "pnr": 6,
+   "frames": [
+    0,
+    95
+   ],
+   "tainted": false,
+   "pptype": "RML",
+   "sh_region": [
+    13,
+    83
+   ]
+  },
+  "7": {
+   "pass_index": 3,
+   "pnr": 7,
+   "frames": [
+    2,
+    664
+   ],
+   "tainted": false,
+   "pptype": "LMR",
+   "sh_region": [
+    50,
+    123
+   ]
+  },
+  "8": {
+   "pass_index": 3,
+   "pnr": 9,
+   "frames": [
+    0,
+    486
+   ],
+   "tainted": false,
+   "pptype": "LMR",
+   "sh_region": [
+    91,
+    174
+   ]
+  },
+  "9": {
+   "pass_index": 3,
+   "pnr": 10,
+   "frames": [
+    0,
+    448
+   ],
+   "tainted": false,
+   "pptype": "LMR",
+   "sh_region": [
+    99,
+    154
+   ]
+  },
+  "10": {
+   "pass_index": 3,
+   "pnr": 22,
+   "frames": [
+    0,
+    487
+   ],
+   "tainted": false,
+   "pptype": "LMR",
+   "sh_region": [
+    66,
+    99
+   ]
+  },
+  "11": {
+   "pass_index": 3,
+   "pnr": 13,
+   "frames": [
+    0,
+    131
+   ],
+   "tainted": false,
+   "pptype": "RML",
+   "sh_region": [
+    1,
+    111
+   ]
+  }
+ },
+ "written": "2026-11-16 14:36:37"
+}

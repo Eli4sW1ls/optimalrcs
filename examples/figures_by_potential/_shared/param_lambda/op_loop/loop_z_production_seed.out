@@ -1,0 +1,17 @@
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/param_lambda/loop/experiments/seed_control.py", line 69, in <module>
+    main()
+  File "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/param_lambda/loop/experiments/seed_control.py", line 65, in main
+    run(cfg)
+  File "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/param_lambda/loop/experiments/seed_control.py", line 50, in run
+    r['exact'] = rates.exact_rate(cfg['system_spec'])
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/param_lambda/loop/rates.py", line 70, in exact_rate
+    ref = toy2d.exact_committor_brownian(pot, system['kT'], system['gamma'], system['dt'], system['lambda_a'],
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/toy2d.py", line 245, in exact_committor_brownian
+    y_range = y_range or (ys0[0], ys0[-1])
+                          ~~~^^^
+TypeError: 'NoneType' object is not subscriptable

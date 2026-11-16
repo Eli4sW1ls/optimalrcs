@@ -1,0 +1,24 @@
+# 2-pass smoke loop on the 1D flat system (tests the plumbing; numbers are not meaningful).
+inherit = "loop_flat1d"
+name = "loop_flat1d_smoke"
+
+[run]
+cycles_per_pass = 100
+
+[pass0]
+steps_per_iter = 40
+max_iter = 4
+n_b = 5
+
+[teacher]
+max_iter = 500
+
+[student]
+epochs = 6
+checkpoints = 3
+
+[stop]
+max_passes = 2
+
+[production]
+cycles = 1000

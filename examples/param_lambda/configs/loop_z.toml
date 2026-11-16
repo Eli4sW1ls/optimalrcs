@@ -1,0 +1,35 @@
+# Learning loop, infretis + ASE, 2D Brownian Z potential (toytis sjoelbak_angle, Lx 0.3, 45 deg; the settings of
+# sim_istarz_br_g10: gamma 10, kT 0.05, dt 0.002; A y <= 0.05, B y >= 0.85). Exact committor of the discrete chain.
+inherit = "loop_flat1d"
+name = "loop_z"
+system = "z_br"
+
+[run]
+workers = 4
+mode = "staple"
+cycles_per_pass = 1000
+screen = 100
+
+[pass0]
+mode = "retis"
+steps_per_iter = 200
+max_iter = 12
+n_b = 20
+
+[teacher]
+max_iter = 6000
+features = ["u", "v"]               # the ridge normal (y + x)/sqrt2 helps the polynomial basis (notes, results II.3)
+
+[interfaces]
+n_interfaces = 10
+length_budget = 6000
+
+[stop]
+max_passes = 7                      # 5 at first; the gated freeze refused pass 5 (gap 0.97, skip_dn 1.5% on its own paths)
+max_md_steps = 400000000
+
+[production]
+cycles = 20000
+
+[production.run]
+staple_infinite_swap = true

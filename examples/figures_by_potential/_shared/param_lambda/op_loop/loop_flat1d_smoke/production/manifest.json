@@ -1,0 +1,157 @@
+{
+ "model": "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_flat1d_smoke/models/lambda_2.npz",
+ "model_md5": "80fa8d86317ad042870e491ec3d09b71",
+ "interfaces": [
+  -0.1,
+  -0.01825754367666295,
+  0.0761939458435841,
+  0.15027088957912663,
+  0.20170789276992276,
+  0.23745848331829042,
+  0.2619597518338531,
+  0.2820559391636662,
+  0.2930752603329685,
+  0.3
+ ],
+ "seeds": {
+  "0": {
+   "pass_index": 3,
+   "pnr": 0,
+   "frames": [
+    0,
+    2
+   ],
+   "tainted": false
+  },
+  "1": {
+   "pass_index": 3,
+   "pnr": 2,
+   "frames": [
+    0,
+    166
+   ],
+   "tainted": false,
+   "pptype": "LMR",
+   "sh_region": [
+    1,
+    9
+   ]
+  },
+  "2": {
+   "pass_index": 3,
+   "pnr": 3,
+   "frames": [
+    0,
+    166
+   ],
+   "tainted": false,
+   "pptype": "LMR",
+   "sh_region": [
+    1,
+    31
+   ]
+  },
+  "3": {
+   "pass_index": 3,
+   "pnr": 6,
+   "frames": [
+    0,
+    289
+   ],
+   "tainted": false,
+   "pptype": "LMR",
+   "sh_region": [
+    96,
+    164
+   ]
+  },
+  "4": {
+   "pass_index": 3,
+   "pnr": 4,
+   "frames": [
+    0,
+    61
+   ],
+   "tainted": false,
+   "pptype": "LMR",
+   "sh_region": [
+    19,
+    36
+   ]
+  },
+  "5": {
+   "pass_index": 3,
+   "pnr": 7,
+   "frames": [
+    0,
+    114
+   ],
+   "tainted": false,
+   "pptype": "RML",
+   "sh_region": [
+    59,
+    102
+   ]
+  },
+  "6": {
+   "pass_index": 3,
+   "pnr": 17,
+   "frames": [
+    0,
+    259
+   ],
+   "tainted": false,
+   "pptype": "LMR",
+   "sh_region": [
+    151,
+    182
+   ]
+  },
+  "7": {
+   "pass_index": 3,
+   "pnr": 5,
+   "frames": [
+    0,
+    203
+   ],
+   "tainted": false,
+   "pptype": "RML",
+   "sh_region": [
+    69,
+    130
+   ]
+  },
+  "8": {
+   "pass_index": 3,
+   "pnr": 8,
+   "frames": [
+    0,
+    139
+   ],
+   "tainted": false,
+   "pptype": "LMR",
+   "sh_region": [
+    31,
+    123
+   ]
+  },
+  "9": {
+   "pass_index": 3,
+   "pnr": 9,
+   "frames": [
+    0,
+    69
+   ],
+   "tainted": false,
+   "pptype": "RML",
+   "sh_region": [
+    1,
+    56
+   ]
+  }
+ },
+ "passes": 2,
+ "initialization_md_steps": 69731,
+ "recheck_ok": true,
+ "written": "2026-11-16 14:17:38"
+}

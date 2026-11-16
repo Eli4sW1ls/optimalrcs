@@ -1,0 +1,16 @@
+== loop loop_z (z_br, infretis) in /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_z
+pass 0: 3 iterations, reached B: True, 4510014 saved frames, final interfaces [0.05, 0.059, 0.071, 0.083, 0.142, 0.262, 0.342, 0.432, 0.478, 0.534, 0.548, 0.85]
+production: running /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_z/production
+Traceback (most recent call last):
+  File "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/param_lambda/run.py", line 86, in <module>
+    main()
+  File "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/param_lambda/run.py", line 73, in main
+    controller.cmd_loop(controller.load_loop_config(name), args)
+  File "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/param_lambda/loop/controller.py", line 125, in cmd_loop
+    run_production(cfg, log)
+  File "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/param_lambda/loop/controller.py", line 136, in run_production
+    cost = be.run(out)
+           ^^^^^^^^^^^
+  File "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/param_lambda/loop/backends/infretis_backend.py", line 165, in run
+    raise RuntimeError(f'infretisrun failed in {workdir} (see {log})')
+RuntimeError: infretisrun failed in /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_z/production (see infretis.out)

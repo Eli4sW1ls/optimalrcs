@@ -1,0 +1,33 @@
+{
+ "kind": "infinit",
+ "lambda_version": "seed",
+ "lambda_model": null,
+ "interfaces": [
+  0.15,
+  0.15517301581806847,
+  0.16034603163613698,
+  0.16551904745420548,
+  0.85
+ ],
+ "mode": "retis",
+ "lambda_a": 0.15,
+ "lambda_b": 0.85,
+ "cv_names": [
+  "y",
+  "x"
+ ],
+ "state_cv": 0,
+ "n_rows": 211,
+ "workdir": "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_cc/pass_0",
+ "data_file": "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_cc/pass_0/infretis_data_1.txt",
+ "toml": "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_cc/pass_0/infretis_1.toml",
+ "md_steps": 89312,
+ "wall_seconds": 30.740417003631592,
+ "cycles": 200,
+ "pass_index": 0,
+ "n_pieces": 145,
+ "n_frames": 31957,
+ "n_paths": 211,
+ "weighting": "staple",
+ "reversed_pieces": false
+}

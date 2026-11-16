@@ -1,0 +1,388 @@
+[runner]
+workers = 4
+files = []
+wmdrun = [
+    "not used",
+    "not used",
+    "not used",
+    "not used",
+    "not used",
+    "not used",
+    "not used",
+    "not used",
+]
+
+[simulation]
+interfaces = [
+    0.15,
+    0.3272018384584429,
+    0.46140873296272533,
+    0.563271063631219,
+    0.6510032776425928,
+    0.7220280499951718,
+    0.7753550715275799,
+    0.8135874251285239,
+    0.8332234415780052,
+    0.8416728389511936,
+    0.8463946251518616,
+    0.85,
+]
+steps = 20000
+seed = 1000
+load_dir = "load"
+shooting_moves = [
+    "sh",
+    "sh",
+    "sh",
+    "sh",
+    "sh",
+    "sh",
+    "sh",
+    "sh",
+    "sh",
+    "sh",
+    "sh",
+    "sh",
+]
+mode = "staple"
+staple_infinite_swap = true
+ensemble_engines = [
+    [
+        "engine",
+    ],
+    [
+        "engine",
+    ],
+    [
+        "engine",
+    ],
+    [
+        "engine",
+    ],
+    [
+        "engine",
+    ],
+    [
+        "engine",
+    ],
+    [
+        "engine",
+    ],
+    [
+        "engine",
+    ],
+    [
+        "engine",
+    ],
+    [
+        "engine",
+    ],
+    [
+        "engine",
+    ],
+    [
+        "engine",
+    ],
+]
+zeroswap = 0.5
+pick_scheme = 0
+
+[simulation.tis_set]
+maxlength = 200000
+allowmaxlength = false
+zero_momentum = false
+n_jumps = 4
+staple = true
+quantis = false
+lambda_minus_one = false
+accept_all = false
+
+[engine]
+class = "ase"
+engine = "ase"
+temperature = 580.2261030200505
+input_path = "."
+timestep = 0.05090252835578363
+subcycles = 1
+integrator = "overdamped_lgv"
+langevin_fixcm = false
+langevin_friction = 0.9822694788464063
+
+[engine.calculator_settings]
+class = "ToytisPotential"
+spec = "curved_channel:CurvedChannelDoubleWell"
+dim = 2
+module = "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/param_lambda/loop/ase_calcs.py"
+
+[engine.calculator_settings.params]
+
+[engine.particles]
+mass = [
+    1.0,
+]
+name = [
+    "H",
+]
+pos = [
+    [
+        0.1,
+        -0.15,
+    ],
+]
+
+[engine.box]
+periodic = [
+    false,
+    false,
+]
+
+[orderparameter]
+class = "LearnedLambda"
+module = "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/param_lambda/infretis_orderp.py"
+model = "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_cc/models/lambda_5.npz"
+
+[[orderparameter.cvs]]
+class = "Position"
+index = [
+    0,
+    0,
+]
+periodic = false
+
+[[orderparameter.cvs]]
+class = "Position"
+index = [
+    0,
+    1,
+]
+periodic = false
+
+[output]
+data_dir = "./"
+screen = 100
+pattern = false
+delete_old = false
+delete_old_all = false
+visual_validation = false
+data_file = "./infretis_data.txt"
+keep_maxop_trajs = false
+keep_traj_fnames = []
+keep_status = []
+
+[current]
+traj_num = 11871
+cstep = 20000
+active = [
+    11866,
+    11867,
+    11831,
+    11869,
+    11870,
+    11863,
+    11860,
+    11861,
+    11864,
+    11868,
+    11827,
+    11862,
+]
+locked = []
+size = 12
+wsubcycles = [
+    960194,
+    963477,
+    966328,
+    955787,
+]
+tsubcycles = 3845786
+
+[current.frac]
+11827 = [
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+    "30.8125",
+    "25.427083333333333339",
+    "11.760416666666666668",
+    "0.0",
+]
+11831 = [
+    "0.0",
+    "0.0",
+    "9.365463678063626679",
+    "21.459691833564175728",
+    "24.174844488372197591",
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+]
+11860 = [
+    "0.0",
+    "0.0",
+    "0.051827242524916943526",
+    "0.2073089700996677741",
+    "1.2178239947558958927",
+    "8.865974499081152694",
+    "2.9434300126084711347",
+    "0.7136352809298955614",
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+]
+11861 = [
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+    "1.3517750401486896818",
+    "5.115721537814950198",
+    "5.5325034220363601195",
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+]
+11862 = [
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+    "5.0",
+    "10.0",
+    "0.0",
+]
+11863 = [
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+    "4.8160520293318602324",
+    "2.474642653128885021",
+    "1.481765771008886955",
+    "2.2275395465303677916",
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+]
+11864 = [
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+    "2.336260980157982787",
+    "4.5752650866016149308",
+    "5.088473933240402282",
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+]
+11866 = [
+    "8.0",
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+]
+11867 = [
+    "0.0",
+    "8.0",
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+]
+11868 = [
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+    "3.5",
+    "2.3333333333333333333",
+    "1.1666666666666666666",
+    "0.0",
+]
+11869 = [
+    "0.0",
+    "0.0",
+    "0.8",
+    "3.2",
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+]
+11870 = [
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.52303979261951938975",
+    "0.98464013825365374015",
+    "0.22722464728930470926",
+    "0.11361232364465235463",
+    "0.15148309819286980617",
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+]
+
+[current.rng_state]
+bit_generator = "PCG64"
+has_uint32 = 0
+uinteger = 0
+
+[current.rng_state.state]
+state = 31336377631366821549626862585115631355
+inc = 119065948144835586474643535142778641169
