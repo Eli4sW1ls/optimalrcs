@@ -26,8 +26,9 @@ loader reads columns 1.. as CVs: lambda and the old values).
   Velocity-dependent sources are refused: lambda must be a function of the configuration only (time reversal).
 - Load paths are not recomputed by infretis (it reads frame orders from order.txt): convert them with
   `python infretis_orderp.py relabel <model> <load_dir> <new_load_dir>`.
-- The object is built once in the main process and inherited by the forked workers; BLAS is limited to one
-  thread (a one-frame forward pass is slower with threads).
+- Each infretis worker process (the APPTIS checkout spawns them) builds its own object; BLAS is limited to one
+  thread (a one-frame forward pass is slower with threads). `SeedLambda` is the seed order parameter of the
+  learning loop: lambda = the state CV, the CV pool recorded after it.
 
 Command line:
     python infretis_orderp.py interfaces <model.npz> --q 1e-3 1e-2 0.1 0.5     # interfaces = [...] line
@@ -75,6 +76,26 @@ def build_cv_sources(cvs):
             raise ValueError(f'CV source {table.get("class")} depends on velocities: lambda must not')
         out.append(op)
     return out
+
+
+class SeedLambda(_Base):
+    """infretis order parameter [s, v_0, v_1, ...]: the state CV s = v_state_cv itself (the seed order parameter of
+    the learning loop), with every CV source value recorded after it, so order.txt holds the CV pool."""
+
+    def __init__(self, cvs, state_cv=0):
+        self.cv_sources = build_cv_sources(cvs)
+        self.state_cv = int(state_cv)
+        super().__init__(description=f'seed lambda: CV {self.state_cv} of the CV pool', velocity=False)
+
+    def values(self, system):
+        out = []
+        for op in self.cv_sources:
+            out.extend(float(v) for v in np.ravel(op.calculate(system)))
+        return out
+
+    def calculate(self, system):
+        v = self.values(system)
+        return [v[self.state_cv]] + v
 
 
 class LearnedLambda(_Base):

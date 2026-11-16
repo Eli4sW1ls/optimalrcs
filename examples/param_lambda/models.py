@@ -171,8 +171,11 @@ def _net(n_in, arch):
 
 
 class MLP(_Model):
-    def __init__(self, arch, beta, cfg, seed=0, device=None):
+    def __init__(self, arch, beta, cfg, seed=0, device=None, init_params=None):
+        """init_params: exported parameters (W0, b0, ...) of a network of the same architecture and input
+        size to start from (the warm start of the learning loop); None = random initialization."""
         import torch
+        self.init_params = init_params
         self.arch, self.beta, self.seed = list(arch), float(beta), seed
         self.c = cfg['m3']
         self.device = device or ('cuda' if torch.cuda.is_available() else 'cpu')
@@ -195,6 +198,17 @@ class MLP(_Model):
                  for lag, (i0, i1) in ts.pairs.items()}
         score_sets = [torch.as_tensor(np.asarray(S, np.float32), device=dev) for S in score_sets]
         net = _net(X.shape[1], self.arch).to(dev)
+        if self.init_params is not None:
+            lin = [m for m in net if hasattr(m, 'weight')]
+            if int(self.init_params['n_layers']) != len(lin):
+                raise ValueError('init_params: different number of layers')
+            with torch.no_grad():
+                for i, m in enumerate(lin):
+                    W, b = np.asarray(self.init_params[f'W{i}']), np.asarray(self.init_params[f'b{i}'])
+                    if W.shape != tuple(m.weight.shape):
+                        raise ValueError(f'init_params: layer {i} has shape {W.shape}, the network {tuple(m.weight.shape)}')
+                    m.weight.copy_(torch.as_tensor(W, dtype=m.weight.dtype))
+                    m.bias.copy_(torch.as_tensor(b, dtype=m.bias.dtype))
         opt = torch.optim.AdamW(net.parameters(), lr=self.c['lr'], weight_decay=self.c['weight_decay'])
         batch, epochs = self.c['batch'], self.c['epochs']
         steps = int(np.ceil(len(anchors) / batch))

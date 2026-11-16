@@ -79,6 +79,22 @@ def read_run_settings(tis_dir):
     return dim, v_ord
 
 
+def read_simtype(tis_dir):
+    """'retis', 'repptis', 'i*' (staple) or None: the toytis 'simtype' setting in logging.log, else the PyRETIS
+    input file present (retis.rst -> 'retis', repptis.rst -> 'repptis')."""
+    log = os.path.join(tis_dir, "logging.log")
+    if os.path.isfile(log):
+        with open(log) as f:
+            match = re.search(r"'simtype':\s*'([^']+)'", f.read())
+        if match:
+            return match.group(1)
+    if os.path.isfile(os.path.join(tis_dir, "repptis.rst")):
+        return "repptis"
+    if os.path.isfile(os.path.join(tis_dir, "retis.rst")):
+        return "retis"
+    return None
+
+
 def read_path_info(folder, ensemble_index, n_ensembles, weighting):
     """Per-cycle Monte Carlo weight and path metadata from `<folder>/pathensemble.txt`.
 
@@ -321,6 +337,12 @@ def load_tis_data(tis_dir, interfaces, ensemble_glob="0[0-9][0-9]", include_zero
     """
     if reversed_pieces and not cut_at_m:
         raise ValueError("reversed pieces need the cut at M")
+    if reversed_pieces and read_simtype(tis_dir) == "retis":
+        # a RETIS path always starts in A, so its mirrored piece always ends in A: a condition on the piece's
+        # future (notes section 9). Only ensembles whose start and end conditions coincide (staple, REPPTIS) may
+        # be read backwards.
+        raise ValueError("mirrored pieces (--reversed) are not valid for RETIS ensembles (the mirrored piece "
+                         "always ends in A)")
     cvs, order, time, weights, paths = [], [], [], [], []
     folders = sorted(glob.glob(os.path.join(tis_dir, ensemble_glob)))
     n_ensembles = len(folders)

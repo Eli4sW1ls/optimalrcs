@@ -11,6 +11,7 @@
     python run.py variants <system> [--variants loss_variants] [--seeds 0 1 2]   loss variants (lean sweep)
     python run.py embed    <system>     embedded system: base frames + extra coordinates (embed.py)
     python run.py fit-qnp-embedded <system>   NPNEq on the embedded CVs (labels of an embedded system)
+    python run.py loop     <loop config>  the order-parameter learning loop (configs/loop_*.toml; loop/controller.py)
 
 <system> is a config name in configs/ (z_br, cc_br, flat1d, bumps1d). Long steps go through systemd-run, e.g.
     systemd-run --user --unit=pl-z --collect -p MemoryMax=7G -p MemorySwapMax=0 \\
@@ -57,12 +58,20 @@ def main():
     p.add_argument('--fresh', action='store_true', help='fit: start a new results list (default: skip runs done)')
     p.add_argument('--variants', default='loss_variants', help='variants: configs/<name>.toml')
     p.add_argument('--seeds', type=int, nargs='+', help='variants: training seeds (default: the config seed)')
+    p.add_argument('--pass0-only', action='store_true', help='loop: run and ingest pass 0 only')
+    p.add_argument('--max-passes', type=int, help='loop: stop after this many passes in this call')
+    p.add_argument('--production', action='store_true', help='loop: run the frozen production run and its rate analysis')
     args = p.parse_args()
     commands = {'extract': cmd_extract, 'fit-qnp': cmd_fit_qnp,
                 'variants': lambda cfg, a: __import__('variants').cmd_variants(cfg, a),
                 'natural': lambda cfg, a: __import__('natural').cmd_natural(cfg, a),
                 'embed': lambda cfg, a: __import__('embed').cmd_embed(cfg, a),
                 'fit-qnp-embedded': lambda cfg, a: __import__('embed').cmd_fit_qnp_embedded(cfg, a)}
+    if args.command == 'loop':
+        from loop import controller
+        for name in args.systems:
+            controller.cmd_loop(controller.load_loop_config(name), args)
+        return
     if args.command not in commands:
         import steps
         commands[args.command] = getattr(steps, 'cmd_' + args.command.replace('-', '_'))

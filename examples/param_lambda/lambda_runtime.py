@@ -21,6 +21,21 @@ What lambda is, step by step (all of it depends on the current frame only):
    strictly between 0 and 1, so s < lambda_A <=> lambda < lambda_A and s > lambda_B <=> lambda > lambda_B,
    whatever the model does (lambda is also kept at least one float away from lambda_A and lambda_B, so the
    comparisons hold after rounding). h = m except within w of A or B.
+4b. (export format 2, optional keys) instead of the multiplicative ramps, the smooth minimum of
+   docs/param_lambda_interface_spacing.md on the lambda scale (`ramp_kind = "smin"`), applied after step 5:
+       lambda = lambda_A + smin(lambda - lambda_A, kappa_A (s - lambda_A))      near A
+       lambda = lambda_B - smin(lambda_B - lambda, kappa_B (lambda_B - s))      near B
+   with smin the smooth minimum in log space (`_smin`, band smin_k, default ln 2: exactly min(a, b) when the two
+   differ by more than a factor e^k): the isosurface of lambda_k runs parallel to A's boundary at least
+   (lambda_k - lambda_A) / kappa_A from it. kappa is floored at e^k (and kappa_B at the front's level), so each cap
+   is exactly inactive at the opposite state. With a provisional front (`front_s` < lambda_B, the state coordinate the data reached, `front_h` its
+   committor level on the output scale) the model's h is scaled to front_h, the cap at B is applied at the front
+   and beyond it lambda rises linearly in s to lambda_B.
+   Trust-region blend (`blend_*` keys): lambda = (1 - t) lambda + t lambda_seed(s), with lambda_seed a monotone
+   table of the seed coordinate s on the lambda scale (fitted on in-distribution frames) and
+   t = S((d2 - blend_thr) / blend_width) of the Mahalanobis distance d2 of the frame's features: outside the
+   training data the order parameter falls back to the seed. All of it keeps lambda strictly inside
+   (lambda_A, lambda_B) for s strictly inside, so s < lambda_A <=> lambda < lambda_A exactly (and at B).
 5. output scale: lambda = lambda_A + (lambda_B - lambda_A) * log1p(h / eps) / log1p(1 / eps), a strictly
    increasing map that spreads small committor values (eps = scale_eps); or, if the export has a scale table
    (scale_h, scale_u, scale_d: natural.py), lambda = lambda_A + (lambda_B - lambda_A) * u(h) with u the monotone
@@ -137,6 +152,33 @@ def _smoothstep(u):
     return u * u * (3 - 2 * u)
 
 
+_SMIN_FLOOR = 1e-300
+
+
+def _smin(a, b, k):
+    """Smooth minimum of positive arrays in log space: min(a, b) exactly when the ratio a/b lies outside
+    [e^-k, e^k], otherwise exp(min(ln a, ln b) - k t^2 / 4) with t = 1 - |ln a - ln b| / k. It is C1, never above
+    min(a, b), positive and increasing in both arguments."""
+    la = np.log(np.maximum(np.asarray(a, float), _SMIN_FLOOR))
+    lb = np.log(np.maximum(np.asarray(b, float), _SMIN_FLOOR))
+    t = np.maximum(k - np.abs(la - lb), 0.0) / k
+    return np.exp(np.minimum(la, lb) - k * t * t / 4)
+
+
+def _smin_one(a, b, k):
+    la, lb = math.log(max(a, _SMIN_FLOOR)), math.log(max(b, _SMIN_FLOOR))
+    t = max(k - abs(la - lb), 0.0) / k
+    return math.exp(min(la, lb) - k * t * t / 4)
+
+
+def _smoothstep_one(u):
+    if u <= 0:
+        return 0.0
+    if u >= 1:
+        return 1.0
+    return u * u * (3 - 2 * u)
+
+
 # ---------------------------------------------------------------------------------------------------
 # the model
 # ---------------------------------------------------------------------------------------------------
@@ -208,6 +250,27 @@ class LambdaModel(ScoreModel):
         self._in_lo, self._in_hi = math.nextafter(self.lambda_a, math.inf), math.nextafter(self.lambda_b, -math.inf)
         self.cv_min, self.cv_max = p['cv_min'], p['cv_max']
         self.maha_mean, self.maha_icov, self.maha_thr = p['maha_mean'], p['maha_icov'], float(p['maha_thr'])
+        # format 2: smooth-minimum ramps, provisional front, trust-region blend (absent in older exports)
+        self.ramp_kind = str(p['ramp_kind']) if 'ramp_kind' in p else 'mult'
+        self.kappa_a, self.kappa_b = float(p.get('kappa_a', 1.0)), float(p.get('kappa_b', 1.0))
+        self.smin_k = float(p.get('smin_k', math.log(2.0)))
+        self.front_s = float(p['front_s']) if 'front_s' in p else None
+        self.front_h = float(p.get('front_h', 0.5))
+        # the smooth minimum is exact beyond a ratio e^k: these floors keep each cap exactly inactive at the
+        # opposite state (no cross-talk between the A cap, the B cap and the front)
+        ek = math.exp(self.smin_k)
+        self.kappa_a = max(self.kappa_a, ek)
+        if self.front_s is None:
+            self.kappa_b = max(self.kappa_b, ek)
+        else:
+            self._lam_front = float(self.scale(np.array([self.front_h]))[0])
+            self.kappa_b = max(self.kappa_b, ek * (self._lam_front - self.lambda_a) / (self.front_s - self.lambda_a))
+        self.has_blend = 'blend_s_knots' in p
+        if self.has_blend:
+            self._bs, self._bh, self._bd = (np.asarray(p[k], float) for k in ('blend_s_knots', 'blend_h_knots', 'blend_d_knots'))
+            self._bs_l, self._bh_l, self._bd_l = self._bs.tolist(), self._bh.tolist(), self._bd.tolist()
+            self.blend_thr, self.blend_width = float(p['blend_thr']), float(p['blend_width'])
+        self._maha_mean_l, self._maha_icov_l = np.asarray(self.maha_mean, float).tolist(), np.asarray(self.maha_icov, float).tolist()
         # plain-Python copies for the one-frame path
         self._zk, self._qk, self._dk = self.zk.tolist(), self.qk.tolist(), self.dk.tolist()
         self._L = self.feat.L.tolist()
@@ -224,11 +287,47 @@ class LambdaModel(ScoreModel):
     def q(self, cv):
         return pchip_eval(self.zk, self.qk, self.dk, self.raw(cv))
 
-    def blend(self, s, m):
-        """h(s, m) of step 4 (arrays), for s strictly between lambda_A and lambda_B."""
-        a = 1 - _smoothstep((s - self.lambda_a) / self.ramp_w)
-        b = 1 - _smoothstep((self.lambda_b - s) / self.ramp_w)
-        return (1 - a) * (1 - b) * m + b
+    def _lambda_inside(self, s, m, cv=None):
+        """lambda (arrays) of frames strictly between the states from their calibrated committor m: steps 4, 5
+        and 4b. `cv` is needed for the trust-region blend (skipped without it)."""
+        s, m = np.asarray(s, float), np.asarray(m, float)
+        la, lb = self.lambda_a, self.lambda_b
+        if self.ramp_kind == 'mult':
+            a = 1 - _smoothstep((s - la) / self.ramp_w)
+            b = 1 - _smoothstep((lb - s) / self.ramp_w)
+            lam = self.scale((1 - a) * (1 - b) * m + b)
+        else:
+            p = self.smin_k
+            if self.front_s is None:
+                lam = self.scale(m)
+            else:
+                lf = self._lam_front
+                below = lf - _smin(lf - self.scale(self.front_h * m), self.kappa_b * (self.front_s - s), p)
+                above = lf + (lb - lf) * (s - self.front_s) / (lb - self.front_s)
+                lam = np.where(s < self.front_s, below, above)
+            lam = la + _smin(lam - la, self.kappa_a * (s - la), p)
+            if self.front_s is None:
+                lam = lb - _smin(lb - lam, self.kappa_b * (lb - s), p)
+        if self.has_blend and cv is not None:
+            t = self.trust(cv)
+            lam = (1 - t) * lam + t * pchip_eval(self._bs, self._bh, self._bd, s)
+        return lam
+
+    def blend(self, s, m, cv=None):
+        """h(s, m): the committor level on the output scale after the state handling (arrays; the inverse of
+        the output scale applied to `_lambda_inside`)."""
+        return self.h_of_lambda(self._lambda_inside(s, m, cv))
+
+    h_of = blend
+
+    def trust(self, cv):
+        """t in [0, 1] of the trust-region blend per frame (0 without a blend)."""
+        cv = np.atleast_2d(np.asarray(cv, float))
+        if not self.has_blend:
+            return np.zeros(len(cv))
+        d = self.features(cv) - self.maha_mean
+        d2 = np.einsum('ni,ij,nj->n', d, self.maha_icov, d)
+        return _smoothstep((d2 - self.blend_thr) / self.blend_width)
 
     def scale(self, h):
         if self.scale_table:
@@ -253,7 +352,7 @@ class LambdaModel(ScoreModel):
         inside = (s > self.lambda_a) & (s < self.lambda_b)
         lam = s.copy()
         if inside.any():
-            lam[inside] = np.clip(self.scale(self.blend(s[inside], self.q(cv[inside]))), self._in_lo, self._in_hi)
+            lam[inside] = np.clip(self._lambda_inside(s[inside], self.q(cv[inside]), cv[inside]), self._in_lo, self._in_hi)
         return lam
 
     def ood(self, cv):
@@ -281,7 +380,9 @@ class LambdaModel(ScoreModel):
 
     def raw_one(self, cv):
         """z of one frame (pure Python except the MLP layers)."""
-        f = self._features_one(cv)
+        return self._raw_from_features(self._features_one(cv))
+
+    def _raw_from_features(self, f):
         if self.kind == 'linear':
             return sum(a * b for a, b in zip(self._w, f)) + self.b
         if self.kind == 'feature':
@@ -307,6 +408,12 @@ class LambdaModel(ScoreModel):
                 h = h / (1 + np.exp(-h))
         return float(h[0])
 
+    def _scale_one(self, h):
+        la, lb = self.lambda_a, self.lambda_b
+        if self.scale_table:
+            return la + (lb - la) * _pchip_one(self._sh_l, self._su_l, self._sd_l, h)
+        return la + (lb - la) * math.log1p(h / self.eps) / self._log1p_inv_eps
+
     def ood_one(self, cv):
         """Range check of one frame (cheap; the Mahalanobis test is in `ood`)."""
         return any(c < lo or c > hi for c, lo, hi in zip(cv, self._cv_min, self._cv_max))
@@ -317,15 +424,32 @@ class LambdaModel(ScoreModel):
         la, lb = self.lambda_a, self.lambda_b
         if s <= la or s >= lb:
             return s
-        m = _pchip_one(self._zk, self._qk, self._dk, self.raw_one(cv))
-        w = self.ramp_w
-        u = (s - la) / w
-        a = 0.0 if u >= 1 else 1 - u * u * (3 - 2 * u)
-        u = (lb - s) / w
-        b = 0.0 if u >= 1 else 1 - u * u * (3 - 2 * u)
-        h = (1 - a) * (1 - b) * m + b
-        if self.scale_table:
-            lam = la + (lb - la) * _pchip_one(self._sh_l, self._su_l, self._sd_l, h)
+        f = self._features_one(cv)
+        m = _pchip_one(self._zk, self._qk, self._dk, self._raw_from_features(f))
+        if self.ramp_kind == 'mult':
+            w = self.ramp_w
+            u = (s - la) / w
+            a = 0.0 if u >= 1 else 1 - u * u * (3 - 2 * u)
+            u = (lb - s) / w
+            b = 0.0 if u >= 1 else 1 - u * u * (3 - 2 * u)
+            lam = self._scale_one((1 - a) * (1 - b) * m + b)
         else:
-            lam = la + (lb - la) * math.log1p(h / self.eps) / self._log1p_inv_eps
+            p = self.smin_k
+            if self.front_s is None:
+                lam = self._scale_one(m)
+            else:
+                lf = self._lam_front
+                if s < self.front_s:
+                    lam = lf - _smin_one(lf - self._scale_one(self.front_h * m), self.kappa_b * (self.front_s - s), p)
+                else:
+                    lam = lf + (lb - lf) * (s - self.front_s) / (lb - self.front_s)
+            lam = la + _smin_one(lam - la, self.kappa_a * (s - la), p)
+            if self.front_s is None:
+                lam = lb - _smin_one(lb - lam, self.kappa_b * (lb - s), p)
+        if self.has_blend:
+            d = [fi - mu for fi, mu in zip(f, self._maha_mean_l)]
+            d2 = sum(di * sum(cij * dj for cij, dj in zip(row, d)) for di, row in zip(d, self._maha_icov_l))
+            t = _smoothstep_one((d2 - self.blend_thr) / self.blend_width)
+            if t > 0:
+                lam = (1 - t) * lam + t * _pchip_one(self._bs_l, self._bh_l, self._bd_l, s)
         return min(max(lam, self._in_lo), self._in_hi)

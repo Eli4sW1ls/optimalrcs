@@ -271,10 +271,29 @@ def _ptype_middle(ptype):
     return None
 
 
+def select_rows(data, W, ens_list, burn_in=0, burn_in_fraction=0.4, thin=1, paths_per_ensemble=None):
+    """Rows of infretis_data.txt used for each ensemble column: after the burn-in (the first burn_in_fraction of the
+    rows, and burn_in rows if more), not an initial load path, with a nonzero weight W[row, e]; every thin-th of
+    those, at most paths_per_ensemble of them evenly spaced. Returns {e: row indices}. Used by load_infretis_data and
+    by make_compact_archive, so the archive holds exactly the paths the loader reads."""
+    n_rows = len(data["pnr"])
+    is_load = np.array([m.startswith("('ld'") for m in data["move"]]) if data["move"][0] else data["pnr"] < len(W[0])
+    first_row = max(int(burn_in), int(np.ceil(burn_in_fraction * n_rows)))
+    eligible_rows = (np.arange(n_rows) >= first_row) & ~is_load
+    selected = {}
+    for e in ens_list:
+        rows = np.flatnonzero(eligible_rows & (W[:, e] > 0))[::max(1, int(thin))]
+        if paths_per_ensemble is not None and len(rows) > paths_per_ensemble:
+            rows = rows[np.unique(np.round(np.linspace(0, len(rows) - 1, paths_per_ensemble)).astype(int))]
+        selected[e] = rows
+    return selected
+
+
 def load_infretis_data(sim_dir, include_zero_minus=False, weighting=None, cut_at_m=True, burn_in=0,
                        burn_in_fraction=0.4, thin=1, paths_per_ensemble=None, reversed_pieces=False,
                        odd_columns=(), fd_velocity=False, fd_columns=(1,), max_length=None,
-                       long_pieces="truncate", h5_file=None, data_file=None, load_dir=None, toml_file=None):
+                       long_pieces="truncate", h5_file=None, data_file=None, load_dir=None, toml_file=None,
+                       with_info=False):
     """Per-piece cvs, order, time, weight and path-number lists from an infretis run (see the module doc).
 
     The options are those of `tis_data.load_tis_data`. Burn-in and thinning act per ensemble on the rows of
@@ -286,13 +305,20 @@ def load_infretis_data(sim_dir, include_zero_minus=False, weighting=None, cut_at
     different ensembles, which overlap in frames.
 
     Returns (cvs, order, time, weights, paths, settings), with `settings` from `read_settings` plus the
-    weighting used."""
+    weighting used; with `with_info` also a list with one dict per piece (ensemble column `ens`, the row `row`
+    of infretis_data.txt, `pnr`, `mirrored`, the core `(core_start, core_end)` and the path length).
+
+    Mirrored pieces are refused for RETIS runs: a RETIS path always starts in A, so its mirrored piece always
+    ends in A, which selects on the piece's future (notes section 9)."""
     from tis_data import first_frame_past_m, last_frame_before_m, limit_piece_length
     from inftools.istar.reading import OrderSource
 
     if reversed_pieces and not cut_at_m:
         raise ValueError("reversed pieces need the cut at M")
     settings = read_settings(sim_dir, toml_file)
+    if reversed_pieces and settings["mode"] == "retis":
+        raise ValueError("mirrored pieces (--reversed) are not valid for RETIS ensembles: every [i+] path starts "
+                         "in A, so the mirrored piece always ends in A (a condition on its future)")
     n_ens = len(settings["interfaces"])
     data_file = data_file or os.path.join(sim_dir, "infretis_data.txt")
     data = read_infretis_data(data_file, n_ens)
@@ -313,24 +339,16 @@ def load_infretis_data(sim_dir, include_zero_minus=False, weighting=None, cut_at
         print(f"  path_w != 1 for {w_not1.sum()} (path, ensemble) pairs, {share:.1%} of the occupancy; "
               f"path_f and path_f / path_w differ there by a factor {np.unique(np.round(1 / data['path_w'][w_not1], 3))}")
     if settings["mode"] == "staple":
-        print("  Note (StapleTIS): infretis' staple shooting accepts new paths without the w ratio, while the "
-              "permanent and the staple swaps use w, so no weighting is exact; see docs/npneq_tis_notes.md "
-              "section 15.")
+        print("  Note (StapleTIS): path_f / path_w is the natural measure of the stored staple paths (crossing "
+              "probabilities, rates). For committor pieces use path_f (--weights rejections): an LML/RMR core is "
+              "stored twice, once with each turn (the extension's coin flip, w = 1/2 each), and path_f counts the "
+              "core once; see docs/op_loop_report.md.")
 
-    is_load = np.array([m.startswith("('ld'") for m in data["move"]]) if data["move"][0] else data["pnr"] < n_ens
-    first_row = max(int(burn_in), int(np.ceil(burn_in_fraction * n_rows)))
-    eligible_rows = (np.arange(n_rows) >= first_row) & ~is_load
-
-    # rows to load per ensemble
     ens_list = [e for e in range(n_ens) if e > 0 or include_zero_minus]
-    selected = {}
-    for e in ens_list:
-        rows = np.flatnonzero(eligible_rows & (W[:, e] > 0))[::max(1, int(thin))]
-        if paths_per_ensemble is not None and len(rows) > paths_per_ensemble:
-            rows = rows[np.unique(np.round(np.linspace(0, len(rows) - 1, paths_per_ensemble)).astype(int))]
-        selected[e] = rows
+    selected = select_rows(data, W, ens_list, burn_in=burn_in, burn_in_fraction=burn_in_fraction, thin=thin,
+                           paths_per_ensemble=paths_per_ensemble)
 
-    cvs, order, time, weights, paths = [], [], [], [], []
+    cvs, order, time, weights, paths, info = [], [], [], [], [], []
     cache = {}
     needed = sorted(set(np.concatenate([r for r in selected.values()]).tolist())) if selected else []
     n_missing = 0
@@ -391,7 +409,7 @@ def load_infretis_data(sim_dir, include_zero_minus=False, weighting=None, cut_at
                                     / np.maximum(nxt - idx, 1)[:, None])
                             backwards[:, -len(fd_columns):] = vrev[::-1]
                         pieces.append(backwards)
-            for piece in pieces:
+            for j, piece in enumerate(pieces):
                 if max_length is not None and len(piece) > max_length:
                     n_long += 1
                     piece = limit_piece_length(piece, max_length, long_pieces)
@@ -405,6 +423,8 @@ def load_infretis_data(sim_dir, include_zero_minus=False, weighting=None, cut_at
                 cvs.append(piece[:, 1:])
                 weights.append(float(W[r, e]))
                 paths.append(int(data["pnr"][r]))
+                info.append(dict(ens=int(e), row=int(r), pnr=int(data["pnr"][r]), mirrored=j == 1,
+                                 core=(int(core_start), int(core_end)), length=len(block)))
                 n_pieces += 1
                 n_frames += len(piece)
                 tot_w += float(W[r, e])
@@ -422,4 +442,55 @@ def load_infretis_data(sim_dir, include_zero_minus=False, weighting=None, cut_at
             msg += f" ({n_badlen} paths whose order.txt length differs from infretis_data.txt)"
         print(msg)
     print(f"Loaded {len(cvs)} pieces, {sum(len(p) for p in order)} frames total")
+    if with_info:
+        return cvs, order, time, weights, paths, settings, info
     return cvs, order, time, weights, paths, settings
+
+
+def make_compact_archive(sim_dir, out_dir, paths_per_ensemble=5000, burn_in_fraction=0.4, thin=1):
+    """Write a compressed copy of an infretis run with the order parameters of the paths the loader reads.
+
+    out_dir gets: infretis.toml (copied), infretis_data.txt.gz (the whole path table, gzipped, so every occupancy
+    and every weight is kept and the per-ensemble normalization of `_pair_weights` is the run's own), paths.h5
+    (gzipped, one group per path number with dataset 'order.txt' = [time, order parameter, CVs ...], the layout of
+    `inft store_txt -order`), and README.md. The h5 holds, for every ensemble, the rows that `select_rows` picks
+    (paths_per_ensemble per ensemble after the burn-in) under both weightings ('staple' and 'rejections'), so the
+    loader gets the same paths whichever weighting it is given. Use with
+        python tis_data.py <out_dir> --data-file <out_dir>/infretis_data.txt.gz --h5 <out_dir>/paths.h5 --include-zero-minus
+    (the default burn-in of the loader is the same fraction, so no extra option is needed).
+    Returns a dict with the counts per ensemble."""
+    import gzip
+    import shutil
+    import h5py
+
+    os.makedirs(out_dir, exist_ok=True)
+    settings = read_settings(sim_dir)
+    n_ens = len(settings["interfaces"])
+    data = read_infretis_data(os.path.join(sim_dir, "infretis_data.txt"), n_ens)
+    ens_list = list(range(n_ens))
+    rows = set()
+    counts = {}
+    for weighting in ("staple", "rejections"):
+        W = _pair_weights(data, weighting, n_ens)
+        sel = select_rows(data, W, ens_list, burn_in_fraction=burn_in_fraction, thin=thin,
+                          paths_per_ensemble=paths_per_ensemble)
+        for e, r in sel.items():
+            rows.update(int(i) for i in r)
+            counts[(weighting, e)] = len(r)
+    shutil.copy(os.path.join(sim_dir, "infretis.toml"), os.path.join(out_dir, "infretis.toml"))
+    with open(os.path.join(sim_dir, "infretis_data.txt"), "rb") as src, \
+            gzip.open(os.path.join(out_dir, "infretis_data.txt.gz"), "wb") as dst:
+        shutil.copyfileobj(src, dst)
+
+    n_frames = 0
+    with h5py.File(os.path.join(out_dir, "paths.h5"), "w") as h5:
+        for r in sorted(rows):
+            pnr = int(data["pnr"][r])
+            order = np.loadtxt(os.path.join(sim_dir, "load", str(pnr), "order.txt"), comments="#", ndmin=2)
+            if len(order) != data["length"][r]:
+                raise ValueError(f"path {pnr}: order.txt has {len(order)} frames, the table says {data['length'][r]}")
+            h5.create_dataset(f"{pnr}/order.txt", data=order, compression="gzip", chunks=True)
+            n_frames += len(order)
+    print(f"{out_dir}: {len(rows)} paths ({n_frames} frames) in paths.h5; selected per ensemble: "
+          + ", ".join(f"{k[0]}/{k[1]}: {v}" for k, v in sorted(counts.items())))
+    return dict(paths=len(rows), frames=n_frames, counts=counts)
