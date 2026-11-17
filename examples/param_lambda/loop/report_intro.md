@@ -138,6 +138,14 @@ crash (10% burn-in): P_cross 2.764e-6 -> 2.744e-6 (-0.7%), rate 1.652x -> 1.642x
 statistical error. The same data give 1.65x the exact rate at 23k cycles against 0.97x at 20k: the point value moves 70%
 within 3000 cycles, inside the error.
 
+Result at 50 000 cycles (45.4M production MD steps, one NSG rejection path active): rate 1.247e-5 per time unit = 1.10x the
+exact 1.13e-5, relative error 0.26 (inftools block-error plateau of P_cross 0.37). Estimates against exact over the run:
+0.97x at 20k, 1.65x at 23k, 1.10x at 50k; the running estimate has settled within about 10% of the exact rate over the
+last 10M steps, and the error band is about a factor 7 narrower than at 20k (1.79 -> 0.26). The 10-interface run (20k
+cycles) stays at 2.03x with error 0.49; the seed control (12.5M steps) at 3.36x with error 3.4. The plain-step comparison
+at equal MD steps is therefore dominated by the refilled run's 19.2M-step initialization cost (verification rounds),
+which has to be amortized over a long production.
+
 Where the production error comes from: the block error of each local crossing probability P(lambda_k+1 |
 lambda_k) of the Z production, as a share of the variance of P_cross (`production/ensemble_errors.json`):
 

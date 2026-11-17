@@ -213,8 +213,9 @@ mutates `staridx`/`meta` of shared Path objects; infretis `staple_extender` over
     (path-weighted mean squared increment of q along the validation pieces, the committor's variational objective; no
     labels) by more than `screen.tol` (10%). The first version used the validation SD(Z_q) and failed on loop_zw pass 1:
     leaving out x or w changed it by -1%, so it dropped both, while the energy rose by 49% and 64% and the RMS error
-    against the exact committor from 0.054 to 0.078. The kept set is the input of the student and, from the next
-    pass, of the teacher. Labels alone cannot separate a coupled from a path-labelling slow CV
+    against the exact committor from 0.054 to 0.078. The kept set is the input of the student only; the teacher
+    keeps every CV (`screen.teacher = "all"`), since a CV the teacher never sees cannot shape the labels and could not
+    come back in a later screening. Labels alone cannot separate a coupled from a path-labelling slow CV
     (`param_lambda_embedding.md`, finding 4), hence the dynamical test.
   - *GPU*: the fits of a pass run under `loop/gpu.py` (a file lock shared by the loops, then a wait while any other
     process holds a GPU context).
