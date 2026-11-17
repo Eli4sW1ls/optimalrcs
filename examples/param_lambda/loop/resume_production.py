@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-"""Resume an interrupted production run from its restart.toml and analyse it:
-python -m loop.resume_production <loop config> [--dir production]"""
+"""Start a prepared production run, or resume an interrupted one from its restart.toml, and analyse it:
+python -m loop.resume_production <loop config> [--dir production] [--steps N]"""
 import argparse
 import os
 import sys
@@ -13,11 +13,14 @@ if __name__ == '__main__':
     ap = argparse.ArgumentParser()
     ap.add_argument('config')
     ap.add_argument('--dir', default='production')
+    ap.add_argument('--steps', type=int, help='extend the run to this many cycles in total (default: the infretis.toml value)')
     a = ap.parse_args()
     cfg = controller.load_loop_config(a.config)
     out = os.path.join(cfg['loop_dir'], a.dir)
-    steps = int(be.read_toml(os.path.join(out, 'infretis.toml'))['simulation']['steps'])
-    if be.cost(out)['cycles'] < steps:
+    steps = a.steps or int(be.read_toml(os.path.join(out, 'infretis.toml'))['simulation']['steps'])
+    if not os.path.isfile(os.path.join(out, 'restart.toml')):
+        be.run(out)                                        # a prepared run that was never started
+    elif be.cost(out)['cycles'] < steps:
         be.resume(out, steps)
     r = rates.staple_rate(out, burn_in=float(cfg.get('production', {}).get('burn_in', 0.1)))
     r['cost'] = be.cost(out)

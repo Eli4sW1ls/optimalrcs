@@ -217,6 +217,8 @@ def build_seeds(pool, model, interfaces, mode, out_dir, passes=None, max_paths=3
                 key = (p['pass_index'], p['pnr'])
                 if prefer_unused and key in used:
                     continue
+                if not os.path.isfile(os.path.join(p['workdir'], 'load', str(p['pnr']), 'traj.txt')):
+                    continue                          # the source run's directory was cleaned up: not a usable seed
                 c = candidates(e, p)
                 if c:
                     found = (p, c[0])

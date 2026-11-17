@@ -1,7 +1,7 @@
 """Interface placement: a plan in the natural coordinate, a cost check and the spacing gate (constraint 9).
 
     plan   = plan_natural(model, view, cfg)                 # levels equally spaced in u(h), ratio cap, length budget
-    placed = place(model, paths, plan, cfg, mode)           # greedy thinning until every check passes
+    placed = place(model, paths, plan, cfg, mode)           # greedy thinning until every check passes, then refill
     table  = check(paths, interfaces, cfg, mode)            # all checks on a set of sampled paths
 
 `paths` are whole sampled paths at the sampler's resolution (one lambda value per saved frame), each with a
@@ -20,6 +20,13 @@ weight: (lam, w) pairs from `path_arrays`. Checks (defaults eps = 1%, c = 1, n_A
   (lambda_{i-1}, lambda_i, lambda_{i+1}));
 - single-step turns: the fraction of turns (the staple turn rule replayed on lambda) completed within one step of
   the extremum <= eps.
+
+Placement thins with limits stricter than the gate by `place_margin` (hysteresis). Thinning can leave a pair of
+neighbours far apart in crossing probability, so `refill` then re-inserts, into every pair whose ratio exceeds
+`max_ratio` (end pairs measured from the effective state levels of `state_levels`), the best-splitting candidate
+that passes the same margined limits as the thinning. Config keys under
+[interfaces]: refill (default true), refill_candidates (40). Where the dynamics cross a committor stretch in a few
+saved frames no candidate passes: that limit is set by the sampler resolution, not by lambda.
 """
 import numpy as np
 
@@ -276,7 +283,8 @@ def _cap_ratio(h, R):
 def place(model, paths, plan_lam, cfg, mode, log=None, max_rounds=50):
     """Thin the planned interface set until every check passes on `paths`. Greedy forward pass (skip, gap,
     distance) as in the spacing note, then the ensemble and turn checks with one interface removed per round
-    (the upper interface of the failing window). Returns dict(interfaces, check, removed, rounds)."""
+    (the upper interface of the failing window). Then, if `model` is given and cfg `refill` (default true), `refill`
+    re-inserts interfaces into pairs more than max_ratio apart that the thinning left behind, under the same limits. Returns dict(interfaces, check, removed, rounds, refilled)."""
     # placement uses stricter limits than the gate (`check`), so that an interface set that passes on the stored
     # paths does not fail on the next pass's own paths, which sample the new interfaces better (hysteresis)
     margin = float(cfg.get('place_margin', 1.25))
@@ -350,7 +358,128 @@ def place(model, paths, plan_lam, cfg, mode, log=None, max_rounds=50):
         common.say(f'placement: {len(placed)} interfaces kept of {len(plan_lam)} planned; removed '
                    + (', '.join(f'{v:.4f} ({r})' for v, r in removed) if removed else 'none')
                    + ('' if res['ok'] else f'; still failing: {res["fails"]}'), log=log)
-    return dict(interfaces=placed, check=res, removed=removed, rounds=rounds)
+    refilled = []
+    if model is not None and res['ok'] and cfg.get('refill', True):
+        # the same (margined) limits as the thinning: with the bare gate, refill re-added what thinning had just
+        # removed (Z: 0.8455 'too close to B' in every round) and its interfaces failed the next run's re-check
+        placed, refilled = refill(model, paths, placed, cfg, mode, R=float(cfg.get('max_ratio', 10.0)),
+                                  n_cand=int(cfg.get('refill_candidates', 40)), steps=steps)
+        if refilled:
+            res = check(paths, placed, cfg, mode)
+            if log:
+                common.say('placement refill (placement limits): added '
+                           + ', '.join(f'{r["lam"]:.4f} (q {r["q"]:.3g}; ratio {r["ratio_before"]:.0f} -> '
+                                       f'{r["ratio_after"]:.1f})' for r in refilled), log=log)
+    return dict(interfaces=placed, check=res, removed=removed, rounds=rounds, refilled=refilled)
+
+
+# ---------------------------------------------------------------------------------------------------
+# refill
+# ---------------------------------------------------------------------------------------------------
+def q_ratio(qa, qb):
+    """The crossing-probability ratio of a pair of committor levels qa < qb, as in `_cap_ratio`: qb / qa below
+    q = 1/2, (1 - qa) / (1 - qb) above it, the larger of the two for a pair that straddles 1/2."""
+    qa, qb = max(float(qa), 1e-12), min(float(qb), 1 - 1e-12)
+    lo, hi = qb / qa, (1 - qa) / (1 - qb)
+    if qb <= 0.5:
+        return lo
+    if qa >= 0.5:
+        return hi
+    return max(lo, hi)
+
+
+def _local_check(paths, steps, lv, k, gate, mode):
+    """The gate restricted to what inserting interface k changes: skip/gap of k - 1, k, k + 1 and the
+    shooting-region tests of the ensembles whose middle interface is one of them (turns: see `refill`)."""
+    eps, c, n_sh = gate['eps'], gate['c'], gate['n_sh']
+    for j in (k - 1, k, k + 1):
+        if j <= 0 or j >= len(lv) - 1:
+            continue
+        st = crossing_stats(steps, lv[j], nxt_up=lv[j + 1], nxt_dn=lv[j - 1])
+        if st['n_up'] >= 100 and np.isfinite(st['skip_up']) and st['skip_up'] > eps:
+            return False, f'skip_up at {lv[j]:.4f}'
+        if st['n_dn'] >= 100 and np.isfinite(st['skip_dn']) and st['skip_dn'] > eps:
+            return False, f'skip_dn at {lv[j]:.4f}'
+        if np.isfinite(st['delta']) and (lv[j + 1] - lv[j] < c * st['delta'] or lv[j] - lv[j - 1] < c * st['delta']):
+            return False, f'gap at {lv[j]:.4f}'
+        if not np.isfinite(st['delta']):
+            return False, f'no crossings of {lv[j]:.4f}'           # refill only where the paths verify the level
+    mids = {lv[j] for j in (k - 1, k, k + 1) if 0 < j < len(lv) - 1}
+    for e, L, M, R in ensembles_of(lv, mode):
+        if M not in mids:
+            continue
+        ws = window_stats(paths, L, M, R)
+        if ws['n_excursions'] >= 20 and (ws['p_empty'] > eps or (e >= 2 and ws['q05_frames'] < n_sh)):
+            return False, f'region of ensemble {e}'
+    return True, ''
+
+
+def state_levels(model, steps, la, lb):
+    """Effective committor levels of the states for the end pairs: h_A = the weighted mean of h at the first frames
+    past lambda_A (up-crossings), 1 - h_B the same of 1 - h at the first frames below lambda_B (down-crossings).
+    With committor-level interfaces, P(reach lambda_1 before A | crossed lambda_A) = E[q(first frame)] / q(lambda_1)
+    (optional stopping), so q_ratio(h_A, h_1) is the end pair's crossing-probability ratio; h(lambda_A) itself is 0.
+    Without crossings of a state its level falls back to 0 (A) or 1 (B), which leaves that end pair alone.
+
+    Caveat: the export's ramps near the states hold h above the committor there (Z, frozen lambda: first frames past
+    A have model h 3.3e-5 vs exact 1.8e-6; first frames below B 0.990 vs 0.998), so the end pairs' ratios are
+    underestimated (Z: 11 and 13 vs about 100 and 64 from the exact committor and the production run) and refill
+    adds fewer interfaces there than the cap would ask for, never more."""
+    a, b, _, w = steps
+    up = (a < la) & (b >= la)
+    dn = (a > lb) & (b <= lb)
+    h_a = float(np.average(np.clip(model.h_of_lambda(b[up]), 0, 1), weights=w[up])) if up.any() else 1e-9
+    h_b = float(np.average(np.clip(model.h_of_lambda(b[dn]), 0, 1), weights=w[dn])) if dn.any() else 1 - 1e-9
+    return float(np.clip(h_a, 1e-9, 0.5)), float(np.clip(h_b, 0.5, 1 - 1e-9))
+
+
+def refill(model, paths, placed, gate, mode, R=10.0, n_cand=40, steps=None, max_add=10):
+    """Re-insert interfaces where thinning left a pair of neighbours more than R apart in crossing probability
+    (`q_ratio` of h = model.h_of_lambda; for the pairs touching a state the effective state level of
+    `state_levels`, since h(lambda_A) = 0 would make every first pair look infinitely wide). For the worst such pair, `n_cand` candidates equally spaced in
+    logit h between the two are tried, best split first (the smallest larger sub-ratio); the first that passes
+    the given limits (`_local_check`, then the full `check` including the turns)
+    is kept. Repeats until no pair over R can be split or `max_add` interfaces were added. `place` passes its
+    margined limits, so a refilled interface has the same hysteresis protection as a kept one.
+
+    Why: placement drops every planned level whose window holds too few frames, and with the margin it can empty
+    a whole stretch (Z: one ensemble spanning q = 0.007 -> 0.645 after the ridge levels were removed). Where the
+    dynamics cross the committor too fast for any interface (the ridge, ~10 MD steps for q 0.01 -> 0.2) no
+    candidate passes and the pair stays as it is; the number of frames between two committor levels does not
+    depend on how lambda labels them, so this is a sampler-resolution limit, not a lambda defect. Refilled
+    interfaces meet the gate exactly, without hysteresis margin: the loop's re-check on the next pass's own
+    paths (or freeze's verification rounds) decides whether they survive."""
+    steps = _steps(paths) if steps is None else steps
+    lv = [float(v) for v in placed]
+    added, tried = [], set()
+    h_a, h_b = state_levels(model, steps, lv[0], lv[-1])
+    lg = lambda p: np.log(p / (1 - p))
+    while len(added) < max_add:
+        h = np.clip(model.h_of_lambda(np.asarray(lv)), 1e-9, 1 - 1e-9)
+        h[0], h[-1] = h_a, h_b                                # effective levels of the states (see above)
+        ratios = [(q_ratio(h[i], h[i + 1]), i) for i in range(len(lv) - 1) if (lv[i], lv[i + 1]) not in tried]
+        ratios = [(r, i) for r, i in ratios if r > R]
+        if not ratios:
+            break
+        r0, i = max(ratios)
+        ha, hb = h[i], h[i + 1]
+        hc = 1 / (1 + np.exp(-np.linspace(lg(ha), lg(hb), n_cand + 2)[1:-1]))
+        cand = sorted(((max(q_ratio(ha, x), q_ratio(x, hb)), float(x)) for x in hc))
+        lam_c = model.scale(np.array([x for _, x in cand]))
+        ok = False
+        for (sub, x), lc in zip(cand, lam_c):
+            lc = float(lc)
+            if not lv[i] < lc < lv[i + 1]:
+                continue
+            trial = lv[:i + 1] + [lc] + lv[i + 1:]
+            good, _ = _local_check(paths, steps, trial, i + 1, gate, mode)
+            if good and check(paths, trial, gate, mode)['ok']:
+                added.append(dict(lam=lc, q=x, between=(lv[i], lv[i + 1]), ratio_before=r0, ratio_after=sub))
+                lv, ok = trial, True
+                break
+        if not ok:
+            tried.add((lv[i], lv[i + 1]))
+    return lv, added
 
 
 def health_table(res, pred_median=None):

@@ -10,6 +10,9 @@
                        model's committor m(x), the exact committor, and logit m - logit q_exact
 - calibration.png      bin means of logit m (and logit q_teacher) against logit q_exact, per pass
 - convergence.png      teacher RMS, isosurface spread and logit RMSE against the exact committor, per pass
+- pcross_convergence.png   production runs (learned lambda, refilled interfaces, seed-lambda control): running
+                       P_cross and rate / exact rate against MD steps with +-1 block error, and the block-error curves
+                       (inftools' `error_analysis_staple`, run by `python -m loop.pcross_errors`); also `--pcross-only`
 - tis_pass<k>.png, feps_pass<k>.png   optimalrcs TIS diagnostics (stopped Z_q, obs-vs-pred) and path-weighted
                        free-energy profiles of model k's committor on the pass's own sampled pieces
 """
@@ -339,13 +342,125 @@ def fig_tis(cfg, st, pool, out):
         del q
         cp.get_default_memory_pool().free_all_blocks()
 
+PROD_RUNS = [('production', 'learned lambda', BLUE), ('production_refill3', 'learned lambda, refilled', '#0d366b'),
+             ('production_seed', 'seed lambda', RED)]
+
+
+def _read_runav(path):
+    """inftools *_runav.txt: a header line, then one row per snapshot. Wide negative values can run into the next
+    column (no separator), so the numbers are taken by pattern rather than by whitespace."""
+    import re
+    num = re.compile(r'-?\d+(?:\.\d+)?(?:[eE][-+]?\d+)?')
+    with open(path) as f:
+        head = f.readline().split()
+        rows = [[float(v) for v in num.findall(line)] for line in f if line.strip()]
+    rows = [r for r in rows if len(r) == len(head)]
+    return head, np.array(rows)
+
+
+def _read_block(path):
+    best = rel = None
+    blocks = []
+    for line in open(path):
+        if line.startswith('# Best estimate'):
+            best = np.array(line.split()[3:], float)
+        elif line.startswith('# Avg rel error'):
+            rel = np.array(line.split()[4:], float)
+        elif line.strip() and not line.startswith(('#', '-')):
+            blocks.append([float(v) for v in line.split()])
+    return best, rel, np.array(blocks)
+
+
+def fig_pcross_convergence(cfg, out):
+    """Running P_cross(lambda_B) and rate / exact rate of the production runs against production MD steps, with a
+    +-1 block-error band (the plateau relative error at the end, scaled by sqrt(N / n) back in time), and the
+    relative block error of P_cross(lambda_B) against block length (inftools error_analysis_staple)."""
+    runs = []
+    for sub, label, col in PROD_RUNS:
+        ea = os.path.join(cfg['loop_dir'], sub, 'error_analysis')
+        if not os.path.isfile(os.path.join(ea, 'pcross_runav.txt')):
+            continue
+        with open(os.path.join(cfg['loop_dir'], sub, 'rates.json')) as f:
+            rj = json.load(f)
+        _, pc = _read_runav(os.path.join(ea, 'pcross_runav.txt'))
+        rh, rt = _read_runav(os.path.join(ea, 'rate_runav.txt'))
+        bfile = [x for x in os.listdir(ea) if x.startswith('pcross_block_errors_') and x.endswith('.txt')][0]
+        best, rel, blocks = _read_block(os.path.join(ea, bfile))
+        rbfile = [x for x in os.listdir(ea) if x.startswith('rate_block_errors_') and x.endswith('.txt')][0]
+        _, rrel, _ = _read_block(os.path.join(ea, rbfile))
+        n_rows = sum(1 for line in open(os.path.join(cfg['loop_dir'], sub, 'infretis_data.txt'))
+                     if line.strip() and not line.startswith('#'))
+        n_skip = n_rows - int(pc[-1, 0]) if pc[-1, 0] <= n_rows else 0
+        to_md = lambda rows: rj['cost']['md_steps'] * (n_skip + rows) / n_rows   # rows -> production MD steps (linear)
+        rate = rt[:, rh.index('Rate')] * ase_systems.TIME_FS                 # engine time (fs) -> reduced time units
+        runs.append(dict(label=label, col=col, md=to_md(pc[:, 0]), p=pc[:, -1], md_r=to_md(rt[:, 0]), rate=rate, rel=rel[-1], rrel=rrel[rh.index('Rate') - 1],
+                         blocks=blocks, init=0 if sub == 'production_seed' else _init_md(cfg, sub), flux=rj['Flux'], tpf=rj['time_per_frame'], ex=(rj.get('exact') or {}).get('rate')))
+    if not runs:
+        return None
+    fig, axs = plt.subplots(1, 3, figsize=(13, 3.8))
+    ex = next((r['ex'] for r in runs if r['ex']), None)
+    for r in runs:
+        band = r['rel'] * np.sqrt(r['md'][-1] / r['md'])
+        ok = r['p'] > 0
+        axs[0].plot(r['md'][ok] / 1e6, r['p'][ok], color=r['col'], lw=1.4,
+                    label=f"{r['label']} (init. {r['init'] / 1e6:.1f}M MD steps)")
+        axs[0].fill_between(r['md'][ok] / 1e6, r['p'][ok] / (1 + band[ok]), r['p'][ok] * (1 + band[ok]), color=r['col'], alpha=0.15, lw=0)
+        if ex:
+            okr = r['rate'] > 0
+            bandr = r['rrel'] * np.sqrt(r['md_r'][-1] / r['md_r'])
+            y = r['rate'][okr] / ex
+            axs[1].plot(r['md_r'][okr] / 1e6, y, color=r['col'], lw=1.4, label=r['label'])
+            axs[1].fill_between(r['md_r'][okr] / 1e6, y / (1 + bandr[okr]), y * (1 + bandr[okr]), color=r['col'], alpha=0.15, lw=0)
+        b = r['blocks']
+        axs[2].plot(b[:, 0], b[:, -1], color=r['col'], lw=1.2, label=f"{r['label']}: plateau {r['rel']:.2f}")
+        axs[2].axhline(r['rel'], color=r['col'], lw=0.8, ls=':')
+    if ex:                                     # exact P_cross = exact rate x time per frame / flux (flux per frame)
+        for r in runs:
+            axs[0].axhline(ex * r['tpf'] / r['flux'], color=r['col'], lw=0.8, ls='--')
+        axs[0].plot([], [], color=INK2, lw=0.8, ls='--', label='exact rate / the run\'s flux')
+    pmax = max(float(np.max(r['p'])) for r in runs)
+    pfin = min(float(r['p'][-1]) for r in runs)
+    axs[0].set_ylim(pfin / 30, pmax * 3)
+    axs[0].set(yscale='log', xlabel='production MD steps [10^6]', ylabel='P_cross(lambda_B)', title='running P_cross, +-1 block error')
+    if ex:
+        axs[1].axhline(1, color=INK2, lw=0.8, ls='--')
+        axs[1].set(yscale='log', xlabel='production MD steps [10^6]', ylabel='rate / exact rate',
+                   title=f'running rate / exact ({ex:.3g} per time unit)')
+    axs[2].set(xlabel='block length [paths]', ylabel='relative error of P_cross(lambda_B)', title='block error (inftools)')
+    for ax in axs:
+        ax.legend(fontsize=7)
+    fig.suptitle(f"{cfg['name']}: production convergence (lambda frozen)", fontsize=10)
+    fig.tight_layout()
+    path = os.path.join(out, 'pcross_convergence.png')
+    fig.savefig(path, dpi=150)
+    plt.close(fig)
+    return path
+
+
+def _init_md(cfg, sub):
+    """MD steps of the initialization behind a production run: its manifest (written at freeze), else state.json."""
+    m = os.path.join(cfg['loop_dir'], sub, 'manifest.json')
+    if os.path.isfile(m):
+        with open(m) as f:
+            v = json.load(f).get('initialization_md_steps')
+        if v:
+            return v
+    with open(os.path.join(cfg['loop_dir'], 'state.json')) as f:
+        return json.load(f).get('md_steps', 0)
+
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument('config')
     ap.add_argument('--no-tis', action='store_true')
+    ap.add_argument('--pcross-only', action='store_true', help='only pcross_convergence.png')
     a = ap.parse_args()
     cfg = controller.load_loop_config(a.config)
+    if a.pcross_only:
+        out = os.path.join(cfg['loop_dir'], 'figures')
+        os.makedirs(out, exist_ok=True)
+        print(fig_pcross_convergence(cfg, out))
+        return
     st = _passes(cfg)
     pool = pool_mod.Pool(cfg['loop_dir'])
     out = os.path.join(cfg['loop_dir'], 'figures')

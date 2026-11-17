@@ -60,6 +60,7 @@ def main():
         placed = itf.place(model, paths, plan['lam'], ic, args.mode)
         print('planned  ', np.round(plan['lam'], 6).tolist())
         print('removed  ', [(round(v, 6), r) for v, r in placed['removed']])
+        print('refilled ', [(round(r['lam'], 6), round(r['q'], 4)) for r in placed.get('refilled', [])])
         print('interfaces = [' + ', '.join(f'{v:.6f}' for v in placed['interfaces']) + ']')
         print(itf.health_table(placed['check']))
     elif args.cmd == 'check':

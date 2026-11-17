@@ -30,6 +30,8 @@ max_md_steps = 400000000
 
 [production]
 cycles = 20000
+verify_cycles = 2000                # verification runs of the freeze (default 500): the gate quantiles need a few hundred excursions
+verify_rounds = 2
 
 [production.run]
 staple_infinite_swap = true

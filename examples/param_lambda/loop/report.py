@@ -74,7 +74,51 @@ def loop_section(name):
             out.append('Accepted paths with an empty shooting region per ensemble: '
                        + ', '.join(f'{k}: {v["empty"]}/{v["n"]}' for k, v in esr.items()) + '.')
         out.append('')
+    out += production_rows(d, st)
     return '\n'.join(out)
+
+
+def production_rows(d, st):
+    """The frozen set (freeze.json) and the production runs: learned lambda and the seed-lambda control."""
+    out = []
+    fz = os.path.join(d, 'freeze.json')
+    if os.path.isfile(fz):
+        with open(fz) as f:
+            fr = json.load(f)
+        out.append(f'Frozen set ({fr.get("source")}): `{np.round(fr["interfaces"], 4).tolist()}`.')
+        for r in fr.get('verification', []):
+            out.append(f'Verification round {r["round"]}: removed {[(round(v, 4), why) for v, why in r["removed"]] or "none"}'
+                       + (f', refilled {[round(a["lam"], 4) for a in r["refilled"]]}' if r.get('refilled') else '')
+                       + f'; {"passes" if r["ok"] else "fails " + str(r["fails"])}; {r["md_steps"]:,} MD steps.')
+        out.append('')
+    rows = []
+    for sub, label in (('production', 'learned lambda (frozen)'), ('production_refill3', 'learned lambda, refilled interfaces'),
+                       ('production_seed', 'seed lambda (control)')):
+        p = os.path.join(d, sub, 'rates.json')
+        if not os.path.isfile(p):
+            continue
+        with open(p) as f:
+            r = json.load(f)
+        ex = (r.get('exact') or {}).get('rate')
+        init = f'{st.get("md_steps", 0):,}' if sub.startswith('production') and sub != 'production_seed' else '0'
+        label += ' (stopped early)' if r.get('stopped_early') else ''
+        rows.append(f'| {label} | {len(r.get("interfaces", [])) or "–"} | {r["cost"]["cycles"]:,} | {r["cost"]["md_steps"]:,} | '
+                    f'{init} | {_g(r["pcross_global"])} ({_f(r["rel_err_pcross"], 2)}) | '
+                    f'{_g(r["rate_per_time"])} ({_f(r["rel_err_rate"], 2)}) | '
+                    f'{_f(r["rate_per_time"] / ex, 2) + "x" if ex else "–"} |')
+    if rows:
+        out += ['| production run | interfaces | cycles | MD steps | MD steps of the initialization | P_cross (rel. error) | '
+                'rate per time unit (rel. error) | rate / exact |', '|---|---|---|---|---|---|---|---|'] + rows
+        ex = None
+        for sub in ('production', 'production_refill3', 'production_seed'):
+            p = os.path.join(d, sub, 'rates.json')
+            if os.path.isfile(p):
+                with open(p) as f:
+                    ex = ex or json.load(f).get('exact')
+        if ex:
+            out.append(f'\nExact rate {_g(ex["rate"])} per time unit ({ex.get("source", "")}).')
+        out.append('')
+    return out
 
 
 def staple_weight_section():

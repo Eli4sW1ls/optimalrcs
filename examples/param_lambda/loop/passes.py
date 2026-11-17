@@ -154,7 +154,7 @@ def one_pass(cfg, pool, k, prev_model, prev_params, mode, log):
                                        f'pass {k}', 'pass', log)
     lengths = _path_lengths(raw, len(intfs))
     rec = dict(k=k, model=model_path, model_md5=manifest.md5(model_path), interfaces=intfs,
-               interfaces_md5=manifest.md5_of(intfs), plan=plan, removed=placed['removed'],
+               interfaces_md5=manifest.md5_of(intfs), plan=plan, removed=placed['removed'], refilled=placed.get('refilled', []),
                placement_check=_slim(placed['check']), recheck=_slim(recheck), teacher=tinfo,
                student={key: v for key, v in sinfo.items() if key != 'checkpoints'}, diagnostics=diag,
                cost=dict(cost, fit_seconds=fit_seconds, pass_seconds=time.time() - t_pass), lengths=lengths,
@@ -210,7 +210,7 @@ def stop_test(cfg, state, log):
     return not why
 
 
-def freeze(cfg, state, pool, log):
+def freeze(cfg, state, pool, log, name='production', start=None, start_paths=None):
     """The production configuration: the last lambda, interfaces and seed paths, as an infretis run directory that
     is not started (`run.py loop <config> --production` runs it).
 
@@ -218,9 +218,20 @@ def freeze(cfg, state, pool, log):
     lambda whose re-check on its own paths passed. If the last pass passes, its interfaces are used. Otherwise, with
     lambda frozen, up to `production.verify_rounds` short verification runs (`production.verify_cycles` cycles):
     re-place (thin) the interfaces on all stored paths, run, re-check on the run's own paths. Thinning only removes
-    interfaces, so the rounds settle. If none passes, nothing is written except freeze.json."""
+    interfaces, so the rounds settle. If none passes, nothing is written except freeze.json.
+
+    `name` / `start`: a second production from an earlier frozen set (`start` = its interfaces), e.g. after a change
+    to placement (refill): at least one verification round is then forced (place, run, re-check), and everything is
+    written under the name (<name>/, <name>_verify_<r>/, <name>_seeds/, <name>_freeze.json).
+
+    Thinning in the verification rounds uses the paths of the run that failed (`own_paths`), not the pool: the
+    failing run's statistics are what the gate will see again, and on the pool (thousands of paths from other
+    interface sets) a marginal failure is diluted and the set never changes (Z: three rounds kept all 13 interfaces
+    while the same ensemble failed in the runs). The first round uses the pool, or `start_paths` when given (the
+    own paths of an earlier failed verification run, with `start` its interface set)."""
     last = state.data['passes'][-1]
-    out = os.path.join(cfg['loop_dir'], 'production')
+    out = os.path.join(cfg['loop_dir'], name)
+    pre = '' if name == 'production' else f'{name}_'
     if os.path.isdir(out):
         common.say(f'freeze: {out} exists, left as is', log=log)
         return out
@@ -230,29 +241,36 @@ def freeze(cfg, state, pool, log):
     mode = run.get('mode', 'staple')
     model = LambdaModel(last['model'])
     intfs, rc, source = last['interfaces'], last['recheck'], f'pass {last["k"]}'
+    if start is not None:                                        # re-place from a given set: force a verification
+        intfs, rc, source = list(start), dict(ok=False, fails=['re-placement forced']), 'start set'
     rounds = []
+    own = start_paths
     for r in range(int(pc.get('verify_rounds', 3))):
         if rc['ok']:
             break
-        paths = itf.path_arrays(pool, model, state_cv=system['state_cv'], lineage='include')
+        if own is not None:
+            paths = own                                          # thin on the failed run's own paths
+        else:
+            paths = itf.path_arrays(pool, model, state_cv=system['state_cv'], lineage='include')
         placed = itf.place(model, paths, intfs, ic, mode, log=log)
         intfs = placed['interfaces']
-        vdir = os.path.join(cfg['loop_dir'], f'verify_{r + 1}')
+        vdir = os.path.join(cfg['loop_dir'], f'{pre}verify_{r + 1}')
         os.makedirs(vdir, exist_ok=True)
         cost, raw, rc = run_and_check(cfg, pool, vdir, model, last['model'], intfs, mode,
                                       int(pc.get('verify_cycles', 500)), int(cfg.get('seed', 0)) + 500 + r,
                                       f'verification {r + 1}', 'verify', log)
         state.data['md_steps'] += cost['md_steps']
-        rounds.append(dict(round=r + 1, interfaces=intfs, removed=placed['removed'], ok=rc['ok'], fails=rc['fails'],
+        own = own_paths(raw, system['state_cv'])
+        rounds.append(dict(round=r + 1, interfaces=intfs, removed=placed['removed'], refilled=placed.get('refilled', []), ok=rc['ok'], fails=rc['fails'],
                            md_steps=cost['md_steps']))
         source = f'verification {r + 1}'
         state.save()
-    manifest.write(os.path.join(cfg['loop_dir'], 'freeze.json'), pass_index=last['k'], model=last['model'],
+    manifest.write(os.path.join(cfg['loop_dir'], f'{pre}freeze.json'), pass_index=last['k'], model=last['model'],
                    interfaces=intfs, ok=rc['ok'], fails=rc.get('fails', []), source=source, verification=rounds)
     if not rc['ok']:
         common.say(f'freeze REFUSED: {source} fails {rc["fails"]} on its own paths', log=log)
         return None
-    seeds_dir = os.path.join(cfg['loop_dir'], 'production_seeds')
+    seeds_dir = os.path.join(cfg['loop_dir'], f'{name}_seeds')
     dirs, tainted, report = seed_mod.build_seeds(pool, model, intfs, mode, seeds_dir)
     be.write_run(out, system, run, intfs, be.learned_order_table(system, last['model']),
                  int(pc.get('cycles', 10000)), mode, dirs, tainted_inodes=tainted,
@@ -263,6 +281,11 @@ def freeze(cfg, state, pool, log):
     common.say(f'freeze: production run prepared in {out} (not started); {len(intfs)} interfaces, verified by '
                f'{source} on its own paths', log=log)
     return out
+
+
+def own_paths(raw, state_cv):
+    """[(lam, s, w)] of a run's own accepted paths (the arrays `interfaces.check` takes)."""
+    return [(o[:, 0], o[:, 1 + state_cv], float(W.max())) for o, W in zip(raw['ops'], raw['W']) if W.max() > 0]
 
 
 def run_and_check(cfg, pool, pdir, model, model_path, intfs, mode, cycles, seed, label, kind, log):
@@ -284,6 +307,11 @@ def run_and_check(cfg, pool, pdir, model, model_path, intfs, mode, cycles, seed,
         common.say(f'run: {len(intfs)} interfaces, {cycles} cycles in {run_dir}', log=log)
         cost = be.run(run_dir)
     else:
+        ran = be.read_toml(os.path.join(run_dir, 'infretis.toml'))['simulation']['interfaces']
+        if len(ran) != len(intfs) or not np.allclose(ran, intfs, rtol=0, atol=1e-9):
+            raise ValueError(f'{run_dir} was run with interfaces {np.round(ran, 5).tolist()}, not the requested '
+                             f'{np.round(intfs, 5).tolist()}: a re-check on it would be meaningless; move the run '
+                             f'directory aside (or rerun with the original set)')
         cost = be.cost(run_dir)
     pieces = be.load_pieces(run_dir, burn_in_fraction=0.0, paths_per_ensemble=cfg['pool'].get('cap_paths_per_ensemble'),
                             weighting=cfg['pool'].get('weighting') if mode == 'staple' else None)
@@ -295,10 +323,12 @@ def run_and_check(cfg, pool, pdir, model, model_path, intfs, mode, cycles, seed,
                 mode=mode, lambda_a=system['lambda_a'], lambda_b=system['lambda_b'], cv_names=system['cv_names'],
                 state_cv=system['state_cv'], n_rows=len(raw['rows']), workdir=run_dir, md_steps=cost['md_steps'],
                 wall_seconds=cost.get('wall_seconds'), cycles=cost['cycles'])
-    stored = [pool.meta(j).get('workdir') for j in pool.passes()]
-    if run_dir not in stored:
+    # stored already: same directory AND the same run (cycles, path rows); a name alone is not enough, since a
+    # directory can be deleted and its name reused by a later run
+    stored = [(pool.meta(j).get('workdir'), pool.meta(j).get('cycles'), pool.meta(j).get('n_rows')) for j in pool.passes()]
+    if (run_dir, meta['cycles'], meta['n_rows']) not in stored:
         pool.store(pool.passes()[-1] + 1, pieces, raw, meta)
-    own = [(o[:, 0], o[:, 1 + system['state_cv']], float(W.max())) for o, W in zip(raw['ops'], raw['W']) if W.max() > 0]
+    own = own_paths(raw, system['state_cv'])
     recheck = itf.check(own, intfs, ic, mode)
     recheck['empty_shooting_regions'] = itf.empty_shooting_regions(raw, intfs, mode)
     n_empty = sum(v['empty'] for v in recheck['empty_shooting_regions'].values())

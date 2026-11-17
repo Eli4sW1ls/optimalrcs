@@ -191,3 +191,37 @@ def test_vectorized_turn_extension_matches_infretis():
         lam = np.cumsum(rng.normal(0, rng.choice([0.01, 0.05, 0.2]), 800)) + rng.uniform(0.1, 0.9)
         m_idx, j, d = int(rng.integers(0, 8)), int(rng.integers(5, 795)), int(rng.choice([-1, 1]))
         assert slow(lam, list(intf), m_idx, j, d) == seed.extend_turn(lam, list(intf), m_idx, j, d)
+
+
+class _IdentityScale:
+    """A stand-in model for refill: h = lambda on [0, 1]."""
+    lambda_a, lambda_b = 0.0, 1.0
+
+    def h_of_lambda(self, lam):
+        return np.asarray(lam, float)
+
+    def scale(self, h):
+        return np.asarray(h, float)
+
+
+def test_refill_splits_wide_pairs_only_where_the_gate_allows():
+    """refill re-inserts an interface into an interior pair more than max_ratio apart when a candidate passes the
+    gate, and leaves the set unchanged when every candidate fails."""
+    from loop import interfaces as itf
+    rng = np.random.default_rng(0)
+    paths = []
+    for _ in range(300):
+        x = np.clip(np.cumsum(rng.normal(0, 0.004, 1500)) + rng.uniform(0.02, 0.5), 0.001, 0.999)
+        paths.append((x, x, 1.0))
+    gate = dict(eps=0.01, c=1.0, n_a=3, n_sh=3)
+    lv = [0.0, 0.03, 0.05, 0.4, 0.6, 1.0]                               # 0.05 -> 0.4: ratio 8; 0.4 -> 0.6: 1.5
+    assert itf.check(paths, lv, gate, 'staple')['ok']
+    out, added = itf.refill(_IdentityScale(), paths, lv, gate, 'staple', R=5.0)
+    assert any(lv[2] < a['lam'] < lv[3] for a in added)                     # the interior pair over R is split
+    assert itf.check(paths, out, gate, 'staple')['ok'] and np.all(np.diff(out) > 0)
+    h = np.asarray(out)
+    assert max(itf.q_ratio(h[i], h[i + 1]) for i in range(1, len(h) - 2)) <= 5.0 + 1e-9
+    assert out[0] == 0.0 and out[-1] == 1.0 and set(lv) <= set(out)          # states kept, nothing removed
+    # a gate no candidate can meet (n_sh beyond any window's occupancy): the set comes back unchanged
+    out2, added2 = itf.refill(_IdentityScale(), paths, lv, dict(gate, n_sh=1e6), 'staple', R=5.0)
+    assert added2 == [] and out2 == lv
