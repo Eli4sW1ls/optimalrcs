@@ -4,3 +4,108 @@
 🔧 Starting internalrun with input: restart.toml
 🚀 About to call setup_config - set breakpoint here!
 📋 Configuration loaded, starting scheduler...
+concurrent.futures.process._RemoteTraceback: 
+"""
+Traceback (most recent call last):
+  File "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/APPTIS/infretis/infretis/core/tis.py", line 1831, in staple_sh
+    shooting_point, idx, dek = prepare_shooting_point(
+                               ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/APPTIS/infretis/infretis/core/tis.py", line 818, in prepare_shooting_point
+    shooting_point, idx = path.get_shooting_point(rgen)
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/APPTIS/infretis/infretis/classes/staple_path.py", line 302, in get_shooting_point
+    raise ValueError(f"Invalid shooting region: {self.sh_region} for path length {self.length}")
+ValueError: Invalid shooting region: {0: (1, 0)} for path length 15
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/elias/anaconda3/envs/test/lib/python3.12/concurrent/futures/process.py", line 263, in _process_worker
+    r = call_item.fn(*call_item.args, **call_item.kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/APPTIS/infretis/infretis/core/tis.py", line 68, in run_md
+    _, trials, status = select_shoot(picked)
+                        ^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/APPTIS/infretis/infretis/core/tis.py", line 341, in select_shoot
+    accept, new_path, status = sh_moves[move](
+                               ^^^^^^^^^^^^^^^
+  File "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/APPTIS/infretis/infretis/core/tis.py", line 1837, in staple_sh
+    shooting_point, idx, dek = prepare_shooting_point(
+                               ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/APPTIS/infretis/infretis/core/tis.py", line 810, in prepare_shooting_point
+    shooting_point, idx = path.get_shooting_point(rgen)
+                          ^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'get_shooting_point'
+"""
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/elias/anaconda3/envs/test/bin/infretisrun", line 8, in <module>
+    sys.exit(infretisrun())
+             ^^^^^^^^^^^^^
+  File "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/APPTIS/infretis/infretis/bin.py", line 38, in infretisrun
+    internalrun(input_file)
+  File "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/APPTIS/infretis/infretis/bin.py", line 70, in internalrun
+    scheduler(config)
+  File "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/APPTIS/infretis/infretis/scheduler.py", line 30, in scheduler
+    worker_md_items = state.treat_output(future.result())
+                                         ^^^^^^^^^^^^^^^
+  File "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/APPTIS/infretis/infretis/asyncrunner.py", line 121, in _task_wrapper
+    md_item = await loop.run_in_executor(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'get_shooting_point'
+🔧 Starting internalrun with input: restart.toml
+🚀 About to call setup_config - set breakpoint here!
+📋 Configuration loaded, starting scheduler...
+concurrent.futures.process._RemoteTraceback: 
+"""
+Traceback (most recent call last):
+  File "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/APPTIS/infretis/infretis/core/tis.py", line 1831, in staple_sh
+    shooting_point, idx, dek = prepare_shooting_point(
+                               ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/APPTIS/infretis/infretis/core/tis.py", line 818, in prepare_shooting_point
+    shooting_point, idx = path.get_shooting_point(rgen)
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/APPTIS/infretis/infretis/classes/staple_path.py", line 302, in get_shooting_point
+    raise ValueError(f"Invalid shooting region: {self.sh_region} for path length {self.length}")
+ValueError: Invalid shooting region: {0: (0, 0)} for path length 15
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/elias/anaconda3/envs/test/lib/python3.12/concurrent/futures/process.py", line 263, in _process_worker
+    r = call_item.fn(*call_item.args, **call_item.kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/APPTIS/infretis/infretis/core/tis.py", line 68, in run_md
+    _, trials, status = select_shoot(picked)
+                        ^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/APPTIS/infretis/infretis/core/tis.py", line 341, in select_shoot
+    accept, new_path, status = sh_moves[move](
+                               ^^^^^^^^^^^^^^^
+  File "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/APPTIS/infretis/infretis/core/tis.py", line 1837, in staple_sh
+    shooting_point, idx, dek = prepare_shooting_point(
+                               ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/APPTIS/infretis/infretis/core/tis.py", line 810, in prepare_shooting_point
+    shooting_point, idx = path.get_shooting_point(rgen)
+                          ^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'get_shooting_point'
+"""
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/elias/anaconda3/envs/test/bin/infretisrun", line 8, in <module>
+    sys.exit(infretisrun())
+             ^^^^^^^^^^^^^
+  File "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/APPTIS/infretis/infretis/bin.py", line 38, in infretisrun
+    internalrun(input_file)
+  File "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/APPTIS/infretis/infretis/bin.py", line 70, in internalrun
+    scheduler(config)
+  File "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/APPTIS/infretis/infretis/scheduler.py", line 30, in scheduler
+    worker_md_items = state.treat_output(future.result())
+                                         ^^^^^^^^^^^^^^^
+  File "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/APPTIS/infretis/infretis/asyncrunner.py", line 121, in _task_wrapper
+    md_item = await loop.run_in_executor(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'get_shooting_point'
