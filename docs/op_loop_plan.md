@@ -178,3 +178,20 @@ mutates `staridx`/`meta` of shared Path objects; infretis `staple_extender` over
   against the bare gate, refill undid the thinning and the set failed verification three times), or leave the
   pair if none does; end pairs use the effective state levels of `interfaces.state_levels` (mean h at the first
   frames past the state). Details and numbers in `op_loop_report.md`; test `test_refill_splits_wide_pairs_only_where_the_gate_allows`.
+- **Second infretis core change (authorized 2026-11-17): a staple path with no shooting point is a rejected move.**
+  A 50k-cycle production on Z died at cycle 23 069: `staple_sh` picked a path in [1*] whose shooting region was empty
+  (`{0: (1, 0)}`, length 15); `get_shooting_point` raised, the fallback `get_pp_path` returned `None`, and
+  `prepare_shooting_point(None, ...)` raised `AttributeError` in the worker, which stopped the scheduler (a plain
+  restart reproduced it: random state and path are restored). `core/tis.py: staple_sh` now catches the failure of the
+  fallback and returns `False, trial_path, "NSG"` (the status wire fencing already uses for "no frames to shoot from"),
+  with a one-frame trial path as after a failed kick (`run_md` reads its order extrema). Staying in the old path is a
+  valid move, so the sampled distribution is untouched. Tests: `test/staple/core/test_no_shooting_point.py` (fail on the
+  old code, pass on the new); staple (244) and tis/core/repex (22) suites unchanged. The alternative of zero weights for
+  such (path, ensemble) pairs in `calc_cv_vector` was measured on the data and changes P_cross and the rate by -0.7% and
+  -0.6% (dropped weight 0.006-0.05% per ensemble); not used, since it changes the ensemble measure and the swap
+  bookkeeping for a path invalid in its own ensemble is untested.
+- **The gate cannot guarantee zero empty-region paths in a long run.** Accepted paths with an empty shooting region occur
+  at about 1 in 1600 in [1*] (7 (path, ensemble) pairs among 13 691 accepted paths of the refilled Z run); a 2000-cycle
+  verification sees about one and passed with none by chance. The gate's check stays (a high rate is a sign of badly
+  spaced interfaces, e.g. a window 0.0115 wide next to A), but production correctness no longer depends on it being zero.
+

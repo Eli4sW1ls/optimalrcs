@@ -128,6 +128,16 @@ The initialization column includes every verification run of the refill attempts
 sets of three 500-cycle rounds, 2.2M; two 2000-cycle rounds of the 13-interface set, 3.0M; the accepted round, 2.0M, and
 the original verification, 0.4M).
 
+**Extending the refilled run to 50 000 cycles exposed an infretis crash, now fixed in the sampler.** At cycle 23 069 a
+path with an empty shooting region (`{0: (1, 0)}`) in [1*] was picked for shooting; the staple fallback found no cut path
+and the worker died (`AttributeError` on `None`); a plain restart crashed again. Such paths are not rare (7
+(path, ensemble) pairs in 13 691 accepted paths; the 2000-cycle verification had none by chance), so the gate's "zero empty
+regions" cannot protect a long run. `staple_sh` now rejects the move with the existing status NSG (core change authorized,
+`test_no_shooting_point.py`). Effect of the alternative of giving those pairs zero weight, measured on the data up to the
+crash (10% burn-in): P_cross 2.764e-6 -> 2.744e-6 (-0.7%), rate 1.652x -> 1.642x exact, a negligible change against the
+statistical error. The same data give 1.65x the exact rate at 23k cycles against 0.97x at 20k: the point value moves 70%
+within 3000 cycles, inside the error.
+
 Where the production error comes from: the block error of each local crossing probability P(lambda_k+1 |
 lambda_k) of the Z production, as a share of the variance of P_cross (`production/ensemble_errors.json`):
 
