@@ -22,7 +22,7 @@ import numpy as np
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
-TOYTIS = "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/PyRETIS3/toytis"
+TOYTIS = "/local/data/data-fbsskr/Students/elias/toytis"
 
 
 # ------------------------------------------------------------------------------------------------
