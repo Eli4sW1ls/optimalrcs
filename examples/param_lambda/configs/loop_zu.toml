@@ -1,0 +1,16 @@
+# M3 native embedding: the Z loop (loop_z) on z_br plus a simulated slow coordinate w that is not coupled to (y, x)
+# (ase_systems.zu_br: double well in w, dV 3 kT, w0 0.1: the w dynamics of the gate system zw_br). The committor and
+# the rate are those of Z. All CVs are used: the test is what an uncoupled slow w costs.
+inherit = "loop_z"
+name = "loop_zu"
+system = "zu_br"
+
+[screen]
+# fixed CV set (y, x, w) for teacher and student: automatic screening is off (2026-11-17). Neither SD(Z_q) nor the
+# held-out Dirichlet energy (single block or 5-fold) separated the coupled w of loop_zw (+41%) from the uncoupled w
+# of loop_zu (+24%); see loop/screen.py and docs/op_loop_plan.md. Selection by a different test is a later experiment.
+enabled = false
+
+[pool]
+max_frames = 8000000                # frame budget of the pool view (whole stored paths dropped at random above it):
+                                    # the 3D pass-0 pools hold 21-23M frames, and a full view peaks at 5.9 GB

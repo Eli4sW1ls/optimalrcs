@@ -16,7 +16,7 @@ Paths available : 11761 (after skip)
 Path lengths    : 11761/11761 paths (11761 from cache, 0 read from order.txt)
 Running estimates: 235 steps, 50 -> 11761 (step 50)
 
-Running estimates completed in 3s.
+Running estimates completed in 2s.
 
 Using 235 valid snapshots for error analysis (skipping first 0 for stability)
 Using 235 snapshots with finite rates for the rate error analysis

@@ -1,0 +1,32 @@
+{
+ "pass_index": 7,
+ "model": "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_zu/models/lambda_7.npz",
+ "interfaces": [
+  0.05,
+  0.06866452656779842,
+  0.08844212621876346,
+  0.16640021303871178,
+  0.85
+ ],
+ "ok": true,
+ "fails": [],
+ "source": "verification 1",
+ "verification": [
+  {
+   "round": 1,
+   "interfaces": [
+    0.05,
+    0.06866452656779842,
+    0.08844212621876346,
+    0.16640021303871178,
+    0.85
+   ],
+   "removed": [],
+   "refilled": [],
+   "ok": true,
+   "fails": [],
+   "md_steps": 638194
+  }
+ ],
+ "written": "2026-11-17 21:23:59"
+}

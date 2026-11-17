@@ -1,0 +1,178 @@
+[runner]
+workers = 4
+files = []
+wmdrun = [
+    "not used",
+    "not used",
+    "not used",
+    "not used",
+    "not used",
+    "not used",
+    "not used",
+    "not used",
+]
+
+[simulation]
+interfaces = [
+    -1.6,
+    -1.423,
+    -1.067,
+    -0.794,
+    -0.732,
+    -0.707,
+    -0.684,
+    -0.642,
+    -0.566,
+    1.6,
+]
+steps = 200
+seed = 0
+load_dir = "load"
+shooting_moves = [
+    "sh",
+    "sh",
+    "wf",
+    "wf",
+    "wf",
+    "wf",
+    "wf",
+    "wf",
+    "wf",
+    "wf",
+]
+
+[simulation.tis_set]
+maxlength = 400000
+allowmaxlength = false
+zero_momentum = false
+n_jumps = 4
+staple = false
+
+[engine]
+class = "ase"
+engine = "ase"
+temperature = 2901.130515100252
+input_path = "."
+timestep = 0.05090252835578363
+subcycles = 1
+integrator = "overdamped_lgv"
+langevin_fixcm = false
+langevin_friction = 0.09822694788464063
+
+[engine.calculator_settings]
+class = "ToytisPotential"
+spec = "potential_staggered_channels:PotentialStaggeredChannels"
+dim = 2
+module = "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/param_lambda/loop/ase_calcs.py"
+
+[engine.calculator_settings.params]
+V_peak = 1.7857142857142856
+V_dip = 0.75
+
+[engine.particles]
+mass = [
+    1.0,
+]
+name = [
+    "H",
+]
+pos = [
+    [
+        -2.0,
+        0.0,
+    ],
+]
+
+[engine.box]
+periodic = [
+    false,
+    false,
+]
+
+[orderparameter]
+class = "SeedLambda"
+module = "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/param_lambda/infretis_orderp.py"
+state_cv = 0
+
+[[orderparameter.cvs]]
+class = "Position"
+index = [
+    0,
+    0,
+]
+periodic = false
+
+[[orderparameter.cvs]]
+class = "Position"
+index = [
+    0,
+    1,
+]
+periodic = false
+
+[output]
+data_dir = "./"
+screen = 100
+pattern = false
+delete_old = false
+delete_old_all = false
+visual_validation = false
+data_file = "infretis_data_3.txt"
+
+[infinit]
+pL = 0.3
+lamres = 0.001
+skip = 0.1
+initial_conf = "initial.traj"
+cstep = 2
+steps_per_iter = [
+    200,
+    200,
+    200,
+    200,
+    200,
+    200,
+    200,
+    200,
+    200,
+    200,
+    200,
+    200,
+]
+prev_Pcross = 0.29802180972236203
+
+[current]
+traj_num = 416
+cstep = 0
+active = [
+    406,
+    407,
+    408,
+    409,
+    410,
+    411,
+    412,
+    413,
+    414,
+    415,
+]
+locked = []
+size = 10
+wsubcycles = [
+    39081,
+    38200,
+    37074,
+    51426,
+]
+tsubcycles = 165781
+
+[current.frac]
+
+[current.rng_state]
+bit_generator = "PCG64"
+has_uint32 = 0
+uinteger = 0
+
+[current.rng_state.state]
+state = 242586018490994230170102172828123423525
+inc = 87136372517582989555478159403783844777

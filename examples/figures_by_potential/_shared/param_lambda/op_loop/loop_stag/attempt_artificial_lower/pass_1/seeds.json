@@ -1,0 +1,84 @@
+{
+ "report": {
+  "0": {
+   "pass_index": 10,
+   "pnr": 1722,
+   "frames": [
+    0,
+    2
+   ],
+   "tainted": false
+  },
+  "1": {
+   "pass_index": 10,
+   "pnr": 1725,
+   "frames": [
+    0,
+    217
+   ],
+   "tainted": false,
+   "pptype": "LMR",
+   "sh_region": [
+    1,
+    2
+   ]
+  },
+  "2": {
+   "pass_index": 10,
+   "pnr": 1731,
+   "frames": [
+    0,
+    87
+   ],
+   "tainted": false,
+   "pptype": "LMR",
+   "sh_region": [
+    1,
+    59
+   ]
+  },
+  "3": {
+   "pass_index": 10,
+   "pnr": 1724,
+   "frames": [
+    0,
+    130
+   ],
+   "tainted": false,
+   "pptype": "LML",
+   "sh_region": [
+    7,
+    94
+   ]
+  },
+  "4": {
+   "pass_index": "artificial",
+   "pnr": 0,
+   "frames": [
+    0,
+    508
+   ],
+   "tainted": true,
+   "pptype": "LMR",
+   "sh_region": [
+    43,
+    308
+   ]
+  },
+  "5": {
+   "pass_index": "artificial",
+   "pnr": 1,
+   "frames": [
+    1596,
+    2143
+   ],
+   "tainted": true,
+   "pptype": "LMR",
+   "sh_region": [
+    443,
+    546
+   ]
+  }
+ },
+ "written": "2026-11-17 19:30:49"
+}

@@ -1,0 +1,267 @@
+{
+ "iterations": [
+  {
+   "cstep": 0,
+   "steps": 200,
+   "interfaces": [
+    -1.6,
+    -1.5955407987463532,
+    -1.5910815974927062,
+    -1.586622396239059,
+    1.6
+   ],
+   "data_file": "./infretis_data_1.txt",
+   "saved_frames": 28635,
+   "saved_frames_total": 28635,
+   "n_reached_b": 0,
+   "wall_seconds": 20.795411348342896,
+   "toml": "infretis_1.toml"
+  },
+  {
+   "cstep": 1,
+   "steps": 200,
+   "interfaces": [
+    -1.6,
+    -1.532,
+    -1.467,
+    -1.437,
+    -1.419,
+    -1.17,
+    -0.855,
+    -0.785,
+    1.6
+   ],
+   "data_file": "infretis_data_2.txt",
+   "saved_frames": 137146,
+   "saved_frames_total": 165781,
+   "n_reached_b": 0,
+   "wall_seconds": 73.20590162277222,
+   "toml": "infretis_2.toml"
+  },
+  {
+   "cstep": 2,
+   "steps": 200,
+   "interfaces": [
+    -1.6,
+    -1.423,
+    -1.067,
+    -0.794,
+    -0.732,
+    -0.707,
+    -0.684,
+    -0.642,
+    -0.566,
+    1.6
+   ],
+   "data_file": "infretis_data_3.txt",
+   "saved_frames": 2081988,
+   "saved_frames_total": 2247769,
+   "n_reached_b": 5,
+   "wall_seconds": 839.2552089691162,
+   "toml": "infretis_3.toml"
+  },
+  {
+   "cstep": 3,
+   "steps": 200,
+   "interfaces": [
+    -1.6,
+    -1.355,
+    -1.023,
+    -0.805,
+    -0.758,
+    -0.71,
+    -0.634,
+    1.6
+   ],
+   "data_file": "infretis_data_4.txt",
+   "saved_frames": 1535853,
+   "saved_frames_total": 3783622,
+   "n_reached_b": 8,
+   "wall_seconds": 622.5959446430206,
+   "toml": "infretis_4.toml"
+  },
+  {
+   "cstep": 4,
+   "steps": 200,
+   "interfaces": [
+    -1.6,
+    -1.441,
+    -1.115,
+    -0.846,
+    -0.781,
+    -0.743,
+    -0.71,
+    -0.635,
+    1.6
+   ],
+   "data_file": "infretis_data_5.txt",
+   "saved_frames": 2082276,
+   "saved_frames_total": 5865898,
+   "n_reached_b": 11,
+   "wall_seconds": 808.9540390968323,
+   "toml": "infretis_5.toml"
+  },
+  {
+   "cstep": 5,
+   "steps": 200,
+   "interfaces": [
+    -1.6,
+    -1.469,
+    -1.142,
+    -0.849,
+    -0.785,
+    -0.743,
+    -0.728,
+    -0.68,
+    1.6
+   ],
+   "data_file": "infretis_data_6.txt",
+   "saved_frames": 2320821,
+   "saved_frames_total": 8186719,
+   "n_reached_b": 13,
+   "wall_seconds": 695.7968468666077,
+   "toml": "infretis_6.toml"
+  },
+  {
+   "cstep": 6,
+   "steps": 200,
+   "interfaces": [
+    -1.6,
+    -1.448,
+    -1.006,
+    -0.818,
+    -0.766,
+    -0.729,
+    -0.683,
+    1.6
+   ],
+   "data_file": "infretis_data_7.txt",
+   "saved_frames": 1242036,
+   "saved_frames_total": 9428755,
+   "n_reached_b": 14,
+   "wall_seconds": 409.1675488948822,
+   "toml": "infretis_7.toml"
+  },
+  {
+   "cstep": 7,
+   "steps": 200,
+   "interfaces": [
+    -1.6,
+    -1.494,
+    -1.147,
+    -0.848,
+    -0.784,
+    -0.751,
+    -0.723,
+    -0.679,
+    1.6
+   ],
+   "data_file": "infretis_data_8.txt",
+   "saved_frames": 1821182,
+   "saved_frames_total": 11249937,
+   "n_reached_b": 16,
+   "wall_seconds": 619.4068083763123,
+   "toml": "infretis_8.toml"
+  },
+  {
+   "cstep": 8,
+   "steps": 200,
+   "interfaces": [
+    -1.6,
+    -1.482,
+    -1.077,
+    -0.83,
+    -0.771,
+    -0.735,
+    -0.676,
+    1.6
+   ],
+   "data_file": "infretis_data_9.txt",
+   "saved_frames": 1438415,
+   "saved_frames_total": 12688352,
+   "n_reached_b": 17,
+   "wall_seconds": 487.3824620246887,
+   "toml": "infretis_9.toml"
+  },
+  {
+   "cstep": 9,
+   "steps": 200,
+   "interfaces": [
+    -1.6,
+    -1.509,
+    -1.237,
+    -0.881,
+    -0.804,
+    -0.765,
+    -0.73,
+    -0.667,
+    1.6
+   ],
+   "data_file": "infretis_data_10.txt",
+   "saved_frames": 1853691,
+   "saved_frames_total": 14542043,
+   "n_reached_b": 19,
+   "wall_seconds": 589.520220041275,
+   "toml": "infretis_10.toml"
+  },
+  {
+   "cstep": 10,
+   "steps": 200,
+   "interfaces": [
+    -1.6,
+    -1.512,
+    -1.245,
+    -0.881,
+    -0.803,
+    -0.759,
+    -0.728,
+    -0.658,
+    1.6
+   ],
+   "data_file": "infretis_data_11.txt",
+   "saved_frames": 2303003,
+   "saved_frames_total": 16845046,
+   "n_reached_b": 24,
+   "wall_seconds": 706.310941696167,
+   "toml": "infretis_11.toml"
+  }
+ ],
+ "n_b": 20,
+ "reached_b": true,
+ "zero_paths": {
+  "max_op": -1.5821631949854122,
+  "interfaces": [
+   -1.6,
+   -1.5955407987463532,
+   -1.5910815974927062,
+   -1.586622396239059,
+   1.6
+  ]
+ },
+ "final_interfaces": [
+  -1.6,
+  -1.515,
+  -1.251,
+  -0.885,
+  -0.806,
+  -0.756,
+  -0.731,
+  -0.667,
+  1.6
+ ],
+ "data_files": [
+  "./infretis_data_1.txt",
+  "infretis_data_2.txt",
+  "infretis_data_3.txt",
+  "infretis_data_4.txt",
+  "infretis_data_5.txt",
+  "infretis_data_6.txt",
+  "infretis_data_7.txt",
+  "infretis_data_8.txt",
+  "infretis_data_9.txt",
+  "infretis_data_10.txt",
+  "infretis_data_11.txt"
+ ],
+ "saved_frames": 16845046,
+ "wall_seconds": 5875.0102417469025
+}

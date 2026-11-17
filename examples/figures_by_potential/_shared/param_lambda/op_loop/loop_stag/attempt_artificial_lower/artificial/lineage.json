@@ -1,0 +1,1 @@
+{"tainted_inodes": [36962313, 36962318, 36962323, 36962328, 36962333, 36962338, 36962343, 36962348], "note": "artificial seed paths (all tainted): overdamped stag_br at 2.0 x kT, 4 substeps per frame, avoiding {'y': [0.3, 2.1], 'x': [-0.6, 1.0]}, lower channel only, 8 paths, 3044800 walker steps"}

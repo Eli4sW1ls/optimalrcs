@@ -1,0 +1,57 @@
+Propagating in ensemble [0-]
+Propagating in ensemble [0+]
+Re-propagating [0+] since we started below lambda0
+Propagating [0-] in reverse
+Propagating [0+] in reverse
+Done! Making load dir
+Running with infretis.toml
+🔧 Starting internalrun with input: infretis.toml
+🚀 About to call setup_config - set breakpoint here!
+📋 Configuration loaded, starting scheduler...
+[pass0] iteration 0: 200 steps, 0 paths reached B, interfaces [0.05, 0.0508, 0.0515, 0.0523, 0.85]
+/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/APPTIS/inftools/inftools/tistools/path_weights.py:54: RuntimeWarning: invalid value encountered in divide
+  w = D["path_f"] / D["path_w"]
+The following command can now be ran:
+inft wham -toml combo.toml -data combo.txt -folder combo
+Weights saved to last_infretis_path_weigths.txt.
+Pcross saved to last_infretis_pcross.txt.
+* Active paths found. Trying to use previous active paths.
+* All ensemles are filled.
+Running with infretis.toml
+🔧 Starting internalrun with input: infretis.toml
+🚀 About to call setup_config - set breakpoint here!
+📋 Configuration loaded, starting scheduler...
+[pass0] iteration 1: 200 steps, 1 paths reached B, interfaces [0.05, 0.055, 0.058, 0.062, 0.067, 0.071, 0.097, 0.165, 0.85]
+The following command can now be ran:
+inft wham -toml combo.toml -data combo.txt -folder combo
+Weights saved to last_infretis_path_weigths.txt.
+Pcross saved to last_infretis_pcross.txt.
+* Active paths found. Trying to use previous active paths.
+* Previous active path load/436 is not valid with the new interfaces (omax 0.328849 valid in 6 intf 0.372)
+* All ensemles are filled.
+Running with infretis.toml
+🔧 Starting internalrun with input: infretis.toml
+🚀 About to call setup_config - set breakpoint here!
+📋 Configuration loaded, starting scheduler...
+[pass0] iteration 2: 200 steps, 14 paths reached B, interfaces [0.05, 0.06, 0.073, 0.095, 0.151, 0.276, 0.372, 0.453, 0.532, 0.542, 0.543, 0.85]
+The following command can now be ran:
+inft wham -toml combo.toml -data combo.txt -folder combo
+Weights saved to last_infretis_path_weigths.txt.
+Pcross saved to last_infretis_pcross.txt.
+* Active paths found. Trying to use previous active paths.
+* All ensemles are filled.
+Running with infretis.toml
+🔧 Starting internalrun with input: infretis.toml
+🚀 About to call setup_config - set breakpoint here!
+📋 Configuration loaded, starting scheduler...
+[pass0] iteration 3: 200 steps, 45 paths reached B, interfaces [0.05, 0.061, 0.072, 0.09, 0.2, 0.293, 0.376, 0.422, 0.511, 0.532, 0.537, 0.555, 0.612, 0.85]
+The following command can now be ran:
+inft wham -toml combo.toml -data combo.txt -folder combo
+Weights saved to last_infretis_path_weigths.txt.
+Pcross saved to last_infretis_pcross.txt.
+* Active paths found. Trying to use previous active paths.
+* Previous active path load/821 is not valid with the new interfaces (omax 0.853373 valid in 10 intf 0.555)
+* Previous active path load/838 is not valid with the new interfaces (omax 0.855829 valid in 10 intf 0.555)
+* Previous active path load/829 is not valid with the new interfaces (omax 0.857217 valid in 10 intf 0.555)
+* All ensemles are filled.
+[pass0] done: reached B = True, 4 iterations, 6917936 saved frames

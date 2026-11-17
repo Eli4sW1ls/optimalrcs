@@ -237,3 +237,12 @@ mutates `staridx`/`meta` of shared Path objects; infretis `staple_extender` over
     their descendants), appended after every stored path in `seed.build_seeds`, MD steps counted (3.0M walker steps).
     In the future infinit should provide such paths. The pass-0 exclusion box is now the upper channel past its barrier
     top (the first box, any upper-channel entry, left 22.6k frames and a provisional B still in the strip).
+- **loop_stag restarted without the exclusion box (2026-11-17, evening).** The pass-0 paths never entered the lower
+  channel (1880 paths: 139551 frames past x = -0.9 at y > 0, none at y < 0), although plain dynamics from A enters
+  both about equally (941 / 1059 of 2000 walkers): A cuts the strip next to the channel mouths, RETIS paths end in A
+  and are shot from old ones, so pass 0 stays on the side of infinit's initial path (upper). The box had removed the
+  only transitions pass 0 had (hence the provisional front and the artificial lower-channel seeds). Now the initial
+  data are the upper channel by the sampler's own dynamics; E4 asks whether the lower channel ever enters and how far
+  the rate is off without it (exact: 2x the one-channel rate). The mixed attempt is in loop_stag/attempt_artificial_lower/.
+  Fixes found on the way stay: `passes.learn` passes the teacher's provisional B to the export (it was always None),
+  and the blend's seed table ends at the states (it held its last value beyond the data).

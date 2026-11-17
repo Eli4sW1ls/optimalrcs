@@ -1,0 +1,49 @@
+# M3 two channels: the loop on the Brownian staggered channels (ase_systems.stag_br; exact committor and rate from
+# loop/exact_stag.py; each channel carries half of the reactive flux). The initial data cover one channel by the
+# sampler itself: state A (x <= -1.6) cuts the strip next to the channel mouths, RETIS paths end in A and new paths
+# are shot from old ones, so every pass-0 path descends from infinit's initial path, which went to the upper side
+# (1880 pass-0 paths: 139551 frames past x = -0.9 at y > 0, none at y < 0; plain dynamics from A enters both
+# channels about equally). The question (E4): does the lower channel ever enter the pool (staples near A also end
+# in A), and how far off is the rate without it (exact: 2x the one-channel rate)?
+# An earlier attempt dropped every pass-0 path past the upper barrier (`[pass0] exclude_box`), which removed the only
+# transitions pass 0 had; it then needed a provisional front and artificial lower-channel seeds
+# (loop/artificial_paths.py). Kept in loop_stag/attempt_artificial_lower/.
+inherit = "loop_flat1d"
+name = "loop_stag"
+system = "stag_br"
+
+[run]
+workers = 4
+mode = "staple"
+cycles_per_pass = 1000
+screen = 100
+
+[pass0]
+mode = "retis"
+steps_per_iter = 200
+max_iter = 12
+n_b = 20
+
+[teacher]
+max_iter = 6000
+features = []
+
+[interfaces]
+n_interfaces = 10
+length_budget = 20000
+
+[stop]
+max_passes = 7
+max_md_steps = 400000000
+
+[production]
+cycles = 20000
+verify_cycles = 2000
+verify_rounds = 2
+
+[production.run]
+staple_infinite_swap = true
+
+[plots]
+x_range = [-1.95, 1.95]             # the whole transverse box: the data cover the upper channel only, and the default
+                                    # (data quantiles) cut the lower channel off the maps

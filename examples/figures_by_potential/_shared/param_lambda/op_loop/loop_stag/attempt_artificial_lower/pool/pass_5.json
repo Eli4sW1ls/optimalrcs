@@ -1,0 +1,38 @@
+{
+ "kind": "infinit",
+ "lambda_version": "seed",
+ "lambda_model": null,
+ "interfaces": [
+  -1.6,
+  -1.469,
+  -1.142,
+  -0.849,
+  -0.785,
+  -0.743,
+  -0.728,
+  -0.68,
+  1.6
+ ],
+ "mode": "retis",
+ "lambda_a": -1.6,
+ "lambda_b": 1.6,
+ "cv_names": [
+  "x",
+  "y"
+ ],
+ "state_cv": 0,
+ "n_rows": 144,
+ "workdir": "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_stag/pass_0",
+ "data_file": "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_stag/pass_0/infretis_data_6.txt",
+ "toml": "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_stag/pass_0/infretis_6.toml",
+ "md_steps": 2320821,
+ "wall_seconds": 695.7968468666077,
+ "cycles": 200,
+ "excluded_paths": 2,
+ "pass_index": 5,
+ "n_pieces": 225,
+ "n_frames": 46088,
+ "n_paths": 144,
+ "weighting": "staple",
+ "reversed_pieces": false
+}
