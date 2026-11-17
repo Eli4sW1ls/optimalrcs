@@ -219,3 +219,21 @@ mutates `staridx`/`meta` of shared Path objects; infretis `staple_extender` over
     (`param_lambda_embedding.md`, finding 4), hence the dynamical test.
   - *GPU*: the fits of a pass run under `loop/gpu.py` (a file lock shared by the loops, then a wait while any other
     process holds a GPU context).
+- **M3 decisions (2026-11-17, evening).**
+  - *Fixed CV sets*: `[screen] enabled = false` for loop_zu and loop_zw (teacher and student on y, x, w). The 5-fold
+    held-out Dirichlet energy kept x and w on the gate system (+36%, +41%, 5/5 folds) but also kept the uncoupled w
+    of the embedding (+24%, 4/5 folds): with the path-ensemble weights it is not the equilibrium Dirichlet form, so the
+    committor need not minimize it, and w is not path-constant there (share 0.31). Automatic selection (E7) needs a
+    different test later. loop_zw pass 1 ran with lambda(y, x) from the earlier screening (valid data, kept).
+  - *IPT change reverted*: a guard in `staple_sh` / `staple_swap` against the loop_zu pass-1 crash
+    (`treat_output`: "Ensemble 9 has invalid pptype RML") was built on a synthetic B -> B path that the extender cannot
+    produce (it stops at the first turn); a replay of the crash state for 2771 cycles did not reproduce the crash, so
+    the real path is unknown. infretis is back at its HEAD (with the NSG change). If the crash recurs, the trial path
+    has to be captured first (replay wrapper in the session scratchpad: dump `picked` on a `treat_output` exception).
+  - *loop_stag seeding*: the lower-channel pass-0 paths never get past x ~ -0.74, so the ensembles placed above the
+    data front could not be seeded. `loop/artificial_paths.py` makes full A -> B paths through the lower channel
+    (overdamped dynamics of the same potential at 2 x kT, 4 substeps per frame, accepted only if every frame in the
+    channel section is in the lower channel and no frame step exceeds 0.3); all tainted (training never sees them or
+    their descendants), appended after every stored path in `seed.build_seeds`, MD steps counted (3.0M walker steps).
+    In the future infinit should provide such paths. The pass-0 exclusion box is now the upper channel past its barrier
+    top (the first box, any upper-channel entry, left 22.6k frames and a provisional B still in the strip).
