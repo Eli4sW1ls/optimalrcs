@@ -82,7 +82,7 @@ def fit(view, cfg, seed_q=None, provisional_b=None, seed=0, log=None):
         provisional_b = None
     B = view.B[idx] if provisional_b is None else (s >= provisional_b)
     cv = view.cv[idx]
-    specs = list(view.cv_names) + list(cfg.get('features', []))
+    specs = list(cfg.get('cvs') or view.cv_names) + list(cfg.get('features', []))
     feat = Features(list(view.cv_names), specs)
     X = feat(cv)
     lo, hi = np.quantile(X, 0.001, axis=0), np.quantile(X, 0.999, axis=0)

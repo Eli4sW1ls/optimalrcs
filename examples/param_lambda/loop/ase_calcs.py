@@ -49,11 +49,17 @@ def load_toytis_potential(spec, params=None, toytis=TOYTIS):
 
 
 class ToytisPotential(Calculator):
+    """`base_dim` < `dim`: the toytis potential acts on the first base_dim coordinates only, and each further
+    coordinate w (up to dim) gets its own uncoupled double well dV ((w / w0)^2 - 1)^2 (`w_well` = {w0, dV}):
+    native embedding, the same w dynamics as toytis zpot_w.ZChannelsW but without the coupling."""
     implemented_properties = ['energy', 'forces']
 
-    def __init__(self, spec, params=None, dim=2, toytis=TOYTIS, **kwargs):
+    def __init__(self, spec, params=None, dim=2, toytis=TOYTIS, base_dim=None, w_well=None, **kwargs):
         super().__init__(**kwargs)
         self.spec, self.params, self.dim = spec, dict(params or {}), int(dim)
+        self.base_dim = self.dim if base_dim is None else int(base_dim)
+        ww = dict(w_well or {})
+        self.w0, self.dV = float(ww.get('w0', 0.1)), float(ww.get('dV', 0.0))
         self.potential = load_toytis_potential(spec, self.params, toytis)
 
     def calculate(self, atoms=None, properties=('energy',), system_changes=all_changes):
@@ -61,9 +67,14 @@ class ToytisPotential(Calculator):
         pos = atoms.get_positions()
         forces = np.zeros_like(pos)
         energy = 0.0
+        bd = self.base_dim
         for i in range(len(pos)):
-            v, f = self.potential.potential_and_force((np.asarray(pos[i, :self.dim], float), None))
+            v, f = self.potential.potential_and_force((np.asarray(pos[i, :bd], float), None))
             energy += float(v)
-            forces[i, :self.dim] = np.asarray(f, float)
+            forces[i, :bd] = np.asarray(f, float)
+            for j in range(bd, self.dim):
+                r = pos[i, j] / self.w0
+                energy += self.dV * (r * r - 1.0) ** 2
+                forces[i, j] = -4.0 * self.dV * (r * r - 1.0) * r / self.w0
         self.results['energy'] = energy
         self.results['forces'] = forces

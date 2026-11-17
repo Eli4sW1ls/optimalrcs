@@ -173,13 +173,80 @@ overshoot on the plateau; it shifts where the natural-coordinate levels land but
 
 ![Z production convergence](../examples/figures_by_potential/_shared/param_lambda/op_loop/loop_z/figures/pcross_convergence.png)
 
-- Seed lambda: P_cross drifts down over the whole run, from 2e-4 to 3.4x the exact value, and its block-error curve
-  has no plateau (3 to 11 across block lengths). The quoted error (6.2) is not usable; the run is not converged.
+- Seed lambda, extended to 50 000 cycles (31.3M MD steps): the rate drifts down over the whole run and ends at
+  2.8x exact (relative error 0.45, inftools P_cross plateau 0.72); it has not converged. At equal production MD
+  (31M) the refilled learned lambda is within about 10% of exact (it ends at 1.10x, error 0.26, at 45.4M), after
+  19.2M MD steps of initialization; the seed lambda needs none.
 - Learned lambda: the block-error curve is flat at 0.47, but the running P_cross rises in steps: about 0.65x the
   exact value from 7M to 14M MD steps, then a jump of x3 near 14M to 2x exact. Steps like these come from rare
   heavy paths in the wide ridge ensemble (half of the variance, table above), so 0.47 probably understates the
   error. The inftools rate is defined only from about 14M steps on (a negative MFPT before, rate reported as 0).
 - Exact P_cross (dashed) = exact rate x time per frame / the run's flux (flux depends only on lambda_A).
+
+## M3: robustness systems (infretis + ASE)
+
+Three systems, each with the loop of loop_z (1000 cycles per pass, at most 7 passes, gated freeze) and a
+20 000-cycle production with lambda frozen (infinite swap). Exact references: the 3D grid committor of the gate
+system (`loop/exact_zw.py`, k_AB = 2.115e-5 per time unit, checked against six shooting points and a GPU MD scan)
+and the 2D grid committor of the two-channel system (`loop/exact_stag.py`, k_AB = 1.148e-4, half the flux per
+channel); the embedding has the committor and rate of Z.
+
+| system | what it tests | CVs | interfaces | initialization MD | production MD | rate / exact | rel. error |
+|---|---|---|---|---|---|---|---|
+| gate (`loop_zw`, ZChannelsW, dV_w 3 kT) | a slow w that moves the ridge | y, x, w | 14 | 11.1M | 12.8M | **1.14x** | 0.33 |
+| embedding (`loop_zu`, uncoupled double well in w) | a slow w the committor does not depend on | y, x, w | 5 | 12.0M | 5.4M | 3.02x | 2.69 |
+| two channels (`loop_stag`, staggered channels, overdamped) | a channel missing from the initial data | x, y | 12 | 17.4M | 1.6M | **0.54x** | 0.50 |
+
+Figures (`python -m loop.plots <loop>`; 3D systems: one slice per w well, w = -0.1 and +0.1):
+
+![gate, interfaces at w = -0.1](../examples/figures_by_potential/_shared/param_lambda/op_loop/loop_zw/figures/interfaces_w-0.1.png)
+![gate, interfaces at w = +0.1](../examples/figures_by_potential/_shared/param_lambda/op_loop/loop_zw/figures/interfaces_w+0.1.png)
+![embedding, interfaces at w = -0.1](../examples/figures_by_potential/_shared/param_lambda/op_loop/loop_zu/figures/interfaces_w-0.1.png)
+![two channels, interfaces](../examples/figures_by_potential/_shared/param_lambda/op_loop/loop_stag/figures/interfaces.png)
+![two channels, committor maps](../examples/figures_by_potential/_shared/param_lambda/op_loop/loop_stag/figures/maps.png)
+
+Further figures in each loop's `figures/`: `maps*.png` (model and teacher against the exact committor),
+`calibration.png`, `convergence.png`, `tis_pass<k>.png`, `feps_pass<k>.png`.
+
+Findings:
+1. **Gate: the loop learns a w-dependent lambda and the rate comes out right** (1.14x, within its error). The
+   isosurfaces follow the ridge in each well, which is mirrored between w = -0.1 and +0.1. It
+   needed both verification rounds of the freeze (round 1: empty shooting regions in ensemble 1, 1.2% of the paths).
+   Pass 1 ran with lambda(y, x) from an early screening attempt; the teacher's RMS against the exact committor went
+   from 0.056 (pass 1) to 0.13 (pass 2) and the loop recovered over passes 3-7 (stability 0.79 -> 0.16).
+2. **Embedding: an uncoupled slow CV makes the production useless.** In the figure the isosurfaces wander off
+   the exact isocommittors from pass 1 on, and the sets shrink to 5 interfaces from pass 3. With w among the inputs,
+   lambda moves in large steps along the paths; the spacing gate removed every level between 0.17 and 0.85
+   (downward skips of 15% at 0.24 and 0.46) and refill found nothing that passes, so one ensemble spans most of
+   the barrier. The teacher's RMS against exact stayed at 0.19-0.20 (gate: 0.056). The CVs a lambda sees therefore
+   have to be screened; see 4.
+3. **Two channels: the loop does not find a channel that the initial data miss.** State A cuts the strip next to the
+   channel mouths, so the RETIS paths of pass 0 stay on the side of infinit's initial path (upper channel: 139551
+   frames past x = -0.9 at y > 0, none at y < 0, while plain dynamics from A enters both channels about equally).
+   Over 7 passes the lower channel appeared twice (2 and 1895 frames, never past its barrier); the production enters
+   it (176k of 856k channel frames) but no path crosses its barrier at x = 0.6, and the rate is half the exact one,
+   as expected from one channel. The maps show it: the pass-7 model matches the exact committor in the upper channel
+   and is too low before the lower channel's barrier; the interfaces at q 0.2-0.94 are placed for the lower channel
+   and lie where q ~ 1 in the upper one (harmless for the estimate, wasted sampling). The relative error (0.50) does not flag the factor 2. Neither the learned lambda nor
+   the trust-region blend can create transitions that the sampler does not make.
+4. **CV screening is not solved.** Neither the validation SD(Z_q) (insensitive: -1% when leaving out x on the gate)
+   nor the held-out Dirichlet energy (single block or 5-fold) separates the coupled w (+41%, 5/5 folds) from the
+   uncoupled one (+24%, 4/5 folds): with the path-ensemble weights the energy is not the equilibrium Dirichlet form,
+   so the committor need not minimize it. M3 used fixed CV sets (`[screen] enabled = false`); `loop/screen.py` is
+   kept for a later test (e.g. the committor conditioned on w bins).
+5. **Fixes found on the way** (none could show on Z or cc, which reach B in pass 0 and have small pools): the
+   teacher's provisional B now reaches the export (it was always None, so lambda saturated past the data front);
+   the blend's seed table ends at the states (it held its last value beyond the data); a pass writes its fit,
+   lambda and interfaces to `fit.json` before its run and an interrupted run is resumed to its full length (it was
+   taken as finished); the pool view drops whole paths at random above `pool.max_frames` (the 3D pools hold 21-23M
+   frames, 5.9 GB as a view); the GPU lock exempts every process that has the lock file open (a deadlock between
+   an offline script and loop_stag).
+6. **An infretis edge case that is not understood**: `REPEX_state_staple.treat_output` raised `ValueError: Ensemble
+   ... has invalid pptype RML` twice (loop_zu pass 1, top ensemble; the gate production at cycle 15 512, ensemble 1).
+   It stores a path whose two turns lie at one interface only as LML in ensemble 1 and RMR in the last ensemble.
+   A replay of the loop_zu state (2771 cycles) and the resumed gate production with a wrapper that saves the trial
+   path did not reproduce it, so the path that triggers it is still unknown; a guard built on a synthetic path was
+   reverted (that path cannot be produced: the extender stops at the first turn).
 
 ## How to read the numbers
 

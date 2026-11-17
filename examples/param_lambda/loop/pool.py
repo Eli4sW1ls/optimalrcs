@@ -91,7 +91,7 @@ class Pool:
 
     # -- selection ------------------------------------------------------------------------------
     def select(self, passes='all', lineage='exclude', burn_in=0.0, cap=None, block=0.1, val_blocks=(1,),
-               test_blocks=(3,), need_labels=False, seed=0):
+               test_blocks=(3,), need_labels=False, seed=0, max_frames=None):
         """A View of the selected pieces.
 
         passes: 'all', 'last', 'last2' or a list of pass indices.
@@ -101,6 +101,9 @@ class Pool:
              hold far more data than needed.
         Splits (by whole path): the rows of a pass after its burn-in are cut into contiguous blocks of `block`
         of the rows; `val_blocks` / `test_blocks` are held out, the rest is training.
+        max_frames: frame budget of the view; above it whole path-table rows (every piece of a stored path, the
+        mirrored ones included) are dropped at random with the same keep fraction in every pass (memory: a view of
+        23M frames peaks at 5.9 GB; the teacher uses at most teacher.max_frames of them anyway).
         """
         ks = self.passes()
         if passes == 'last':
@@ -111,7 +114,11 @@ class Pool:
             ks = [k for k in ks if k in set(passes)]
         parts = []
         for k in ks:
-            z, m = self.load(k)
+            # the view needs the pieces only: the whole paths (raw_*) are left on disk (loop_zu pass 2 was
+            # OOM-killed at 7 GB while every pass's raw_cv was held in memory)
+            with np.load(self.path(k), allow_pickle=False) as f:
+                z = {key: f[key] for key in f.files if not key.startswith('raw_')}
+            m = self.meta(k)
             if need_labels and 'q_np' not in z:
                 continue
             n_rows = max(int(m.get('n_rows', 0)), int(z['piece_row'].max()) + 1 if len(z['piece_row']) else 1)
@@ -130,6 +137,14 @@ class Pool:
                         mir = np.flatnonzero(keep & (z['piece_ens'] == e) & z['piece_mirrored'])
                         keep[mir[~np.isin(z['piece_row'][mir], rows)]] = False
             parts.append((k, z, m, keep, n_rows))
+        total = sum(int(z['piece_n'][keep].sum()) for _, z, _, keep, _ in parts)
+        if max_frames is not None and total > max_frames:
+            frac = max_frames / total
+            rng = np.random.default_rng(seed)
+            for _, z, _, keep, _ in parts:
+                rows = np.unique(z['piece_row'][keep])
+                kept_rows = rows[rng.random(len(rows)) < frac]
+                keep &= np.isin(z['piece_row'], kept_rows)
         return View(parts, block=block, val_blocks=val_blocks, test_blocks=test_blocks, burn_in=burn_in)
 
 
@@ -168,7 +183,7 @@ class View:
             lab = np.full(len(idx_pieces), 'train', dtype=object)
             lab[np.isin(blk, list(val_blocks))] = 'val'
             lab[np.isin(blk, list(test_blocks))] = 'test'
-            piece_meta.append(dict(pass_index=k, uid=uid, split=lab, mirrored=z['piece_mirrored'][idx_pieces],
+            piece_meta.append(dict(pass_index=k, uid=uid, split=lab, block=blk, mirrored=z['piece_mirrored'][idx_pieces],
                                    row=z['piece_row'][idx_pieces], ens=z['piece_ens'][idx_pieces], w=z['piece_w'][idx_pieces]))
             piece_off += len(idx_pieces)
             self.lambda_a, self.lambda_b = float(m['lambda_a']), float(m['lambda_b'])
@@ -208,6 +223,7 @@ class View:
         self.piece_row = np.concatenate([pm['row'] for pm in piece_meta])
         self.piece_ens = np.concatenate([pm['ens'] for pm in piece_meta])
         self.piece_w = np.concatenate([pm['w'] for pm in piece_meta])
+        self.piece_block = np.concatenate([pm['block'] for pm in piece_meta])     # MC block of the pass (K-fold screening)
         self.frame_split = self.piece_split[self.piece]
         self.path_id = np.unique(self.path)
 

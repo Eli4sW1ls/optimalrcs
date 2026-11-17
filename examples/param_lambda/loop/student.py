@@ -40,12 +40,16 @@ def _cfg_for_models(cfg_loop):
     }
 
 
-def train(view, cfg_loop, seed=0, init_params=None, log=None):
+def train(view, cfg_loop, seed=0, init_params=None, log=None, specs=None):
     """Fit M3 on the view (training split; checkpoint selected by the validation SD(Z_q)). Returns the score
-    parameters and an info dict (selected epoch, metrics per checkpoint, seconds)."""
+    parameters and an info dict (selected epoch, metrics per checkpoint, seconds). `specs`: the input CVs
+    (default all of the view's; the screening step passes subsets). A warm start is used only when the previous
+    network had the same inputs."""
     st = cfg_loop.get('student', {})
     cfg = _cfg_for_models(cfg_loop)
-    specs = list(view.cv_names)
+    specs = list(view.cv_names) if specs is None else list(specs)
+    if init_params is not None and 'feat_specs' in init_params and list(map(str, init_params['feat_specs'])) != specs:
+        init_params = None
     ts = models.TrainSet(view, cfg, specs)
     # calibration frames: evenly spaced training frames; selection frames: validation pieces
     tr = np.flatnonzero(view.mask('train') & view.valid)
@@ -75,7 +79,8 @@ def train(view, cfg_loop, seed=0, init_params=None, log=None):
     params = m.export()
     params['arch'] = np.array(arch)
     info = dict(selected_epoch=int(m.epoch), checkpoints=ckpts, seconds=time.time() - t0, arch=arch, beta=beta,
-                n_train_frames=int(len(ts.z)), warm_start=init_params is not None)
+                n_train_frames=int(len(ts.z)), warm_start=init_params is not None, specs=specs,
+                sdzqs=float(ckpts[best]['sdzqs']))
     return params, info
 
 
@@ -157,4 +162,11 @@ def _monotone_table(s, lam, w, lambda_a, lambda_b, n_bins=200, min_count=20):
         sk, lk = np.array([lambda_a, lambda_b]), np.array([lambda_a + eps, lambda_b - eps])
     keep = np.r_[True, np.diff(sk) > 0]
     sk, lk = sk[keep], lk[keep]
+    # end knots at the states, so the seed lambda keeps rising beyond the data instead of holding its last value:
+    # with a provisional front the out-of-distribution frames past it (loop_stag: the lower channel beyond
+    # x = -0.68) otherwise all blended to one lambda (0.281), and no interface above it could be seeded
+    if sk[0] > lambda_a and lk[0] > lambda_a + eps:
+        sk, lk = np.r_[lambda_a, sk], np.r_[lambda_a + eps, lk]
+    if sk[-1] < lambda_b and lk[-1] < lambda_b - eps:
+        sk, lk = np.r_[sk, lambda_b], np.r_[lk, lambda_b - eps]
     return sk, lk, PchipInterpolator(sk, lk).derivative()(sk)

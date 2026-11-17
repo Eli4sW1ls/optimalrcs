@@ -225,3 +225,67 @@ def test_refill_splits_wide_pairs_only_where_the_gate_allows():
     # a gate no candidate can meet (n_sh beyond any window's occupancy): the set comes back unchanged
     out2, added2 = itf.refill(_IdentityScale(), paths, lv, dict(gate, n_sh=1e6), 'staple', R=5.0)
     assert added2 == [] and out2 == lv
+
+
+def test_uncoupled_w_well_force_and_no_coupling():
+    """zu_br calculator: the w force is -dV_w/dw of the double well and does not depend on (y, x); the (y, x)
+    forces are those of the 2D potential."""
+    from loop import env  # noqa: F401  (puts the ase checkout first)
+    from loop import ase_calcs, ase_systems
+    from ase import Atoms
+    c = dict(ase_systems.get('zu_br')['calculator'])
+    cls = getattr(ase_calcs, c.pop('class'))
+    c2 = dict(c, dim=2, base_dim=2)
+    w0, dV = c['w_well']['w0'], c['w_well']['dV']
+    for p in ([0.3, 0.1, -0.07], [0.6, 0.25, 0.12], [0.45, 0.15, 0.0]):
+        a = Atoms('H', positions=[p]); a.calc = cls(**c)
+        b = Atoms('H', positions=[p[:2] + [0.0]]); b.calc = cls(**c2)
+        f, f2 = a.get_forces()[0], b.get_forces()[0]
+        r = p[2] / w0
+        assert np.allclose(f[:2], f2[:2])
+        assert np.isclose(f[2], -4 * dV * (r * r - 1) * r / w0)
+
+
+def test_screen_keeps_only_cvs_whose_removal_hurts(monkeypatch):
+    """screen.run (K-fold): a CV is kept only when leaving it out raises the pooled held-out Dirichlet energy by
+    more than tol AND in a majority of folds; the state CV is never a candidate. Also the energy on a chain."""
+    from loop import screen
+
+    class V:
+        cv_names = ['y', 'x', 'w']
+        state_cv = 0
+        n = 400
+        has_exact = False
+        rng = np.random.default_rng(0)
+        cv = rng.normal(size=(400, 3))
+        path = np.repeat(np.arange(40), 10)
+        piece = np.repeat(np.arange(40), 10)
+        piece_block = np.arange(40) % 10
+        w = np.ones(400)
+        valid = np.ones(400, bool)
+        frame_split = np.full(400, 'train', dtype=object)
+
+        def mask(self, split):
+            return self.frame_split == split
+
+        def pairs(self, mask, lag):
+            i0 = np.array([i for i in range(self.n - lag) if mask[i] and mask[i + lag]
+                           and self.path[i] == self.path[i + lag]], int)
+            return i0, i0 + lag
+
+    # per fold (5 folds) the energy sums (num, den) of each CV set: x helps in every fold; w helps a lot in one
+    # fold only (pooled +26%, but up in 1 of 5 folds): dropped
+    E = {('y', 'x', 'w'): [1.0] * 5, ('y', 'w'): [1.5] * 5, ('y', 'x'): [0.95, 0.95, 0.95, 0.95, 2.5]}
+    monkeypatch.setattr(screen, '_cv_energy', lambda view, cfg, specs, seed, folds, k, lags:
+                        ([{L: (e, 1.0) for L in lags} for e in E[tuple(specs)]], [1.0] * 5))
+    res = screen.run(V(), {'screen': {'tol': 0.1}}, ['y', 'x', 'w'])
+    assert res['kept'] == ['y', 'x']
+    rx, rw = res['rows'][1], res['rows'][2]
+    assert rx['left_out'] == 'x' and rx['keep'] and rx['folds_up'] == 5
+    assert rw['left_out'] == 'w' and not rw['keep'] and rw['rel_change'] > 0.1 and rw['folds_up'] == 1
+    assert set(screen.fold_of_frame(V(), 5)) == set(range(5))
+    v = V()
+    q = np.tile(np.linspace(0, 0.9, 10), 40)                    # increments of 0.1 within each path
+    allm = np.ones(400, bool)
+    assert np.isclose(screen.dirichlet(v, q, allm, lags=(1, 2))[1], 0.01)
+    assert np.isclose(screen.dirichlet(v, q, allm, lags=(1, 2))[2], 0.04)

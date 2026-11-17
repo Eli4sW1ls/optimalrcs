@@ -24,7 +24,8 @@ if __name__ == '__main__':
         be.resume(out, steps)
     r = rates.staple_rate(out, burn_in=float(cfg.get('production', {}).get('burn_in', 0.1)))
     r['cost'] = be.cost(out)
-    if cfg['system_spec'].get('dim') == 2:
-        r['exact'] = rates.exact_rate(cfg['system_spec'])
+    ref = rates.reference_rate(cfg['system_spec'])
+    if ref is not None:
+        r['exact'] = ref
     manifest.write(os.path.join(out, 'rates.json'), **r)
     print({k: v for k, v in r.items() if k not in ('interfaces', 'pcross')})

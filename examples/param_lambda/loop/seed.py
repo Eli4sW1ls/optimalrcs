@@ -182,6 +182,9 @@ def build_seeds(pool, model, interfaces, mode, out_dir, passes=None, max_paths=3
     per ensemble is taken, so lambda and the validity checks run only on the paths actually inspected."""
     passes = pool.passes() if passes is None else passes
     paths = _stored_paths(pool, passes)[:max_paths]
+    # last resort: artificial A -> B paths (loop/artificial_paths.py), all tainted, after every stored path
+    from loop import artificial_paths
+    paths += artificial_paths.load(os.path.dirname(pool.dir))
     n = len(interfaces)
     la, lb = float(interfaces[0]), float(interfaces[-1])
 

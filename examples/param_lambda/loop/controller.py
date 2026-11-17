@@ -86,19 +86,55 @@ def ingest_pass0(cfg, workdir, rec, log=None):
                                 # weight (the loader's default); the path_f override is for staple runs
                                 weighting=pc.get('weighting') if cfg['pass0'].get('mode', 'retis') == 'staple' else None)
         raw = be.raw_paths(workdir, data_file=data_file, toml_file=toml_file)
+        n_excl = 0
+        if cfg['pass0'].get('exclude_box'):
+            pieces, raw, n_excl = exclude_box(pieces, raw, cfg['pass0']['exclude_box'], system['cv_names'])
         meta = dict(kind='infinit', lambda_version='seed', lambda_model=None, interfaces=it['interfaces'],
                     mode=cfg['pass0'].get('mode', 'retis'), lambda_a=system['lambda_a'], lambda_b=system['lambda_b'],
                     cv_names=system['cv_names'], state_cv=system['state_cv'], n_rows=len(raw['rows']), workdir=workdir,
                     data_file=data_file, toml=toml_file, md_steps=int(it['saved_frames']) * sub,
-                    wall_seconds=it.get('wall_seconds'), cycles=it['steps'])
+                    wall_seconds=it.get('wall_seconds'), cycles=it['steps'], excluded_paths=n_excl)
         if system.get('exact'):
             q = ase_systems.exact_committor(system)
             pieces['q_exact'] = q(pieces['cv'][:, 1:]).astype(np.float32)
         m = pool.store(k, pieces, raw, meta)
         common.say(f'pool: pass {k} (infinit iteration {it["cstep"]}): {m["n_pieces"]} pieces, {m["n_frames"]} frames, '
-                   f'{m["n_paths"]} paths', log=log)
+                   f'{m["n_paths"]} paths' + (f' ({n_excl} paths in the exclusion box dropped)' if n_excl else ''), log=log)
         stored.append(k)
     return pool, stored
+
+
+def exclude_box(pieces, raw, box, cv_names):
+    """Drop every path with a frame inside `box` ({cv name: [lo, hi]}, all bounds must hold) from the pieces and
+    the whole paths of a pass-0 store (M3 two-channel system: the initial data cover one channel only, `[pass0]
+    exclude_box`). A path is judged on its whole stored trajectory and on its pieces. Only pass 0 is filtered: what
+    the later passes sample is kept. Returns (pieces, raw, number of dropped paths)."""
+    cols = [(1 + list(cv_names).index(c), float(lo), float(hi)) for c, (lo, hi) in box.items()]
+
+    def inside(a):
+        a = np.atleast_2d(a)
+        m = np.ones(len(a), bool)
+        for j, lo, hi in cols:
+            m &= (a[:, j] >= lo) & (a[:, j] <= hi)
+        return m.any()
+    bad = {p for p, op in zip(raw['pnr'], raw['ops']) if inside(op)}
+    starts = np.r_[0, np.cumsum(pieces['piece_n'])[:-1]]
+    for i, p in enumerate(pieces['piece_pnr']):
+        if int(p) not in bad and inside(pieces['cv'][starts[i]:starts[i] + pieces['piece_n'][i]]):
+            bad.add(int(p))
+    keep_piece = ~np.isin(pieces['piece_pnr'], list(bad))
+    keep_frame = keep_piece[pieces['piece']]
+    out = dict(pieces)
+    out['cv'], out['t'] = pieces['cv'][keep_frame], pieces['t'][keep_frame]
+    for key in ('piece_n', 'piece_w', 'piece_pnr', 'piece_ens', 'piece_row', 'piece_mirrored', 'piece_core', 'piece_tainted'):
+        out[key] = pieces[key][keep_piece]
+    out['piece'] = np.repeat(np.arange(int(keep_piece.sum()), dtype=np.int32), out['piece_n'])
+    keep_raw = [p not in bad for p in raw['pnr']]
+    r = dict(raw)
+    for key in ('rows', 'pnr', 'ops', 'ptype', 'gen_ens', 'move', 'tainted', 'length'):
+        r[key] = [v for v, k in zip(raw[key], keep_raw) if k]
+    r['W'] = np.asarray(raw['W'])[np.asarray(keep_raw, bool)] if len(raw['W']) else raw['W']
+    return out, r, len(bad)
 
 
 # ---------------------------------------------------------------------------------------------------
@@ -112,7 +148,8 @@ def cmd_loop(cfg, args):
     pool, stored = ingest_pass0(cfg, workdir, rec, log=log)
     md0 = int(sum(pool.meta(k)['md_steps'] for k in stored))
     state.data['pass0'] = dict(workdir=workdir, pool_passes=stored, reached_b=rec['reached_b'], md_steps=md0)
-    state.data['md_steps'] = md0 + int(sum(p['cost']['md_steps'] for p in state.data['passes']))
+    state.data['md_steps'] = (md0 + int(sum(p['cost']['md_steps'] for p in state.data['passes']))
+                              + int(state.data.get('artificial_md_steps', 0)))      # loop/artificial_paths.py
     state.save()
     if getattr(args, 'pass0_only', False):
         return
@@ -138,8 +175,9 @@ def run_production(cfg, log=None):
         cost = be.cost(out)
     r = rates.staple_rate(out, burn_in=float(cfg.get('production', {}).get('burn_in', 0.1)))
     r['cost'] = cost
-    if cfg['system_spec'].get('dim') == 2:
-        r['exact'] = rates.exact_rate(cfg['system_spec'])
+    ref = rates.reference_rate(cfg['system_spec'])
+    if ref is not None:
+        r['exact'] = ref
     manifest.write(os.path.join(out, 'rates.json'), **r)
     common.say(f'production: P_cross {r["pcross_global"]:.4g} (rel. error {r["rel_err_pcross"]:.2f}), rate '
                f'{r["rate_per_time"]:.4g} per time unit (rel. error {r["rel_err_rate"]:.2f})'

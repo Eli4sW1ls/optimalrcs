@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Figures of a loop run (2D systems): <loop_dir>/figures/
+"""Figures of a loop run: <loop_dir>/figures/ (3D systems: interfaces / maps per slice w = -w0, +w0, file suffix _w<value>)
 
     python -m loop.plots <loop name> [--no-tis]
 
@@ -52,19 +52,34 @@ def _logit(q):
 
 
 class Grid:
-    def __init__(self, cfg, pool, n=(240, 140)):
+    """(state CV, second CV) grid; for 3D systems a slice at a fixed third CV `w` (the potential and the exact
+    committor of that slice; the model is evaluated at (y, x, w))."""
+
+    def __init__(self, cfg, pool, n=(240, 140), w=None):
         import toy2d
         from loop.ase_calcs import load_toytis_potential
         s = cfg['system_spec']
-        self.s = s
+        self.s, self.w = s, w
         xs_all = np.concatenate([pool.load(k)[0]['cv'][::20, 2] for k in pool.passes()])
         self.ys = np.linspace(s['lambda_a'] - 0.06, s['lambda_b'] + 0.06, n[0])
-        self.xs = np.linspace(*np.quantile(xs_all, [0.002, 0.998]), n[1])
-        pot = load_toytis_potential(s['potential'], s['potential_kwargs'])
-        V = toy2d.potential_grid(pot, self.ys, self.xs) / s['kT']
-        self.V = V - np.nanmin(V)
+        xr = cfg.get('plots', {}).get('x_range')               # default: the data's range (0.2% quantiles)
+        self.xs = np.linspace(*(xr if xr else np.quantile(xs_all, [0.002, 0.998])), n[1])
         Y, X = np.meshgrid(self.ys, self.xs, indexing='ij')
-        self.cv = np.c_[Y.ravel(), X.ravel()]
+        if w is None:
+            pot = load_toytis_potential(s['potential'], s['potential_kwargs'])
+            V = toy2d.potential_grid(pot, self.ys, self.xs)
+            self.cv = np.c_[Y.ravel(), X.ravel()]
+        else:
+            c = s['calculator']
+            if c.get('base_dim', s['dim']) < s['dim']:          # uncoupled w: the 2D potential (+ a constant)
+                V = toy2d.potential_grid(load_toytis_potential(c['spec'], c['params']), self.ys, self.xs)
+            else:                                              # coupled (zpot_w): the effective potential at w
+                pot = load_toytis_potential(c['spec'], c['params'])
+                V = np.array([pot.effective_potential((np.array([a, b, w]), np.zeros(3)))
+                              for a, b in zip(Y.ravel(), X.ravel())]).reshape(Y.shape)
+            self.cv = np.c_[Y.ravel(), X.ravel(), np.full(Y.size, w)]
+        V = V / s['kT']
+        self.V = V - np.nanmin(V)
         self.shape = Y.shape
         self.mask = self.V > float(cfg.get('plots', {}).get('vmax_kT', 12))
         self.q_exact = ase_systems.exact_committor(s)(self.cv).reshape(self.shape)
@@ -85,6 +100,14 @@ def _mark_unvisited(ax, grid):
     there is an extrapolation that the sampler never evaluates."""
     ax.contourf(grid.ys, grid.xs, grid.mask.T.astype(float), levels=[0.5, 1.5], colors='none', hatches=['////'])
     ax.contour(grid.ys, grid.xs, grid.mask.T.astype(float), levels=[0.5], colors=INK2, linewidths=0.6)
+
+
+def _sfx(grid):
+    return '' if grid.w is None else f'_w{grid.w:+g}'
+
+
+def _slice_note(grid):
+    return '' if grid.w is None else f' (slice w = {grid.w:+g})'
 
 
 def _passes(cfg):
@@ -112,8 +135,8 @@ def fig_interfaces(cfg, st, grid, out):
     intf0 = p0['iterations'][-1]['interfaces']
     for v in intf0[1:-1]:
         ax.axvline(v, color=BLUE, lw=1.1)
-    ax.set_title(f'pass 0 (infinit, lambda = y): {len(intf0)} interfaces\n'
-                 f'y = {", ".join(f"{v:.3g}" for v in intf0[1:-1])}', loc='left')
+    ax.set_title(f'pass 0 (infinit, lambda = {cfg["system_spec"]["cv_names"][0]}): {len(intf0)} interfaces\n'
+                 f'{cfg["system_spec"]["cv_names"][0]} = {", ".join(f"{v:.3g}" for v in intf0[1:-1])}', loc='left')
     for i, rec in enumerate(recs):
         ax = axes.flat[i + 1]
         grid.background(ax)
@@ -131,14 +154,14 @@ def fig_interfaces(cfg, st, grid, out):
     for ax in axes.flat[n:]:
         ax.set_visible(False)
     for ax in axes[-1]:
-        ax.set_xlabel('y (state CV; A left of the first black line, B right of the second)')
+        ax.set_xlabel(f'{cfg["system_spec"]["cv_names"][0]} (state CV; A left of the first black line, B right of the second)')
     for ax in axes[:, 0]:
-        ax.set_ylabel('x')
-    fig.suptitle(f'{cfg["name"]}: interfaces per pass (blue: lambda isosurfaces; red dashed: exact isocommittors at '
+        ax.set_ylabel(cfg['system_spec']['cv_names'][1])
+    fig.suptitle(f'{cfg["name"]}{_slice_note(grid)}: interfaces per pass (blue: lambda isosurfaces; red dashed: exact isocommittors at '
                  f'the same levels; grey: potential, 1 kT contours; hatched: V > {cfg.get("plots", {}).get("vmax_kT", 12)} kT, '
                  f'not visited by the sampled paths)', x=0.01, ha='left', y=1.0, fontsize=10)
     fig.tight_layout()
-    fig.savefig(os.path.join(out, 'interfaces.png'), dpi=130, bbox_inches='tight')
+    fig.savefig(os.path.join(out, f'interfaces{_sfx(grid)}.png'), dpi=130, bbox_inches='tight')
     plt.close(fig)
 
 
@@ -197,6 +220,8 @@ def fig_maps(cfg, st, grid, pool, out):
     if kt is not None:
         cvt, qt, wt = _teacher_frames(cfg, pool, kt)
         ins = (cvt[:, 0] > sysd['lambda_a']) & (cvt[:, 0] < sysd['lambda_b'])
+        if grid.w is not None:                                  # frames near the slice
+            ins &= np.abs(cvt[:, 2] - grid.w) < 0.03
         d = np.clip(_logit(qt[ins]) - _logit(ase_systems.exact_committor(sysd)(cvt[ins])), -3, 3)
         ys, xs, B = _binned(grid, cvt[ins], d, wt[ins], step=2)
         imd = ax.pcolormesh(ys, xs, B.T, cmap=DIV, norm=TwoSlopeNorm(0, -3, 3), shading='nearest')
@@ -222,12 +247,12 @@ def fig_maps(cfg, st, grid, pool, out):
     fig.colorbar(imd, ax=axes[:, 1], location='bottom', shrink=0.8, aspect=40,
                  label='logit difference (clipped at +-3; red: fit too high, blue: too low)')
     for a in axes[:, 0]:
-        a.set_ylabel('x')
+        a.set_ylabel(sysd['cv_names'][1])
     for a in axes[-1]:
-        a.set_xlabel('y')
-    fig.suptitle(f'{cfg["name"]}: fits per pass (regions above {cfg.get("plots", {}).get("vmax_kT", 12)} kT blank; '
+        a.set_xlabel(sysd['cv_names'][0])
+    fig.suptitle(f'{cfg["name"]}{_slice_note(grid)}: fits per pass (regions above {cfg.get("plots", {}).get("vmax_kT", 12)} kT blank; '
                  f'black lines: A and B)', x=0.01, ha='left', fontsize=10)
-    fig.savefig(os.path.join(out, 'maps.png'), dpi=110, bbox_inches='tight')
+    fig.savefig(os.path.join(out, f'maps{_sfx(grid)}.png'), dpi=110, bbox_inches='tight')
     plt.close(fig)
 
 
@@ -465,9 +490,14 @@ def main():
     pool = pool_mod.Pool(cfg['loop_dir'])
     out = os.path.join(cfg['loop_dir'], 'figures')
     os.makedirs(out, exist_ok=True)
-    grid = Grid(cfg, pool)
-    fig_interfaces(cfg, st, grid, out); print('interfaces.png')
-    fig_maps(cfg, st, grid, pool, out); print('maps.png')
+    if cfg['system_spec']['dim'] == 2:
+        grids = [Grid(cfg, pool)]
+    else:
+        w0 = float(cfg['system_spec']['calculator'].get('w_well', cfg['system_spec']['calculator']['params']).get('w0', 0.1))
+        grids = [Grid(cfg, pool, w=-w0), Grid(cfg, pool, w=w0)]
+    for grid in grids:
+        fig_interfaces(cfg, st, grid, out); print(f'interfaces{_sfx(grid)}.png')
+        fig_maps(cfg, st, grid, pool, out); print(f'maps{_sfx(grid)}.png')
     fig_calibration(cfg, st, pool, out); print('calibration.png')
     fig_convergence(cfg, st, out); print('convergence.png')
     if not a.no_tis:

@@ -59,6 +59,29 @@ def staple_rate(run_dir, burn_in=0.1, n_snap=40, data_file=None, toml_file=None,
     return out
 
 
+def reference_rate(system):
+    """The reference rate of a system, or None: exact for 2D systems; `rate_ref` = another system's name (same
+    committor, e.g. an uncoupled embedding) or a dict(rate, rel_err, source) from MD."""
+    ref = system.get('rate_ref')
+    if isinstance(ref, dict):
+        return dict(ref)
+    if isinstance(ref, str):
+        from loop import ase_systems
+        out = exact_rate(ase_systems.get(ref))
+        out['source'] = f'{ref}: ' + out['source']
+        return out
+    ex = system.get('exact') or {}
+    if ex.get('kind') in ('tpt_grid', 'tpt_grid3'):
+        from loop import env
+        z = np.load(os.path.join(env.REPO, ex['file']))
+        return dict(rate=float(z['k_ab']), steps_per_ab=float(z['steps_per_ab']),
+                    source=('loop/exact_zw.py (3D' if ex['kind'] == 'tpt_grid3' else 'toy2d.exact_committor_brownian (')
+                    + f'TPT on a grid, h = {float(z["h"]):g}): {ex["file"]}')
+    if system.get('dim') == 2 and system.get('potential'):
+        return exact_rate(system)
+    return None
+
+
 def exact_rate(system, h=0.004):
     """A -> B rate per reduced time unit of the overdamped dynamics: the TPT rate of the grid committor
     (toy2d.exact_committor_brownian, continuous dynamics with the boundary shift of a discrete check every step)."""

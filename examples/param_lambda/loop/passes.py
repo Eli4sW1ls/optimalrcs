@@ -19,7 +19,7 @@ import numpy as np
 import common
 from lambda_runtime import LambdaModel
 
-from loop import diagnostics, interfaces as itf, manifest, seed as seed_mod, student, teacher
+from loop import diagnostics, gpu, interfaces as itf, manifest, screen, seed as seed_mod, student, teacher
 from loop.backends import infretis_backend as be
 
 
@@ -28,7 +28,8 @@ def _view(pool, cfg, need_labels=False):
     return pool.select(passes=pc.get('passes', 'all'), lineage=pc.get('lineage', 'exclude'),
                        burn_in=float(pc.get('burn_in', 0.0)), cap=pc.get('cap_paths_per_ensemble'),
                        block=float(pc.get('block', 0.1)), val_blocks=tuple(pc.get('val_blocks', [1])),
-                       test_blocks=tuple(pc.get('test_blocks', [3])), need_labels=need_labels)
+                       test_blocks=tuple(pc.get('test_blocks', [3])), need_labels=need_labels,
+                       max_frames=pc.get('max_frames'))
 
 
 def _model_path(cfg, k):
@@ -37,10 +38,13 @@ def _model_path(cfg, k):
     return os.path.join(d, f'lambda_{k}.npz')
 
 
-def teach(cfg, pool, k, prev_model, log):
-    """Labels for every frame of the selection (written back to the pool)."""
+def teach(cfg, pool, k, prev_model, log, cvs=None):
+    """Labels for every frame of the selection (written back to the pool). `cvs`: the CVs of the fit (default
+    all; the screening of the previous pass sets them)."""
     view = _view(pool, cfg)
     tc = dict(cfg['teacher'])
+    if cvs is not None:
+        tc['cvs'] = list(cvs)
     seed_q = view.q_np.astype(float).copy()                     # old frames keep their q
     if prev_model is not None:
         new = ~np.isfinite(seed_q) & view.inside
@@ -59,6 +63,7 @@ def teach(cfg, pool, k, prev_model, log):
     from loop import snapshot_labels
     snapshot_labels.save(cfg['loop_dir'], k)                    # the pool labels are overwritten next pass
     out = dict(n_frames=res['n_frames'], seconds=res['seconds'], iterations=res['iterations'], provisional_b=prov,
+               cvs=res['features'],
                final={key: v[-1] for key, v in res['history'].items() if v})
     if view.has_exact:
         ok = np.isfinite(res['q']) & view.inside
@@ -66,11 +71,15 @@ def teach(cfg, pool, k, prev_model, log):
     return out
 
 
-def learn(cfg, pool, k, prev_params, log):
-    view = _view(pool, cfg, need_labels=True)
+def learn(cfg, pool, k, prev_params, log, specs=None, view=None, front_s=None):
+    """Student and export. `front_s`: the teacher's provisional B (state CV), or None: beyond it the exported
+    lambda rises linearly in the state CV to lambda_B (lambda_runtime), instead of saturating where the labels were
+    fitted to q = 1 (loop_stag pass 1: lambda flat at 0.307 from x = 0 to 1.2, no frames in the upper windows)."""
+    view = view if view is not None else _view(pool, cfg, need_labels=True)
     params, info = student.train(view, cfg, seed=int(cfg.get('seed', 0)) + k,
-                                 init_params=prev_params if cfg['student'].get('warm_start', True) else None, log=log)
-    exp = student.build_export(view, params, cfg, front_s=None, blend=bool(cfg['student'].get('blend', True)), log=log)
+                                 init_params=prev_params if cfg['student'].get('warm_start', True) else None, log=log,
+                                 specs=specs)
+    exp = student.build_export(view, params, cfg, front_s=front_s, blend=bool(cfg['student'].get('blend', True)), log=log)
     path = _model_path(cfg, k)
     np.savez(path, **exp)
     np.savez(path.replace('.npz', '_score.npz'), **params)
@@ -96,7 +105,12 @@ def run_passes(cfg, state, pool, log=None, max_passes=None):
             break
         if max_passes is not None and n_done >= max_passes:
             break
-        rec = one_pass(cfg, pool, k, prev_model, prev_params, mode, log)
+        # the teacher sees every CV unless [screen] teacher = "kept": a CV the teacher never sees cannot shape the
+        # labels, so the student could not bring it back in a later screening (loop_zw, 2026-11-17)
+        cvs = None
+        if state.data['passes'] and cfg.get('screen', {}).get('teacher', 'all') == 'kept':
+            cvs = state.data['passes'][-1].get('cvs_kept')
+        rec = one_pass(cfg, pool, k, prev_model, prev_params, mode, log, cvs=cvs)
         state.data['passes'].append(rec)
         state.data['md_steps'] += rec['cost']['md_steps']
         state.save()
@@ -111,43 +125,69 @@ def run_passes(cfg, state, pool, log=None, max_passes=None):
         freeze(cfg, state, pool, log)
 
 
-def one_pass(cfg, pool, k, prev_model, prev_params, mode, log):
+def one_pass(cfg, pool, k, prev_model, prev_params, mode, log, cvs=None):
     t_pass = time.time()
     pdir = os.path.join(cfg['loop_dir'], f'pass_{k}')
     os.makedirs(pdir, exist_ok=True)
     system, run, ic = cfg['system_spec'], cfg['run'], cfg['interfaces']
     common.say(f'== pass {k}', log=log)
-    # 1. teacher
-    t0 = time.time()
-    tinfo = teach(cfg, pool, k, prev_model, log)
-    common.say(f'teacher: {tinfo}', log=log)
-    # 2. student and export
-    model_path, params, sinfo, view = learn(cfg, pool, k, prev_params, log)
-    model = LambdaModel(model_path)
-    fit_seconds = time.time() - t0
-    # 3. diagnostics: prospective (old model on the newest data, before this refit used them) and stability
-    newest = pool.passes()[-1]
-    diag = dict(new=dict(zq=diagnostics.zq_profile(model, view, view.pass_of_frame == newest),
-                         ood=diagnostics.ood_by_ensemble(model, view, view.pass_of_frame == newest)))
-    levels = np.exp(np.linspace(np.log(1e-3), np.log(0.95), 10))
-    if prev_model is not None:
-        diag['prospective'] = dict(zq=diagnostics.zq_profile(prev_model, view, view.pass_of_frame == newest),
-                                   ood=diagnostics.ood_by_ensemble(prev_model, view, view.pass_of_frame == newest))
-        ref_cv, ref_w = diagnostics.reference_set(view)
-        diag['stability'] = diagnostics.stability(model, prev_model, ref_cv, ref_w, levels)
-    ex = diagnostics.exact_metrics(model, view, levels)
-    if ex is not None:
-        diag['exact'] = ex
-    common.say(f'diagnostics: SD(Z_q) new {diag["new"]["zq"]["sdzqs"]:.3f}'
-               + (f', previous model on the newest data {diag["prospective"]["zq"]["sdzqs"]:.3f}' if prev_model else '')
-               + (f'; exact: spread {ex["spread_mean"]:.4f}, logit RMSE {ex["logit_rmse"]:.3f}' if ex else ''), log=log)
-    # 4. interfaces: plan + gate on all stored paths under the new lambda
-    plan = itf.plan_natural(model, view, ic, log=log)
-    paths = itf.path_arrays(pool, model, state_cv=system['state_cv'], lineage='include')
-    placed = itf.place(model, paths, plan['lam'], ic, mode, log=log)
-    intfs = placed['interfaces']
-    if not placed['check']['ok']:
-        common.say(f'WARNING: the placed set still fails {placed["check"]["fails"]} on the stored paths', log=log)
+    # A pass interrupted during its run resumes it with the same lambda and interfaces (fit.json, written before the
+    # run): GPU fits are not bit-reproducible, so a refit would place slightly different interfaces and the
+    # partial run could not be continued.
+    fit_file = os.path.join(pdir, 'fit.json')
+    if os.path.isfile(fit_file):
+        f = manifest.read(fit_file)
+        model_path, tinfo, sinfo, diag, plan, placed, scr, specs, fit_seconds, gpu_wait = (
+            f['model'], f['teacher'], f['student'], f['diagnostics'], f['plan'], f['placed'], f['screen'], f['specs'],
+            f['fit_seconds'], f['gpu_wait_seconds'])
+        model = LambdaModel(model_path)
+        intfs = placed['interfaces']
+        common.say(f'pass {k}: fits, lambda and interfaces from {fit_file} (resuming)', log=log)
+    else:
+        # 1. teacher (all CVs by default), 1b. CV screening (the student's inputs), 2. student and export: all on the GPU
+        with gpu.exclusive(log=log, what=f'fits of pass {k}') as gpu_wait:
+            t0 = time.time()
+            tinfo = teach(cfg, pool, k, prev_model, log, cvs=cvs)
+            common.say(f'teacher: {tinfo}', log=log)
+            view = _view(pool, cfg, need_labels=True)
+            specs = list(cvs) if cvs is not None else list(view.cv_names)
+            scr = None
+            if screen.enabled(cfg, view):
+                # candidates: every CV of the system, so a CV dropped earlier can come back
+                scr = screen.run(view, cfg, list(view.cv_names), seed=int(cfg.get('seed', 0)) + k, log=log)
+                specs = scr['kept']
+            model_path, params, sinfo, view = learn(cfg, pool, k, prev_params, log, specs=specs, view=view,
+                                                    front_s=tinfo.get('provisional_b'))
+        model = LambdaModel(model_path)
+        fit_seconds = time.time() - t0
+        # 3. diagnostics: prospective (old model on the newest data, before this refit used them) and stability
+        newest = pool.passes()[-1]
+        diag = dict(new=dict(zq=diagnostics.zq_profile(model, view, view.pass_of_frame == newest),
+                             ood=diagnostics.ood_by_ensemble(model, view, view.pass_of_frame == newest)))
+        levels = np.exp(np.linspace(np.log(1e-3), np.log(0.95), 10))
+        if prev_model is not None:
+            diag['prospective'] = dict(zq=diagnostics.zq_profile(prev_model, view, view.pass_of_frame == newest),
+                                       ood=diagnostics.ood_by_ensemble(prev_model, view, view.pass_of_frame == newest))
+            ref_cv, ref_w = diagnostics.reference_set(view)
+            diag['stability'] = diagnostics.stability(model, prev_model, ref_cv, ref_w, levels)
+        ex = diagnostics.exact_metrics(model, view, levels)
+        if ex is not None:
+            diag['exact'] = ex
+        common.say(f'diagnostics: SD(Z_q) new {diag["new"]["zq"]["sdzqs"]:.3f}'
+                   + (f', previous model on the newest data {diag["prospective"]["zq"]["sdzqs"]:.3f}' if prev_model else '')
+                   + (f'; exact: spread {ex["spread_mean"]:.4f}, logit RMSE {ex["logit_rmse"]:.3f}' if ex else ''), log=log)
+        # 4. interfaces: plan + gate on all stored paths under the new lambda
+        plan = itf.plan_natural(model, view, ic, log=log)
+        paths = itf.path_arrays(pool, model, state_cv=system['state_cv'], lineage='include')
+        placed = itf.place(model, paths, plan['lam'], ic, mode, log=log)
+        intfs = placed['interfaces']
+        if not placed['check']['ok']:
+            common.say(f'WARNING: the placed set still fails {placed["check"]["fails"]} on the stored paths', log=log)
+        manifest.write(fit_file, model=model_path, teacher=tinfo,
+                       student={key: v for key, v in sinfo.items() if key != 'checkpoints'}, diagnostics=diag,
+                       plan=plan, placed=dict(interfaces=intfs, removed=placed['removed'],
+                                              refilled=placed.get('refilled', []), check=_slim(placed['check'])),
+                       screen=scr, specs=specs, fit_seconds=fit_seconds, gpu_wait_seconds=gpu_wait)
     # 5-6. seeds, the run, ingest, re-check on the pass's own paths
     cost, raw, recheck = run_and_check(cfg, pool, pdir, model, model_path, intfs, mode,
                                        int(run.get('cycles_per_pass', 1000)), int(cfg.get('seed', 0)) + k,
@@ -157,7 +197,9 @@ def one_pass(cfg, pool, k, prev_model, prev_params, mode, log):
                interfaces_md5=manifest.md5_of(intfs), plan=plan, removed=placed['removed'], refilled=placed.get('refilled', []),
                placement_check=_slim(placed['check']), recheck=_slim(recheck), teacher=tinfo,
                student={key: v for key, v in sinfo.items() if key != 'checkpoints'}, diagnostics=diag,
-               cost=dict(cost, fit_seconds=fit_seconds, pass_seconds=time.time() - t_pass), lengths=lengths,
+               screen=scr, cvs_kept=specs,
+               cost=dict(cost, fit_seconds=fit_seconds, gpu_wait_seconds=gpu_wait, pass_seconds=time.time() - t_pass),
+               lengths=lengths,
                pool_pass=pool.passes()[-1], data_md5=manifest.md5(pool.path(pool.passes()[-1])), seed=int(cfg.get('seed', 0)) + k)
     manifest.write(os.path.join(pdir, 'manifest.json'), config={key: v for key, v in cfg.items() if key != 'system_spec'},
                    system=cfg['system_spec'], **rec)
@@ -312,6 +354,9 @@ def run_and_check(cfg, pool, pdir, model, model_path, intfs, mode, cycles, seed,
             raise ValueError(f'{run_dir} was run with interfaces {np.round(ran, 5).tolist()}, not the requested '
                              f'{np.round(intfs, 5).tolist()}: a re-check on it would be meaningless; move the run '
                              f'directory aside (or rerun with the original set)')
+        if be.cost(run_dir)['cycles'] < cycles:              # interrupted (stopped or suspended): continue it
+            common.say(f'run: resuming {run_dir} at cycle {be.cost(run_dir)["cycles"]} of {cycles}', log=log)
+            be.resume(run_dir, cycles)
         cost = be.cost(run_dir)
     pieces = be.load_pieces(run_dir, burn_in_fraction=0.0, paths_per_ensemble=cfg['pool'].get('cap_paths_per_ensemble'),
                             weighting=cfg['pool'].get('weighting') if mode == 'staple' else None)
