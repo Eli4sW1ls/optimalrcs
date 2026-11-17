@@ -26,7 +26,7 @@ interfaces = [
     0.78,
     0.85,
 ]
-steps = 20000
+steps = 100000
 seed = 2000
 load_dir = "load"
 shooting_moves = [
