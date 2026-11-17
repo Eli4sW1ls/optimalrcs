@@ -510,6 +510,12 @@ def add_data_arguments(parser):
                              "archive instead of <tis_dir>/load/<pnr>/order.txt")
     parser.add_argument("--data-file", metavar="FILE",
                         help="infretis: the path table (default <tis_dir>/infretis_data.txt; .gz allowed)")
+    parser.add_argument("--bb-weight-fix", choices=["auto", "on", "off"], default="auto",
+                        help="infretis StapleTIS runs from before infretis commit 1ed2805 gave the B-to-B RMR "
+                             "paths of the last ensemble path_w = 0.5 instead of 1, which doubles their path_f "
+                             "and pulls the committor toward B. 'auto' (default) halves their 'rejections' "
+                             "weight when such paths are found; 'off' keeps the stored weights "
+                             "(infretis_data.find_bb_weight_bug, docs/npneq_tis_notes.md section 15.1)")
     parser.add_argument("--no-cut", action="store_true",
                         help="keep whole paths instead of cutting them at their first frame "
                              "past M (for comparison only: the cut frames are biased)")
@@ -616,7 +622,8 @@ def prepare_data(args):
         dim = None
         cvs, order, time, weights, paths, settings = infretis_data.load_infretis_data(
             args.tis_dir, weighting=args.weights, odd_columns=(), fd_columns=[1],
-            h5_file=getattr(args, "h5", None), data_file=getattr(args, "data_file", None), **common)
+            h5_file=getattr(args, "h5", None), data_file=getattr(args, "data_file", None),
+            bb_weight_fix=getattr(args, "bb_weight_fix", "auto"), **common)
         args.weights = settings["weighting"]
     else:
         dim, v_ord = read_run_settings(args.tis_dir)

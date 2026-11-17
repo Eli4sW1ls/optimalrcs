@@ -218,6 +218,29 @@ def _pair_weights(data, weighting, n_ens):
     return W * scale
 
 
+def find_bb_weight_bug(data, settings, rows, get_order):
+    """Rows of the infretis_data.txt pairs hit by the last-ensemble B-to-B staple weight bug.
+
+    In the last ensemble (L, M, R) = (lambda_{n-3}, lambda_{n-2}, lambda_B) an RMR path starts and ends in B: its
+    core runs from B below M and back, with nothing to extend at either end, so the extension's coin flip gives the
+    same path either way and its W-matrix weight must be 1 (infretis commit 1ed2805, 2026-11-16). Earlier infretis
+    versions gave it the 0.5 of a genuine LML/RMR staple. A pair is affected when its path_w in the last ensemble
+    is 0.5 and its path starts and ends at or beyond lambda_B. `rows` are candidate rows, `get_order(r)` returns the
+    path's order parameters (column 0 = lambda) or None. Returns the sorted affected rows (empty for a fixed run)."""
+    if settings["mode"] != "staple":
+        return []
+    e_last = len(settings["interfaces"]) - 1
+    lam_b = settings["interfaces"][-1]
+    hit = []
+    for r in rows:
+        if not np.isclose(data["path_w"][r, e_last], 0.5) or data["path_f"][r, e_last] <= 0:
+            continue
+        op = get_order(r)
+        if op is not None and op[0, 0] >= lam_b and op[-1, 0] >= lam_b:
+            hit.append(int(r))
+    return sorted(hit)
+
+
 def middle_interface(settings, e):
     """M of ensemble column e: [0-] and [0+] cross lambda_0, [i+] (column i + 1) crosses lambda_i."""
     return settings["interfaces"][max(e - 1, 0)]
@@ -293,7 +316,7 @@ def load_infretis_data(sim_dir, include_zero_minus=False, weighting=None, cut_at
                        burn_in_fraction=0.4, thin=1, paths_per_ensemble=None, reversed_pieces=False,
                        odd_columns=(), fd_velocity=False, fd_columns=(1,), max_length=None,
                        long_pieces="truncate", h5_file=None, data_file=None, load_dir=None, toml_file=None,
-                       with_info=False):
+                       with_info=False, bb_weight_fix="auto"):
     """Per-piece cvs, order, time, weight and path-number lists from an infretis run (see the module doc).
 
     The options are those of `tis_data.load_tis_data`. Burn-in and thinning act per ensemble on the rows of
@@ -309,7 +332,14 @@ def load_infretis_data(sim_dir, include_zero_minus=False, weighting=None, cut_at
     of infretis_data.txt, `pnr`, `mirrored`, the core `(core_start, core_end)` and the path length).
 
     Mirrored pieces are refused for RETIS runs: a RETIS path always starts in A, so its mirrored piece always
-    ends in A, which selects on the piece's future (notes section 9)."""
+    ends in A, which selects on the piece's future (notes section 9).
+
+    `bb_weight_fix` ('auto', 'on', 'off'): StapleTIS runs made with infretis before commit 1ed2805 gave the B-to-B
+    RMR paths of the last ensemble w = 0.5 instead of 1 (`find_bb_weight_bug`). Their path_f is then twice what it
+    should be, which pulls the committor toward B (flat 1D staple run, notes section 15.1: +0.022 -> +0.003). With
+    'auto' (default) and 'on' the 'rejections' weight of these pairs is halved when such pairs are found; 'auto'
+    and 'on' differ only in that 'on' also reports when none are found. 'off' keeps the stored weights. The
+    'staple' weighting is not corrected (it is biased for committor pieces anyway)."""
     from tis_data import first_frame_past_m, last_frame_before_m, limit_piece_length
     from inftools.istar.reading import OrderSource
 
@@ -360,6 +390,26 @@ def load_infretis_data(sim_dir, include_zero_minus=False, weighting=None, cut_at
             cache[r] = op
     print(f"Order parameters from {h5_file or (load_dir or os.path.join(sim_dir, 'load'))}: "
           f"{len(needed) - n_missing} paths read" + (f", {n_missing} missing (skipped)" if n_missing else ""))
+
+    if bb_weight_fix not in ("auto", "on", "off"):
+        raise ValueError(f"bb_weight_fix must be 'auto', 'on' or 'off', not {bb_weight_fix!r}")
+    e_last = n_ens - 1
+    bb_rows = find_bb_weight_bug(data, settings, selected.get(e_last, []), cache.get)
+    bb_fixed = set()
+    if bb_rows:
+        msg = (f"  B-to-B weight bug (infretis before 1ed2805): {len(bb_rows)} of the {len(selected[e_last])} paths of "
+               f"the last ensemble start and end in B with path_w = 0.5 (should be 1)")
+        if bb_weight_fix == "off":
+            print(msg + "; NOT corrected (bb_weight_fix='off'): the committor is pulled toward B")
+        elif weighting == "rejections":
+            W = W.copy()
+            W[bb_rows, e_last] *= 0.5
+            bb_fixed = set(bb_rows)
+            print(msg + "; their path_f is halved (notes section 15.1)")
+        else:
+            print(msg + f"; not corrected for the '{weighting}' weighting (use 'rejections' for committor pieces)")
+    elif bb_weight_fix == "on" and settings["mode"] == "staple":
+        print("  B-to-B weight bug: no B-to-B path of the last ensemble has path_w = 0.5, nothing changed")
 
     for e in ens_list:
         lambda_m = middle_interface(settings, e) if cut_at_m else None
@@ -424,7 +474,8 @@ def load_infretis_data(sim_dir, include_zero_minus=False, weighting=None, cut_at
                 weights.append(float(W[r, e]))
                 paths.append(int(data["pnr"][r]))
                 info.append(dict(ens=int(e), row=int(r), pnr=int(data["pnr"][r]), mirrored=j == 1,
-                                 core=(int(core_start), int(core_end)), length=len(block)))
+                                 core=(int(core_start), int(core_end)), length=len(block),
+                                 bb_fixed=(e == e_last and int(r) in bb_fixed)))
                 n_pieces += 1
                 n_frames += len(piece)
                 tot_w += float(W[r, e])

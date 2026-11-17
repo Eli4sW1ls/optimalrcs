@@ -1096,7 +1096,7 @@ lag with the last row of the table.
 | File | What |
 |---|---|
 | `tis_data.py` | shared loader: interfaces, run settings (`dim`, `v_ord`), weights, cut at M (`first_frame_past_m`), reversed pieces (`last_frame_before_m`), data preparation, figures |
-| `infretis_data.py` | infretis runs (RETIS, REPPTIS, StapleTIS; load folder or h5 archive): settings, `infretis_data.txt`, path_f / path_w weights, staple cores, `weight_consistency` test (§15); used by `tis_data.prepare_data` |
+| `infretis_data.py` | infretis runs (RETIS, REPPTIS, StapleTIS; load folder or h5 archive): settings, `infretis_data.txt`, path_f / path_w weights, staple cores, `weight_consistency` test (§15), correction of the last-ensemble B-to-B weight bug of older infretis versions (`find_bb_weight_bug`, `--bb-weight-fix`, §15.1); used by `tis_data.prepare_data` |
 | `load_tis_data.py` / `load_tis_data_cupy.py` | fit scripts (TF / CuPy) |
 
 **Tests:** `tests/test_metrics_tis.py`, `tests/test_boundary_traps.py`, plus CuPy-vs-TF checks in `tests/test_cupy.py`.
@@ -1491,3 +1491,57 @@ consistent: add the factor to `staple_sh` (like wire fencing; path_f / path_w is
 w = 1 in W and the staple swaps and apply the staple factor only where the crossing probability is computed
 (path_f is then exact). A run of a toy system with a known committor (the flat Brownian staple test of §9.3,
 in infretis with turtlemd) would measure the effect; not done yet.
+
+### 15.1 Flat Brownian staple test in infretis, and the last-ensemble B-to-B weight bug (2026-11-17)
+
+That test is now done with the ASE engine instead of turtlemd: `examples/data/infretis_inputs/flat1d_br` (flat
+potential with walls, overdamped, kT = 1, γ = 5, A: λ ≤ −0.1, B: λ ≥ 0.3, interfaces −0.1, 0, 0.1, 0.2, 0.3),
+StapleTIS with infinite swap, 50 000 cycles, 37 964 paths (`infretis_data.txt` and `archive.h5` copied from the
+workstation). Fit: `infretis_staple_1d.ipynb` (A/B traps, stopped ends; burn-in 0.3, 5000 paths per ensemble);
+reference: the exact committor of the discrete chain (linear to 3·10⁻⁶ here). Max over λ bins of fit − exact:
+
+| weighting | mirrored pieces too | forward pieces only |
+|---|---|---|
+| path_f / path_w ('staple') | +0.063 (RMS 0.049 over frames) | |
+| path_f ('rejections') | +0.017 | +0.022 |
+| path_f, rows 30–65 % only | +0.015 | +0.022 |
+| path_f, rows 65–100 % only | +0.029 | +0.033 |
+
+Both halves of the run are biased upward with path_f, so this is not noise. For scale: the same fit on the six
+older 20 000-cycle runs of the same system (`op_loop/staple_weights`: shooting only, infinite swap,
+nearest-neighbour swaps, two seeds each) gives |fit − exact| ≤ 0.018 with both signs, also for shooting only,
+where nothing uses w and path_f is exact by construction: that is the noise level of these runs (TIS paths are
+strongly correlated, and `zqs_z` (1.2–2.6 everywhere) cannot see a smooth tilt of q along λ).
+
+**Cause: the B-to-B paths of the last ensemble.** In the last ensemble (0.1, 0.2, 0.3) the RMR paths (ptype
+`4RMR3` / `3RMR4`) start and end in B, with only those two frames in B: a core from B below M and back, with
+nothing to extend, so the coin flip of `staple_extender` gives the same path either way and w must be 1.
+infretis commit 1ed2805 (2026-11-16 19:26) sets exactly this case to 1.0 (`calc_cv_vector` /
+`staple_pptype_weight`; the current checkout gives 1.0 for these paths). This run was made with an infretis
+version without that fix and stored path_w = 0.5 for them (the older local runs stored 1.0). Rescaling only
+these pairs' weight (full run, forward pieces):
+
+| weighting | B-to-B pairs | max fit − exact | RMS per bin |
+|---|---|---|---|
+| path_f | × 1 (as stored) | +0.022 | 0.016 |
+| path_f | × 2 | +0.066 | 0.047 |
+| path_f | **× 0.5** | **+0.003 / −0.013** | **0.007** |
+| path_f / path_w | × 0.5 | +0.041 | 0.024 |
+
+So with the wrong w = 0.5 the B-to-B paths carry twice the path_f they should, and their pieces, which all end in
+B, pull q toward B; halving them brings path_f to the noise level of the older runs. The mechanism is not
+derived here. A plausible one: under infinite swap each path's occupancies over its ensembles sum to 1 per cycle,
+so a path valid in only one ensemble keeps its full occupancy whatever its w, while the sampler's other moves
+generate it as if w were 1. path_f / path_w stays biased even after the correction: that is the doubling of the
+genuine LML/RMR staples (`docs/op_loop_report.md`), with the same S shape as on the older runs (+0.025 / −0.019
+there).
+
+**Loader correction.** `infretis_data.find_bb_weight_bug` finds the affected pairs: path_w = 0.5 in the last
+ensemble and the path starts and ends at or beyond λ_B (794 of the 5000 selected last-ensemble paths here).
+`load_infretis_data(bb_weight_fix='auto')` (the default; command line `--bb-weight-fix auto|on|off`) halves
+their 'rejections' weight when it finds such pairs and says so; runs made with a fixed infretis (or the older
+runs with w = 1) have none and are unchanged (checked on `staple_weights/inf`). The 'staple' weighting is not
+corrected. Checked: the corrected weights equal the ones of the fit test above. Runs made after updating the
+workstation's infretis to 1ed2805 or later need no correction.
+
+Scripts of these tests: `examples/figures_by_potential/1d_flat/infretis_staple/flat1d_br/bb_weight_test/`.

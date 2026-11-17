@@ -195,3 +195,26 @@ mutates `staridx`/`meta` of shared Path objects; infretis `staple_extender` over
   verification sees about one and passed with none by chance. The gate's check stays (a high rate is a sign of badly
   spaced interfaces, e.g. a window 0.0115 wide next to A), but production correctness no longer depends on it being zero.
 
+- **M3 on infretis + ASE (2026-11-17).** The robustness systems run on the infretis backend (toytis stays postponed);
+  configs `loop_zu`, `loop_zw`, `loop_stag`.
+  - *Native embedding* `zu_br`: Z plus a simulated w in an uncoupled double well (dV 3 kT, w0 0.1: the w dynamics of the
+    gate system, so only the coupling differs; `ase_calcs.ToytisPotential(base_dim, w_well)`). Committor and rate of Z.
+  - *Gate* `zw_br`: toytis `zpot_w.ZChannelsW` (dV_w 3 kT). Exact committor and rate from a 3D grid solve
+    (`loop/exact_zw.py`, the finite-volume TPT method of `toy2d.exact_committor_brownian` with a third axis, Jacobi-CG):
+    k_AB = 2.115e-5 per time unit at h 0.004 (2.123e-5 at h 0.008 and 0.012); it matches the six shooting points of
+    `3d_zpot_w/README.md` and the GPU MD scan (nAB / walker steps = 2.10e-5 +- 2.4%). A minute on one core, so not a
+    workstation job after all.
+  - *Two channels* `stag_br`: the staggered-channel landscape, overdamped (gamma 1, kT 0.25, dt 0.005), state CV x.
+    Exact: `loop/exact_stag.py` (k_AB 1.148e-4 per time unit, half the flux per channel, q at x = 0: 0.997 in the
+    upper channel, 0.003 in the lower). One channel in the initial data: `[pass0] exclude_box` drops every pass-0 path
+    that enters the upper channel from the pool (training and seed candidates); the later passes keep what they sample.
+  - *CV screening* (`loop/screen.py`, every pass when the system has more than two CVs): the student is trained on all
+    CVs and once without each candidate; a CV is kept when leaving it out raises the held-out Dirichlet energy
+    (path-weighted mean squared increment of q along the validation pieces, the committor's variational objective; no
+    labels) by more than `screen.tol` (10%). The first version used the validation SD(Z_q) and failed on loop_zw pass 1:
+    leaving out x or w changed it by -1%, so it dropped both, while the energy rose by 49% and 64% and the RMS error
+    against the exact committor from 0.054 to 0.078. The kept set is the input of the student and, from the next
+    pass, of the teacher. Labels alone cannot separate a coupled from a path-labelling slow CV
+    (`param_lambda_embedding.md`, finding 4), hence the dynamical test.
+  - *GPU*: the fits of a pass run under `loop/gpu.py` (a file lock shared by the loops, then a wait while any other
+    process holds a GPU context).

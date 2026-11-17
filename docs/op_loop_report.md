@@ -51,6 +51,11 @@ path_f (`pool.weighting = "rejections"`); the crossing probability and rate of t
 path_w through inftools' iSTAR analysis. The loader default (`infretis_data.default_weighting`: path_f / path_w
 with infinite swap) is unchanged; for committor fits on infretis staple data pass `--weights rejections`.
 
+Update 2026-11-17 (notes section 15.1): a 50 000-cycle infinite-swap run of the same system, made with an infretis
+version from before commit 1ed2805, was biased toward B with path_f too (+0.022). That version gave the B-to-B RMR
+paths of the last ensemble w = 0.5 instead of 1; halving their path_f removes the bias (+0.003), and the loader
+now does this by default (`--bb-weight-fix auto`). The runs above stored w = 1 for these paths and are unaffected.
+
 **Interface thinning on the Z ridge is a sampler-resolution limit, not a lambda defect; placement now refills
 wide gaps where the gate allows.** The frozen Z set left one ensemble spanning q = 0.007 -> 0.645 (crossing
 probability ratio about 90, the plan caps neighbours at 10). The exact committor on the frames of pass 7 shows why
@@ -127,6 +132,24 @@ of 50, which agrees with the measured 0.026. So the failure is the teacher's ove
 The initialization column includes every verification run of the refill attempts, 9.7M MD steps in all (two refused
 sets of three 500-cycle rounds, 2.2M; two 2000-cycle rounds of the 13-interface set, 3.0M; the accepted round, 2.0M, and
 the original verification, 0.4M).
+
+**Extending the refilled run to 50 000 cycles exposed an infretis crash, now fixed in the sampler.** At cycle 23 069 a
+path with an empty shooting region (`{0: (1, 0)}`) in [1*] was picked for shooting; the staple fallback found no cut path
+and the worker died (`AttributeError` on `None`); a plain restart crashed again. Such paths are not rare (7
+(path, ensemble) pairs in 13 691 accepted paths; the 2000-cycle verification had none by chance), so the gate's "zero empty
+regions" cannot protect a long run. `staple_sh` now rejects the move with the existing status NSG (core change authorized,
+`test_no_shooting_point.py`). Effect of the alternative of giving those pairs zero weight, measured on the data up to the
+crash (10% burn-in): P_cross 2.764e-6 -> 2.744e-6 (-0.7%), rate 1.652x -> 1.642x exact, a negligible change against the
+statistical error. The same data give 1.65x the exact rate at 23k cycles against 0.97x at 20k: the point value moves 70%
+within 3000 cycles, inside the error.
+
+Result at 50 000 cycles (45.4M production MD steps, one NSG rejection path active): rate 1.247e-5 per time unit = 1.10x the
+exact 1.13e-5, relative error 0.26 (inftools block-error plateau of P_cross 0.37). Estimates against exact over the run:
+0.97x at 20k, 1.65x at 23k, 1.10x at 50k; the running estimate has settled within about 10% of the exact rate over the
+last 10M steps, and the error band is about a factor 7 narrower than at 20k (1.79 -> 0.26). The 10-interface run (20k
+cycles) stays at 2.03x with error 0.49; the seed control (12.5M steps) at 3.36x with error 3.4. The plain-step comparison
+at equal MD steps is therefore dominated by the refilled run's 19.2M-step initialization cost (verification rounds),
+which has to be amortized over a long production.
 
 Where the production error comes from: the block error of each local crossing probability P(lambda_k+1 |
 lambda_k) of the Z production, as a share of the variance of P_cross (`production/ensemble_errors.json`):
@@ -243,7 +266,7 @@ Verification round 1: removed [(0.4728, 'region_frames 3 (ensemble/interface 5)'
 | production run | interfaces | cycles | MD steps | MD steps of the initialization | P_cross (rel. error) | rate per time unit (rel. error) | rate / exact |
 |---|---|---|---|---|---|---|---|
 | learned lambda (frozen) | 10 | 20,000 | 18,648,151 | 19,204,387 | 3.15e-06 (0.50) | 2.3e-05 (0.49) | 2.03x |
-| learned lambda, refilled interfaces | 12 | 20,000 | 17,813,938 | 19,204,387 | 1.67e-06 (1.90) | 1.1e-05 (1.79) | 0.97x |
+| learned lambda, refilled interfaces | 12 | 50,000 | 45,387,843 | 19,204,387 | 1.8e-06 (0.31) | 1.25e-05 (0.26) | 1.10x |
 | seed lambda (control) | 11 | 20,000 | 12,474,255 | 0 | 5.85e-06 (4.47) | 3.8e-05 (3.36) | 3.36x |
 
 Exact rate 1.13e-05 per time unit (toy2d.exact_committor_brownian (TPT on a grid, h = 0.004)).
