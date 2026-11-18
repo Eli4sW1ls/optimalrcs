@@ -88,7 +88,7 @@ def solve(system, h, gpu=False, init=None, tol=1e-10, max_iter=200000, log=print
         import cupyx.scipy.sparse.linalg as cspl
         Ag = csp.csr_matrix(A)
         Mi = csp.diags(cp.asarray(1.0 / d))
-        sol, info = cspl.cg(Ag, cp.asarray(rhs), x0=cp.asarray(x0), tol=tol, maxiter=max_iter, M=Mi)
+        sol, info = cspl.cg(Ag, cp.asarray(rhs), x0=cp.asarray(x0), rtol=tol, maxiter=max_iter, M=Mi)
         sol = cp.asnumpy(sol)
     else:
         import scipy.sparse.linalg as spla

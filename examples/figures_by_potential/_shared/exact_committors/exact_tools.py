@@ -295,7 +295,10 @@ def solve_underdamped_1d(step, coef, force, A, B, nx, nv, vmax=5.0, n1=12, n2=7,
     Aop = LinearOperator((M, M), matvec=lambda m: m - K(m), dtype=cp.float64)
     m0 = cp.clip((X - A) / (B - A) + 0.3 * V, 0, 1)
     restart = int(min(200, max(30, 1.2e9 / (8 * M))))           # Krylov basis M x restart doubles (GPU memory)
-    m, info = gmres(Aop, cvec, x0=m0, tol=tol, restart=restart, maxiter=maxiter)
+    try:                                                        # cupyx >= 13: `rtol` (older: `tol`)
+        m, info = gmres(Aop, cvec, x0=m0, rtol=tol, restart=restart, maxiter=maxiter)
+    except TypeError:
+        m, info = gmres(Aop, cvec, x0=m0, tol=tol, restart=restart, maxiter=maxiter)
     res = float(cp.linalg.norm(m - K(m) - cvec) / cp.linalg.norm(cvec))
     if verbose:
         print(f'  grid {nx} x {nv} (x spacing {xs[1] - xs[0]:.1e} at A/B, {np.diff(xs).max():.1e} in the middle), '
@@ -472,7 +475,7 @@ def solve_brownian_2d(force2d, dt, gamma, kT, A, B, h, x_range=(-0.03, 0.33), y_
     restart = int(min(150, max(30, 1.2e9 / (8 * M))))
     Aop = LinearOperator((M, M), matvec=lambda w: w - T(w, False), dtype=cp.float64)
     w0 = cp.clip((Y - A) / (B - A), 0, 1)
-    w, info = gmres(Aop, c, x0=w0, tol=tol, restart=restart, maxiter=maxiter)
+    w, info = gmres(Aop, c, x0=w0, rtol=tol, restart=restart, maxiter=maxiter)
     res = float(cp.linalg.norm(w - T(w, False) - c) / cp.linalg.norm(c))
     if verbose:
         print(f'  2D grid {shape[0]} x {shape[1]} (h {h}), stride {stride}: gmres info {info}, residual {res:.2e}', flush=True)
