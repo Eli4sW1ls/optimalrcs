@@ -536,6 +536,11 @@ def add_data_arguments(parser):
                              "velocities. Computed before the cut at M. A larger D averages out the "
                              "random position kick of single steps, which otherwise looks like extra "
                              "friction at lag 1.")
+    parser.add_argument("--odd-columns", type=int, nargs="+", default=(), metavar="C",
+                        help="infretis runs only: columns of order.txt (time = 0, the order parameter = 1, ...) "
+                             "that change sign under time reversal, e.g. 2 for a velocity recorded after the "
+                             "order parameter; they are negated in the --reversed pieces. (Other engines "
+                             "give this through the run's own settings.)")
     parser.add_argument("--max-length", type=int, metavar="N",
                         help="limit every piece (after the cut at M) to N frames; longer pieces "
                              "are truncated or discarded, see --long-pieces (default: no limit)")
@@ -617,11 +622,11 @@ def prepare_data(args):
                   fd_velocity=args.fd_velocity, max_length=getattr(args, "max_length", None),
                   long_pieces=getattr(args, "long_pieces", "truncate"))
     if infretis_run:
-        # infretis order.txt: time, order parameter, then any extra CVs of the order parameter class; no
-        # velocities, so nothing changes sign under time reversal (extra CVs must be even).
+        # infretis order.txt: time, order parameter, then any extra CVs of the order parameter class. Nothing
+        # changes sign under time reversal unless --odd-columns names the columns that do (velocities).
         dim = None
         cvs, order, time, weights, paths, settings = infretis_data.load_infretis_data(
-            args.tis_dir, weighting=args.weights, odd_columns=(), fd_columns=[1],
+            args.tis_dir, weighting=args.weights, odd_columns=tuple(getattr(args, "odd_columns", ())), fd_columns=[1],
             h5_file=getattr(args, "h5", None), data_file=getattr(args, "data_file", None),
             bb_weight_fix=getattr(args, "bb_weight_fix", "auto"), **common)
         args.weights = settings["weighting"]

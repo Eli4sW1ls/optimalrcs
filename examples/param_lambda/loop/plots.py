@@ -65,7 +65,12 @@ class Grid:
         xr = cfg.get('plots', {}).get('x_range')               # default: the data's range (0.2% quantiles)
         self.xs = np.linspace(*(xr if xr else np.quantile(xs_all, [0.002, 0.998])), n[1])
         Y, X = np.meshgrid(self.ys, self.xs, indexing='ij')
-        if w is None:
+        if s['dim'] == 1 and s.get('velocity_cvs'):            # underdamped 1D (x, v): the energy V(x) + v^2 / 2
+            sys.path.insert(0, os.path.join(env.EXAMPLES, 'figures_by_potential', '_shared', 'exact_committors'))
+            import exact_tools
+            V = exact_tools.coswell_potential(Y) + 0.5 * X ** 2
+            self.cv = np.c_[Y.ravel(), X.ravel()]
+        elif w is None:
             pot = load_toytis_potential(s['potential'], s['potential_kwargs'])
             V = toy2d.potential_grid(pot, self.ys, self.xs)
             self.cv = np.c_[Y.ravel(), X.ravel()]
