@@ -77,6 +77,20 @@ SYSTEMS = {
                                file='examples/figures_by_potential/2d_staggered_channels/exact/brownian_g1_dt0.005/q_tpt_h0.01.npz'),
                     potential='potential_staggered_channels:PotentialStaggeredChannels',
                     potential_kwargs={'V_peak': 0.5 * 0.25 / 0.07, 'V_dip': 0.75}),
+    # M5, underdamped: the 1D cos well (toytis cos_well.CosWellWalls, the md_istarwell2 / sim_istarwell2rv settings
+    # kT 1, gamma 1, m 1, dt 0.005; A x <= -0.35, B x >= 0.35) with ASE's Langevin (Vanden-Eijnden-Ciccotti, not
+    # toytis BBK, so the exact committor is that of the ASE chain: loop/exact_well_lgv.py, exact_tools.vec_step, checked
+    # against ase step by step). CVs (x, v): lambda(x, v) from the loop, the states in x. Rate: loop/md_well_lgv.py.
+    'well_lgv': dict(dim=1, kT=1.0, gamma=1.0, dt=0.005, lambda_a=-0.35, lambda_b=0.35, cv_names=['x', 'v'],
+                     state_cv=0, integrator='langevin', velocity_cvs=['x'],
+                     calculator=dict(**{'class': 'ToytisPotential'}, spec='cos_well:CosWellWalls', dim=1),
+                     start=[-0.4, 0.0, 0.0], seed_interfaces=[-0.35, -0.25, -0.15, -0.05, 0.05, 0.15, 0.25, 0.35],
+                     maxlength=40000,
+                     # loop/md_well_lgv.py, 4096 walkers x 1M steps (seed 0): 3 452 009 A -> B, k_BA 0.33719 +- 0.00022
+                     rate_ref=dict(rate=0.33703, rel_err=0.00067, steps_per_ab=593.4,
+                                   source='loop/md_well_lgv.py: 4096 walkers x 1M steps of the ASE Langevin chain, '
+                                          'k = n(A->B) / time last in A (figures_by_potential/1d_cos_well/langevin_md_ase/rate.json)'),
+                     exact=dict(kind='lgv_grid1d', file='examples/figures_by_potential/1d_cos_well/exact/q_exact_ASE.npz')),
 }
 
 
@@ -87,11 +101,12 @@ def get(name, overrides=None):
 
 
 def engine_table(s, subcycles=1):
-    """The [engine] table of infretis.toml (overdamped Langevin through ASE)."""
+    """The [engine] table of infretis.toml (overdamped Langevin through ASE, or `integrator` = 'langevin' for the
+    underdamped systems; the engine converts the friction from 1/fs, so ASE gets gamma per ASE time unit)."""
     calc = dict(s['calculator'], module=CALCS)
     return {
         'class': 'ase', 'engine': 'ase', 'temperature': s['kT'] / KB, 'input_path': '.',
-        'timestep': s['dt'] * TIME_FS, 'subcycles': int(subcycles), 'integrator': 'overdamped_lgv',
+        'timestep': s['dt'] * TIME_FS, 'subcycles': int(subcycles), 'integrator': s.get('integrator', 'overdamped_lgv'),
         'langevin_fixcm': False, 'langevin_friction': s['gamma'] / TIME_FS,
         'calculator_settings': calc,
         'particles': {'mass': [1.0], 'name': ['H'], 'pos': [list(s['start'][:s['dim']])]},
@@ -100,8 +115,10 @@ def engine_table(s, subcycles=1):
 
 
 def cv_tables(s):
-    """CV sources: the particle's positions, in the toytis order (y, x, ...)."""
-    return [{'class': 'Position', 'index': [0, j], 'periodic': False} for j in range(s['dim'])]
+    """CV sources: the particle's positions, in the toytis order (y, x, ...), then its velocities along
+    `velocity_cvs` (underdamped systems)."""
+    return ([{'class': 'Position', 'index': [0, j], 'periodic': False} for j in range(s['dim'])]
+            + [{'class': 'Velocity', 'index': 0, 'dim': d} for d in s.get('velocity_cvs', [])])
 
 
 def write_initial(s, path, pos=None):
@@ -139,6 +156,27 @@ def exact_committor(s):
             out = np.clip(np.interp(cv[:, 0], xs, qs), 0, 1)
             out[cv[:, 0] <= s['lambda_a']] = 0
             out[cv[:, 0] >= s['lambda_b']] = 1
+            return out
+        return q
+    if ex['kind'] == 'lgv_grid1d':                    # loop/exact_well_lgv.py: q(x, v) of the ASE Langevin chain
+        import sys
+        sys.path.insert(0, os.path.join(env.EXAMPLES, 'figures_by_potential', '_shared', 'exact_committors'))
+        import exact_tools
+        z = np.load(os.path.join(env.REPO, ex['file']))
+        sol = dict(xs=z['xs'], vs=z['vs'], m=z['m'], A=float(z['A']), B=float(z['B']), c_map=float(z['c_map']))
+        coef = exact_tools.vec_coefficients(s['dt'], s['gamma'], s['kT'], 1.0)
+
+        def q(cv):
+            cv = np.atleast_2d(cv)
+            x, v = cv[:, 0], cv[:, 1]
+            out = np.zeros(len(cv))
+            inside = (x > s['lambda_a']) & (x < s['lambda_b'])
+            for i in range(0, int(inside.sum()), 2_000_000):
+                idx = np.flatnonzero(inside)[i:i + 2_000_000]
+                out[idx] = exact_tools.eval_q_underdamped(exact_tools.vec_step, coef, exact_tools.coswell_force, sol,
+                                                          x[idx], v[idx])
+            out = np.clip(out, 0, 1)
+            out[x >= s['lambda_b']] = 1
             return out
         return q
     if ex['kind'] == 'tpt_grid3':                     # loop/exact_zw.py: q[iy, ix, iw] on the grid (y, x, w)

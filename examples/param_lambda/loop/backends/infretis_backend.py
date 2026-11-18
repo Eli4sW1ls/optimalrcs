@@ -286,6 +286,12 @@ def raw_paths(workdir, data_file=None, toml_file=None, weighting=None, max_paths
     return out
 
 
+def has_velocity_cvs(workdir, toml_file=None):
+    """True if the run's order parameter records a velocity CV (an infretis 'velocity' CV source)."""
+    cfg = read_toml(toml_file or os.path.join(workdir, 'infretis.toml'))
+    return any(str(t.get('class', '')).lower() == 'velocity' for t in cfg.get('orderparameter', {}).get('cvs', []))
+
+
 def load_pieces(workdir, reversed_pieces=None, burn_in_fraction=0.0, thin=1, paths_per_ensemble=None,
                 weighting=None, include_zero_minus=False, data_file=None, toml_file=None):
     """Training pieces of a run (cut at M as sampled; mirrored pieces for staple / pp runs only). Returns
@@ -293,7 +299,9 @@ def load_pieces(workdir, reversed_pieces=None, burn_in_fraction=0.0, thin=1, pat
     ensemble, path-table row, mirrored flag, path number and lineage flag."""
     settings = infretis_data.read_settings(workdir, toml_file)
     if reversed_pieces is None:
-        reversed_pieces = settings['mode'] in ('staple', 'pp')
+        # no mirrored pieces when the CVs hold velocities: a time-reversed piece would need v -> -v, and the ASE
+        # Langevin step is not exactly time-reversible (M5)
+        reversed_pieces = settings['mode'] in ('staple', 'pp') and not has_velocity_cvs(workdir, toml_file)
     cvs, order, t, w, pnrs, settings, info = infretis_data.load_infretis_data(
         workdir, include_zero_minus=include_zero_minus, weighting=weighting, cut_at_m=True,
         burn_in_fraction=burn_in_fraction, thin=thin, paths_per_ensemble=paths_per_ensemble,

@@ -1,0 +1,46 @@
+# M5, underdamped: the learning loop on the 1D cos well with ASE Langevin (ase_systems.well_lgv: kT 1, gamma 1, m 1,
+# dt 0.005; A x <= -0.35, B x >= 0.35), CVs (x, v), lambda(x, v). The states stay in x; the order parameter is flagged
+# velocity dependent, so infretis recomputes the orders of reversed paths (infretis_orderp._ensure_phase_point).
+# Exact committor of the ASE chain: loop/exact_well_lgv.py; reference rate: loop/md_well_lgv.py.
+# Transitions are frequent (an A -> B transition every ~600 steps), so passes are cheap; the teacher fits on (x, v)
+# are the GPU work.
+inherit = "loop_flat1d"
+name = "loop_well_lgv"
+system = "well_lgv"
+
+[run]
+workers = 4
+mode = "staple"
+shooting = "sh"
+cycles_per_pass = 1000
+screen = 100
+
+[pass0]
+mode = "retis"
+shooting = "sh"                     # not wire fencing: it reverses paths in subt_acceptance (velocity CVs recomputed
+                                    # from the trajectory files; sh needs no reversal at all)
+steps_per_iter = 200
+max_iter = 8
+n_b = 20
+
+[teacher]
+max_iter = 4000
+lag = 4                             # stopped lag windows (teacher.stopped_targets): lag 1 stalls along energy contours
+                                    # with recorded v (1d_cos_well/langevin_staple/checks: lag 4 RMS 0.015 vs lag 1
+                                    # 0.019 on staple paths; on MD lag ~16 reaches the exact committor)
+
+[interfaces]
+n_interfaces = 8
+length_budget = 20000
+
+[stop]
+max_passes = 7
+max_md_steps = 400000000
+
+[production]
+cycles = 20000
+verify_cycles = 2000
+verify_rounds = 2
+
+[production.run]
+staple_infinite_swap = true

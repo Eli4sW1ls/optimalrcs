@@ -126,6 +126,39 @@ def em_coefficients(dt, gamma, kT=1.0, m=1.0):
     return dict(dt=dt, gamma=gamma, m=m, s=np.sqrt(2 * gamma * kT * dt / m))
 
 
+def vec_coefficients(dt, gamma, kT=1.0, m=1.0):
+    """ase.md.langevin.Langevin (Vanden-Eijnden & Ciccotti 2006, ase 3.25 `updatevars`) for one free Cartesian
+    component, in ASE units (friction = gamma per ASE time unit, temperature kT in eV, mass m in amu).
+    The step draws xi, eta ~ N(0, 1) per component: rnd_pos = c5 eta, rnd_vel = c3 xi - c4 eta, so the new position is
+    x' = x_det + a xi + b eta (a = dt c3, b = c5 - dt c4). With z1 = (a xi + b eta) / s and z2 = (-b xi + a eta) / s,
+    s = sqrt(a^2 + b^2), x' depends on z1 only, as `exit_probabilities` and `solve_underdamped_1d` require."""
+    sigma = np.sqrt(2 * kT * gamma / m)
+    c1 = dt / 2.0 - dt * dt * gamma / 8.0
+    c2 = dt * gamma / 2 - dt * dt * gamma * gamma / 8.0
+    c3 = np.sqrt(dt) * sigma / 2.0 - dt ** 1.5 * gamma * sigma / 8.0
+    c5 = dt ** 1.5 * sigma / (2 * np.sqrt(3))
+    c4 = gamma / 2.0 * c5
+    a, b = dt * c3, c5 - dt * c4
+    return dict(dt=dt, m=m, c1=c1, c2=c2, c3=c3, c4=c4, c5=c5, a=a, b=b, s=np.hypot(a, b))
+
+
+def vec_step(x, v, z1, z2, force, c, xp):
+    """One ase Langevin step (see vec_coefficients) with standard normals z1, z2 (rotated xi, eta)."""
+    xi = (c['a'] * z1 - c['b'] * z2) / c['s']
+    eta = (c['b'] * z1 + c['a'] * z2) / c['s']
+    rnd_vel = c['c3'] * xi - c['c4'] * eta
+    vh = v + c['c1'] * force(x, xp) / c['m'] - c['c2'] * v + rnd_vel
+    xn = x + c['dt'] * vh + c['c5'] * eta
+    vn = vh + c['c1'] * force(xn, xp) / c['m'] - c['c2'] * vh + rnd_vel
+    return xn, vn
+
+
+def vec_step_xieta(x, v, xi, eta, force, c, xp):
+    """The same step from ase's own draws (xi, eta): used to check against ase and for MD."""
+    s = c['s']
+    return vec_step(x, v, (c['a'] * xi + c['b'] * eta) / s, (-c['b'] * xi + c['a'] * eta) / s, force, c, xp)
+
+
 def gauss_hermite(n):
     """Nodes and weights for E[f(Z)], Z ~ N(0, 1)."""
     z, w = np.polynomial.hermite.hermgauss(n)

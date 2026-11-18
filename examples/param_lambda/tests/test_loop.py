@@ -326,3 +326,92 @@ def test_frame_budget_keeps_b_paths_and_reweights_the_rest():
                          path_id=np.arange(20), lambda_a=0.05, incl=np.r_[np.full(15, 1 / f_b), np.ones(5)])
     _, arrivals = teacher.front(v2, [0.85], n_front=20)
     assert arrivals[0] == round(15 / f_b)
+
+
+def _exact_tools():
+    from loop import env
+    sys.path.insert(0, os.path.join(env.EXAMPLES, 'figures_by_potential', '_shared', 'exact_committors'))
+    import exact_tools
+    return exact_tools
+
+
+def test_vec_step_matches_ase():
+    """exact_tools.vec_step (the exact solver's and md_well_lgv's step) is ase's Langevin step on the cos well."""
+    from loop import ase_systems  # noqa: F401  (loop.env: the ASE checkout first)
+    from loop.ase_calcs import ToytisPotential
+    from ase import Atoms, units
+    from ase.constraints import FixCartesian
+    from ase.md.langevin import Langevin
+    E = _exact_tools()
+    s = ase_systems.get('well_lgv')
+    at = Atoms('H', positions=[[-0.2, 0, 0]], masses=[1.0])
+    at.set_velocities([[0.3, 0, 0]])
+    at.set_constraint(FixCartesian(0, [False, True, True]))
+    at.calc = ToytisPotential(**{k: v for k, v in s['calculator'].items() if k != 'class'})
+    dyn = Langevin(at, timestep=s['dt'], temperature_K=s['kT'] / units.kB, friction=s['gamma'], fixcm=False,
+                   rng=np.random.RandomState(3))
+    rs = np.random.RandomState(3)
+    c = E.vec_coefficients(s['dt'], s['gamma'], s['kT'], 1.0)
+    x, v = np.array(-0.2), np.array(0.3)
+    for _ in range(300):
+        dyn.run(1)
+        xi, eta = rs.standard_normal((1, 3)), rs.standard_normal((1, 3))
+        x, v = E.vec_step_xieta(x, v, xi[0, 0], eta[0, 0], E.coswell_force, c, np)
+        assert abs(at.positions[0, 0] - x) < 1e-9 and abs(at.get_velocities()[0, 0] - v) < 1e-9
+    # x' depends on z1 only (what the exact solver assumes)
+    z = np.linspace(-2, 2, 5)
+    assert np.allclose(E.vec_step(0.1, 0.2, 0.5, z, E.coswell_force, c, np)[0], E.vec_step(0.1, 0.2, 0.5, 0.0, E.coswell_force, c, np)[0])
+
+
+def test_velocity_cv_reads_the_frame_with_vel_rev(tmp_path):
+    """SeedLambda with a velocity CV: flagged velocity dependent (infretis then recomputes reversed paths), and a stored
+    phase point (config only, no velocities in memory) gives v from its trajectory frame, negated when vel_rev."""
+    from loop import ase_systems
+    import infretis_orderp
+    from infretis.classes.system import System
+    from ase import Atoms
+    from ase.io import write
+    s = ase_systems.get('well_lgv')
+    op = infretis_orderp.SeedLambda(ase_systems.cv_tables(s), state_cv=0)
+    assert op.velocity_dependent
+    at = Atoms('H', positions=[[-0.1, 0, 0]], masses=[1.0])
+    at.set_velocities([[0.7, 0, 0]])
+    f = str(tmp_path / 'p.traj')
+    write(f, [at])
+    for rev, sign in ((False, 1), (True, -1)):
+        ph = System()
+        ph.config, ph.vel_rev, ph.vel = (f, 0), rev, np.zeros(0)
+        lam, x, v = op.calculate(ph)
+        assert np.isclose(lam, -0.1) and np.isclose(x, -0.1) and np.isclose(v, sign * 0.7)
+    # positions only: not velocity dependent (the overdamped systems are unchanged)
+    assert not infretis_orderp.SeedLambda(ase_systems.cv_tables(ase_systems.get('z_br'))).velocity_dependent
+
+
+def test_stopped_targets():
+    import teacher
+    piece = np.array([0, 0, 0, 0, 0, 1, 1, 1])
+    boundary = np.array([0, 0, 0, 1, 0, 0, 0, 0], bool)
+    u, starts = teacher.stopped_targets(piece, boundary, 2)
+    assert u.tolist() == [2, 3, 3, 3, 4, 7, 7, 7]
+    assert starts.tolist() == [0, 1, 2, 5, 6]
+
+
+def test_lag_one_update_equals_library_npneq():
+    """The stopped-window update at lag 1 is the library's NPNEq step (same basis, weights and gamma = 0)."""
+    cp = pytest.importorskip('cupy')
+    import teacher
+    orc = teacher._optimalrcs_cupy()
+    rng = np.random.default_rng(0)
+    n = 4000
+    piece = np.repeat(np.arange(40), 100)
+    r = cp.asarray(np.clip(rng.uniform(size=n), 0, 1))
+    b = np.zeros(n, bool)
+    b[99::100] = True
+    r[cp.asarray(b)] = 1.0
+    y = cp.asarray(rng.normal(size=n))
+    w = cp.asarray(rng.uniform(0.5, 2, n - 1))
+    fk = orc.lazy_basis_poly_ry(r, y, 4, cp.asarray(1.0 - b))
+    ref = orc.nonparametrics.npneq(r, fk, cp.asarray(piece), 0.0, w_traj=w)
+    u, starts = teacher.stopped_targets(piece, b, 1)
+    new = teacher._npneq_lag(u, starts, chunk=700)(r, fk, cp.asarray(piece), 0.0, w_traj=w)
+    assert float(cp.abs(new - ref).max()) < 1e-8

@@ -301,3 +301,21 @@ mutates `staridx`/`meta` of shared Path objects; infretis `staple_extender` over
   - *loop_zu_xy_b* (fixed budget, no w): production **1.08x** (rel. error 0.36), 13 interfaces, 12.9M MD to
     initialize and 12.7M in production, teacher RMS 0.086 at pass 7, 237 B paths in 7 passes. Equal to loop_zu_b
     within errors; steadier interface sets without w.
+- **M5 started on the 1D cos well (2026-11-18).** System `well_lgv` (ase_systems): toytis CosWellWalls, kT 1,
+  gamma 1, m 1, dt 0.005, A x <= -0.35, B x >= 0.35, ASE `Langevin` (Vanden-Eijnden-Ciccotti), CVs (x, v); config
+  `loop_well_lgv`. Pieces:
+  - *Exact committor of the ASE chain* (`loop/exact_well_lgv.py`): `exact_tools.vec_step` equals ase's step to
+    round-off (test `test_vec_step_matches_ase`); the new position depends on one rotated normal, as the 1D
+    underdamped grid solver needs. 701 x 501 grid (laptop GPU; the 2801 x 1001 level needs ~6 GB): 200k-shot check
+    chi^2 13.1 / 10, grid change 351 -> 701 RMS 2.8e-5. ASE vs toytis BBK committor: RMS 8e-6 (max 2.6e-3 at A/B).
+  - *Reference rate* (`loop/md_well_lgv.py`, GPU walkers of the same step): k_AB = 0.33703 +- 0.00022 per time unit
+    (k = n(A->B) / time last in A; 3.45M transitions, k_BA 0.33719), one transition per ~593 steps.
+  - *Velocity CVs in infretis*: `infretis_orderp` flags the order parameter velocity dependent when a CV source is
+    (infretis `Velocity`), so `Path.reverse` recomputes reversed paths; `_ensure_phase_point` reads v from the
+    trajectory frame with the sign of vel_rev. Pass 0 uses `sh` (wire fencing reverses paths). No mirrored pieces
+    when the CVs hold velocities (`infretis_backend.has_velocity_cvs`). Smoke run: recorded v matches the
+    finite-difference velocity in every stored path (median corr 0.999, no sign flips), including backward segments.
+  - *Teacher lag* (`[teacher] lag`, `teacher.stopped_targets` / `_npneq_lag`): the loop's teacher had always fitted
+    at lag 1 (`lags` in the config was unused). Stopped windows (t, min(t + lag, tau_t)); at lag 1 equal to the
+    library update (test). loop_well_lgv uses lag 4 (staple paths with recorded v: lag 4 RMS 0.015 vs lag 1 0.019).
+  - Runs on the workstation: the loop, the seed-lambda control as the long lambda = x infretis run, the long MD.

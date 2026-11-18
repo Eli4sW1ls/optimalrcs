@@ -23,7 +23,9 @@ loader reads columns 1.. as CVs: lambda and the old values).
   interfaces must be the model's lambda_A and lambda_B (`check` verifies it).
 - The CV sources are built with infretis' own create_orderparameter: built-in classes (position, distance, ...)
   or external ones (class + module, the module path relative to the launch directory, as in infretis).
-  Velocity-dependent sources are refused: lambda must be a function of the configuration only (time reversal).
+  Velocity sources (class "velocity", underdamped systems, M5) flag the order parameter as velocity dependent:
+  infretis then recomputes the orders of a time-reversed path (Path.reverse), and `_ensure_phase_point` reads the
+  frame's velocities with the sign of vel_rev. The state CV must be configurational (the states are x-regions).
 - Load paths are not recomputed by infretis (it reads frame orders from order.txt): convert them with
   `python infretis_orderp.py relabel <model> <load_dir> <new_load_dir>`.
 - Each infretis worker process (the APPTIS checkout spawns them) builds its own object; BLAS is limited to one
@@ -69,13 +71,26 @@ def _limit_blas_threads(n=1):
 def build_cv_sources(cvs):
     """infretis order parameter objects from a list of [orderparameter]-style tables."""
     from infretis.classes.orderparameter import create_orderparameter
-    out = []
-    for table in cvs:
-        op = create_orderparameter({'orderparameter': dict(table)})
-        if getattr(op, 'velocity_dependent', False):
-            raise ValueError(f'CV source {table.get("class")} depends on velocities: lambda must not')
-        out.append(op)
-    return out
+    return [create_orderparameter({'orderparameter': dict(table)}) for table in cvs]
+
+
+def _velocity_dependent(sources):
+    return any(getattr(op, 'velocity_dependent', False) for op in sources)
+
+
+def _ensure_phase_point(system):
+    """Velocity CV sources read system.vel. The engine's calculate_order fills it (with the sign of vel_rev applied);
+    Path.reverse recomputes the orders of a velocity-dependent order parameter on stored phase points, which hold
+    only (trajectory file, frame) and vel_rev: read that frame here, so the reversed path gets v -> -v."""
+    vel = getattr(system, 'vel', None)
+    if vel is not None and np.size(vel) > 0:
+        return
+    from ase.io import read
+    fname, idx = system.config
+    atoms = read(fname, index=int(idx) if idx is not None else 0)
+    system.pos = atoms.positions
+    v = atoms.get_velocities()
+    system.vel = -v if getattr(system, 'vel_rev', False) else v
 
 
 class SeedLambda(_Base):
@@ -85,9 +100,15 @@ class SeedLambda(_Base):
     def __init__(self, cvs, state_cv=0):
         self.cv_sources = build_cv_sources(cvs)
         self.state_cv = int(state_cv)
-        super().__init__(description=f'seed lambda: CV {self.state_cv} of the CV pool', velocity=False)
+        if getattr(self.cv_sources[self.state_cv], 'velocity_dependent', False):
+            raise ValueError('the state CV must not depend on velocities')
+        # velocity CVs: flagged, so infretis recomputes the orders of reversed paths (the recorded v changes sign)
+        super().__init__(description=f'seed lambda: CV {self.state_cv} of the CV pool',
+                         velocity=_velocity_dependent(self.cv_sources))
 
     def values(self, system):
+        if self.velocity_dependent:
+            _ensure_phase_point(system)
         out = []
         for op in self.cv_sources:
             out.extend(float(v) for v in np.ravel(op.calculate(system)))
@@ -110,11 +131,14 @@ class LearnedLambda(_Base):
         self.n_ood = 0
         if blas_threads:
             _limit_blas_threads(int(blas_threads))
+        # lambda(x, v) for underdamped systems (M5): the states stay those of the (configurational) state CV
         super().__init__(description=f'learned lambda {os.path.basename(self.model_path)} of '
-                                     f'{", ".join(self.model.cv_names)}', velocity=False)
+                                     f'{", ".join(self.model.cv_names)}', velocity=_velocity_dependent(self.cv_sources))
 
     def values(self, system):
         """The CV source values of one frame (all of them, in order)."""
+        if self.velocity_dependent:
+            _ensure_phase_point(system)
         out = []
         for op in self.cv_sources:
             out.extend(float(v) for v in np.ravel(op.calculate(system)))

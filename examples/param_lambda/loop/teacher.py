@@ -76,6 +76,53 @@ def select_frames(view, max_frames, seed=0):
     return keep[view.piece], (1.0 / f)[view.piece]
 
 
+def stopped_targets(piece, boundary, lag):
+    """For each frame i: u_i = min(i + lag, tau_i), tau_i = the first boundary frame at or after i in its piece, or the
+    piece's last frame. The lag-`lag` NPNEq windows are (i, u_i) for the non-boundary frames with u_i > i."""
+    n = len(piece)
+    idx = np.arange(n)
+    last = np.r_[np.flatnonzero(piece[1:] != piece[:-1]), n - 1]             # last frame of each piece
+    piece_end = last[np.searchsorted(last, idx)]
+    bidx = np.flatnonzero(boundary)
+    nb = np.searchsorted(bidx, idx)
+    next_b = np.where(nb < len(bidx), bidx[np.minimum(nb, len(bidx) - 1)], n)
+    tau = np.minimum(next_b, piece_end)
+    u = np.minimum(idx + lag, tau)
+    starts = np.flatnonzero(~boundary & (u > idx))
+    return u, starts
+
+
+def _npneq_lag(u, starts, chunk=500_000):
+    """nonparametrics.npneq with the stopped lag windows (i, u_i): sum_i w_i f_k(i) [r(u_i) - r(i) + delta r(u_i) -
+    delta r(i)] = 0 in the basis f_k, plus gamma |delta r|^2 (as figures_by_potential/1d_cos_well/langevin_staple/
+    checks/well_test.py, where lag 4 beat lag 1 on staple paths with recorded velocities; on MD lag ~16 reaches the
+    exact committor, lag 1 stalls along energy contours). `fk` is the lazy basis: columns fk(s, e)."""
+    import cupy as cp
+    u_g, st_all = cp.asarray(u), cp.asarray(starts)
+
+    def npneq(r_traj, fk, i_traj=None, gamma=0, stable=False, train_mask=None, chunk_=None, w_traj=None, **kw):
+        n = r_traj.shape[0]
+        w = cp.ones(n, dtype=r_traj.dtype) if w_traj is None else cp.concatenate(
+            [cp.asarray(w_traj, dtype=r_traj.dtype), cp.ones(1, dtype=r_traj.dtype)])
+        akj, bb = 0, 0
+        for c0 in range(0, st_all.size, chunk):
+            st = st_all[c0:c0 + chunk]
+            lo, hi = int(st[0]), int(min(int(u_g[st].max()) + 1, n))
+            F = fk(lo, hi)                                                    # (n_basis, hi - lo)
+            fa, fb, wt = F[:, st - lo], F[:, u_g[st] - lo], w[st]
+            akj = akj + fa @ (fb * wt - fa * (wt + gamma)).T
+            bb = bb + fa @ (-(r_traj[u_g[st]] - r_traj[st]) * wt)
+            del F, fa, fb
+        al = cp.linalg.lstsq(akj, bb, rcond=None)[0]
+        if hasattr(fk, 'apply'):
+            return fk.apply(r_traj, al, 0, 1)
+        out = r_traj.copy()
+        for c0 in range(0, n, chunk):
+            out[c0:c0 + chunk] += al @ fk(c0, min(c0 + chunk, n))
+        return cp.clip(out, 0, 1)
+    return npneq
+
+
 def fit(view, cfg, seed_q=None, provisional_b=None, seed=0, log=None):
     """NPNEq on the view. cfg: the [teacher] table. seed_q: per-frame start values (NaN = unknown).
     provisional_b: s_front or None. Returns dict(q, mask, history, iterations, seconds, ...)."""
@@ -119,10 +166,18 @@ def fit(view, cfg, seed_q=None, provisional_b=None, seed=0, log=None):
         return X_gpu[:, int(rng.integers(X_gpu.shape[1]))]
 
     max_iter = int(cfg.get('max_iter', 3000))
-    q.fit_transform(comp_y, gamma=float(cfg.get('gamma', 0.1)), ny=int(cfg.get('ny', 6)), max_iter=max_iter,
-                    print_step=int(cfg.get('print_step', 250)),
-                    metrics_print=('iter', 'delta_r2', 'max_z_zq_stopped', 'max_sd_zq_stopped', 'delta_x', 'time_elapsed'),
-                    save_min_metric='max_z_zq_stopped', lazy_basis=True)
+    lag = int(cfg.get('lag', 1))
+    orig_npneq = orc.nonparametrics.npneq
+    if lag > 1:                         # stopped lag windows (underdamped systems, M5); lag 1 is the library update
+        orc.nonparametrics.npneq = _npneq_lag(*stopped_targets(piece, A | B, lag))
+    try:
+        q.fit_transform(comp_y, gamma=float(cfg.get('gamma', 0.1)), ny=int(cfg.get('ny', 6)), max_iter=max_iter,
+                        print_step=int(cfg.get('print_step', 250)),
+                        metrics_print=('iter', 'delta_r2', 'max_z_zq_stopped', 'max_sd_zq_stopped', 'delta_x',
+                                       'time_elapsed'),
+                        save_min_metric='max_z_zq_stopped', lazy_basis=True)
+    finally:
+        orc.nonparametrics.npneq = orig_npneq
     r = cp.asnumpy(q.r_traj)
     secs = time.time() - t0
     history = {k: [float(v) for v in vals] for k, vals in q.metrics_history.items()}
