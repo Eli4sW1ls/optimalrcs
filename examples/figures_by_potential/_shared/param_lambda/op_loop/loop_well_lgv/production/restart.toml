@@ -1,0 +1,265 @@
+[runner]
+workers = 4
+files = []
+wmdrun = [
+    "not used",
+    "not used",
+    "not used",
+    "not used",
+    "not used",
+    "not used",
+    "not used",
+    "not used",
+]
+
+[simulation]
+interfaces = [
+    -0.35,
+    -0.2104975248558338,
+    -0.06249861960511599,
+    0.10008719039905883,
+    0.2061361864198603,
+    0.28299259106437635,
+    0.306842273931348,
+    0.35,
+]
+steps = 20000
+seed = 1000
+load_dir = "load"
+shooting_moves = [
+    "sh",
+    "sh",
+    "sh",
+    "sh",
+    "sh",
+    "sh",
+    "sh",
+    "sh",
+]
+mode = "staple"
+staple_infinite_swap = true
+ensemble_engines = [
+    [
+        "engine",
+    ],
+    [
+        "engine",
+    ],
+    [
+        "engine",
+    ],
+    [
+        "engine",
+    ],
+    [
+        "engine",
+    ],
+    [
+        "engine",
+    ],
+    [
+        "engine",
+    ],
+    [
+        "engine",
+    ],
+]
+zeroswap = 0.5
+pick_scheme = 0
+
+[simulation.tis_set]
+maxlength = 40000
+allowmaxlength = false
+zero_momentum = false
+n_jumps = 4
+staple = true
+quantis = false
+lambda_minus_one = false
+accept_all = false
+
+[engine]
+class = "ase"
+engine = "ase"
+temperature = 11604.522060401008
+input_path = "."
+timestep = 0.05090252835578363
+subcycles = 1
+integrator = "langevin"
+langevin_fixcm = false
+langevin_friction = 0.09822694788464063
+
+[engine.calculator_settings]
+class = "ToytisPotential"
+spec = "cos_well:CosWellWalls"
+dim = 1
+module = "/local/data/data-fbsskr/Students/elias/optimalrcs/examples/param_lambda/loop/ase_calcs.py"
+
+[engine.particles]
+mass = [
+    1.0,
+]
+name = [
+    "H",
+]
+pos = [
+    [
+        -0.4,
+    ],
+]
+
+[engine.box]
+periodic = [
+    false,
+]
+
+[orderparameter]
+class = "LearnedLambda"
+module = "/local/data/data-fbsskr/Students/elias/optimalrcs/examples/param_lambda/infretis_orderp.py"
+model = "/local/data/data-fbsskr/Students/elias/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_well_lgv/models/lambda_7.npz"
+
+[[orderparameter.cvs]]
+class = "Position"
+index = [
+    0,
+    0,
+]
+periodic = false
+
+[[orderparameter.cvs]]
+class = "Velocity"
+index = 0
+dim = "x"
+
+[output]
+data_dir = "./"
+screen = 100
+pattern = false
+delete_old = false
+delete_old_all = false
+visual_validation = false
+data_file = "./infretis_data.txt"
+keep_maxop_trajs = false
+keep_traj_fnames = []
+keep_status = []
+
+[current]
+traj_num = 7902
+cstep = 20000
+active = [
+    7900,
+    7899,
+    7894,
+    7901,
+    7895,
+    7863,
+    7887,
+    7891,
+]
+locked = []
+size = 8
+wsubcycles = [
+    418094,
+    404960,
+    425682,
+    425516,
+]
+tsubcycles = 1674252
+
+[current.frac]
+7863 = [
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+    "6.4300673618029365415",
+    "16.587360277047380992",
+    "16.123302001422592539",
+    "11.859270359727089919",
+    "0.0",
+]
+7887 = [
+    "0.0",
+    "2.5525310173697270473",
+    "2.7543336681239907046",
+    "2.2794191382094607901",
+    "1.4632706093189964157",
+    "2.2371775178226791128",
+    "3.2113006617038875104",
+    "6.501967387451258419",
+    "0.0",
+]
+7891 = [
+    "0.0",
+    "2.218880291091666304",
+    "3.1440162078065303872",
+    "2.493353814644137225",
+    "1.8336187916026625703",
+    "2.6636681654508479636",
+    "2.267483954924532174",
+    "5.378978774479623376",
+    "0.0",
+]
+7894 = [
+    "0.0",
+    "2.1872804659498207886",
+    "3.9565112351805900193",
+    "2.1351971326164874553",
+    "1.8328513824884792627",
+    "1.8904171097719484816",
+    "1.3725004431052818149",
+    "1.6252422308873921777",
+    "0.0",
+]
+7895 = [
+    "0.0",
+    "2.2228360215053763443",
+    "2.409502688172043011",
+    "2.5617050691244239633",
+    "2.0530101126472094215",
+    "0.674910394265232975",
+    "1.5509619815668202765",
+    "1.5270737327188940094",
+    "0.0",
+]
+7899 = [
+    "0.0",
+    "1.8422990945104697226",
+    "1.3998159636062861869",
+    "1.2974807987711213517",
+    "1.5955235535074244751",
+    "1.07508452686720938",
+    "1.5500114274520047015",
+    "2.239784635285484182",
+    "0.0",
+]
+7900 = [
+    "6.0",
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+]
+7901 = [
+    "0.0",
+    "0.6546236559139784946",
+    "0.32129032258064516128",
+    "0.6546236559139784946",
+    "0.5177060931899641577",
+    "0.22078853046594982079",
+    "0.2696774193548387097",
+    "0.3612903225806451613",
+    "0.0",
+]
+
+[current.rng_state]
+bit_generator = "PCG64"
+has_uint32 = 0
+uinteger = 0
+
+[current.rng_state.state]
+state = 30683595573171949685864938738014512801
+inc = 119065948144835586474643535142778641169

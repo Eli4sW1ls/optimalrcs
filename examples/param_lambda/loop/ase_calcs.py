@@ -16,7 +16,7 @@ import sys
 import numpy as np
 from ase.calculators.calculator import Calculator, all_changes
 
-TOYTIS = os.environ.get('TOYTIS', '/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/PyRETIS3/toytis')
+TOYTIS = os.environ.get('TOYTIS', '/home/staff7/fbsskr/Notebooks/Students/elias/toytis')
 
 
 class FlatWalls1D(Calculator):

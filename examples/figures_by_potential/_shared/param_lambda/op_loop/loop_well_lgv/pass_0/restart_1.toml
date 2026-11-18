@@ -1,0 +1,214 @@
+[runner]
+workers = 4
+files = []
+wmdrun = [
+    "not used",
+    "not used",
+    "not used",
+    "not used",
+    "not used",
+    "not used",
+    "not used",
+    "not used",
+]
+
+[simulation]
+interfaces = [
+    -0.35,
+    -0.23350770344869742,
+    -0.11701540689739487,
+    -0.0005231103460923148,
+    0.35,
+]
+steps = 200
+seed = 0
+load_dir = "load"
+shooting_moves = [
+    "sh",
+    "sh",
+    "wf",
+    "wf",
+    "wf",
+]
+ensemble_engines = [
+    [
+        "engine",
+    ],
+    [
+        "engine",
+    ],
+    [
+        "engine",
+    ],
+    [
+        "engine",
+    ],
+    [
+        "engine",
+    ],
+]
+zeroswap = 0.5
+pick_scheme = 0
+
+[simulation.tis_set]
+maxlength = 40000
+allowmaxlength = false
+zero_momentum = false
+n_jumps = 4
+staple = false
+quantis = false
+lambda_minus_one = false
+accept_all = false
+
+[engine]
+class = "ase"
+engine = "ase"
+temperature = 11604.522060401008
+input_path = "."
+timestep = 0.05090252835578363
+subcycles = 1
+integrator = "langevin"
+langevin_fixcm = false
+langevin_friction = 0.09822694788464063
+
+[engine.calculator_settings]
+class = "ToytisPotential"
+spec = "cos_well:CosWellWalls"
+dim = 1
+module = "/local/data/data-fbsskr/Students/elias/optimalrcs/examples/param_lambda/loop/ase_calcs.py"
+
+[engine.particles]
+mass = [
+    1.0,
+]
+name = [
+    "H",
+]
+pos = [
+    [
+        -0.4,
+    ],
+]
+
+[engine.box]
+periodic = [
+    false,
+]
+
+[orderparameter]
+class = "SeedLambda"
+module = "/local/data/data-fbsskr/Students/elias/optimalrcs/examples/param_lambda/infretis_orderp.py"
+state_cv = 0
+
+[[orderparameter.cvs]]
+class = "Position"
+index = [
+    0,
+    0,
+]
+periodic = false
+
+[[orderparameter.cvs]]
+class = "Velocity"
+index = 0
+dim = "x"
+
+[output]
+data_dir = "./"
+screen = 100
+pattern = false
+delete_old = false
+delete_old_all = false
+visual_validation = false
+data_file = "./infretis_data_1.txt"
+keep_maxop_trajs = false
+keep_traj_fnames = []
+keep_status = []
+
+[infinit]
+pL = 0.3
+lamres = 0.001
+skip = 0.1
+initial_conf = "initial.traj"
+cstep = 0
+steps_per_iter = [
+    200,
+    200,
+    200,
+    200,
+    200,
+    200,
+    200,
+    200,
+]
+
+[current]
+traj_num = 235
+cstep = 200
+active = [
+    231,
+    230,
+    234,
+    233,
+    232,
+]
+locked = []
+size = 5
+wsubcycles = [
+    35568,
+    40081,
+    23176,
+    17412,
+]
+tsubcycles = 116237
+
+[current.frac]
+230 = [
+    "0.0",
+    "2.651567956831267841",
+    "0.31994873305206738092",
+    "0.64169349587300888863",
+    "1.3867898142436558893",
+    "0.0",
+]
+231 = [
+    "5.0",
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+]
+232 = [
+    "0.0",
+    "2.2639382314742659869",
+    "0.08599191442642961936",
+    "0.16312250189145762307",
+    "1.4869473522078467706",
+    "0.0",
+]
+233 = [
+    "0.0",
+    "0.060962195533215294663",
+    "0.29901223088690220755",
+    "0.860565806412989375",
+    "0.7794597671668931226",
+    "0.0",
+]
+234 = [
+    "0.0",
+    "0.023531616161250877342",
+    "0.29504712163460079208",
+    "0.33461819582254411317",
+    "0.34680306638160421736",
+    "0.0",
+]
+
+[current.rng_state]
+bit_generator = "PCG64"
+has_uint32 = 0
+uinteger = 0
+
+[current.rng_state.state]
+state = 194620259931454712918680945143982193393
+inc = 87136372517582989555478159403783844777

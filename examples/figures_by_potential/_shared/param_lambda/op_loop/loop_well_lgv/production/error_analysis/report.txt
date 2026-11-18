@@ -1,0 +1,60 @@
+================================================================================
+RUNNING ESTIMATE + RECURSIVE BLOCK ERROR ANALYSIS (infretis STAPLE)
+================================================================================
+Simulation      : /local/data/data-fbsskr/Students/elias/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_well_lgv/production
+Data file       : /local/data/data-fbsskr/Students/elias/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_well_lgv/production/infretis_data.txt
+TOML file       : /local/data/data-fbsskr/Students/elias/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_well_lgv/production/infretis.toml
+Output dir      : /local/data/data-fbsskr/Students/elias/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_well_lgv/production/error_analysis
+Interval        : 50 paths
+Skip from start : 789
+Order params    : /local/data/data-fbsskr/Students/elias/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_well_lgv/production/load
+Time per frame  : 0.05090252835578363 x 1 subcycles x 1.0 = 0.0509025
+
+Interfaces      : 8  [-0.35, -0.2104975248558338, -0.06249861960511599, 0.10008719039905883, 0.2061361864198603, 0.28299259106437635, 0.306842273931348, 0.35]
+lm1             : None
+Paths available : 7105 (after skip)
+Path lengths    : 7105/7105 paths (0 from cache, 7105 read from order.txt)
+Running estimates: 142 steps, 50 -> 7105 (step 50)
+
+Running estimates completed in 0s.
+
+Using 142 valid snapshots for error analysis (skipping first 0 for stability)
+Using 142 snapshots with finite rates for the rate error analysis
+
+    Block Error Summary:
+    ---------------------------------------------------
+    Data points analyzed          : 142
+    Max block length              : 28
+    
+    Final P_cross                 : 0.641505
+    P_cross Rel. Error (Plateau)  : 0.0213 (2.13%)
+    P_cross Stat. Inefficiency    : 0.4
+    
+    Q Matrix Average Rel Error    : 0.0601
+    P Matrix Average Rel Error    : 0.2858
+    
+    
+    Rates (time in engine time units; _nb = tau2 only, not balanced):
+    ---------------------------------------------------
+    Flux        :  5.203781e-02  +- 3.238e-03  (6.22%)
+    Flux_nb     :  5.083096e-02  +- 2.841e-03  (5.59%)
+    MFPT_AB     :  2.995581e+01  +- 1.651e+00  (5.51%)
+    MFPT_nb_AB  :  3.066703e+01  +- 1.641e+00  (5.35%)
+    Rate        :  3.338251e-02  +- 2.085e-03  (6.24%)
+    Rate_nb     :  3.260831e-02  +- 1.903e-03  (5.84%)
+    1/MFPT_AB    :  3.338251e-02  (should match Rate)
+
+Written to /local/data/data-fbsskr/Students/elias/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_well_lgv/production/error_analysis:
+  pcross_runav.txt
+  qmat_runav.txt
+  pmat_runav.txt
+  rate_runav.txt
+  pcross_block_errors_50.txt / .png
+  qmat_block_errors_50.txt / .png
+  pmat_block_errors_50.txt / .png
+  rate_block_errors_50.txt / .png
+
+Read the relative error against block length and take the plateau: short
+blocks are still correlated and underestimate the error, while very long
+blocks leave too few of them for the standard error to be meaningful.
+================================================================================

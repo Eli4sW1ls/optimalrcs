@@ -1,0 +1,19 @@
+{
+ "pass_index": 7,
+ "model": "/local/data/data-fbsskr/Students/elias/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_well_lgv/models/lambda_7.npz",
+ "interfaces": [
+  -0.35,
+  -0.2104975248558338,
+  -0.06249861960511599,
+  0.10008719039905883,
+  0.2061361864198603,
+  0.28299259106437635,
+  0.306842273931348,
+  0.35
+ ],
+ "ok": true,
+ "fails": [],
+ "source": "pass 7",
+ "verification": [],
+ "written": "2026-11-18 20:34:40"
+}

@@ -1,0 +1,15 @@
+Traceback (most recent call last):
+  File "<frozen runpy>", line 203, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/local/data/data-fbsskr/Students/elias/optimalrcs/examples/param_lambda/loop/experiments/seed_control.py", line 80, in <module>
+    main()
+    ~~~~^^
+  File "/local/data/data-fbsskr/Students/elias/optimalrcs/examples/param_lambda/loop/experiments/seed_control.py", line 76, in main
+    run(cfg)
+    ~~~^^^^^
+  File "/local/data/data-fbsskr/Students/elias/optimalrcs/examples/param_lambda/loop/experiments/seed_control.py", line 54, in run
+    be.run(out)
+    ~~~~~~^^^^^
+  File "/local/data/data-fbsskr/Students/elias/optimalrcs/examples/param_lambda/loop/backends/infretis_backend.py", line 165, in run
+    raise RuntimeError(f'infretisrun failed in {workdir} (see {log})')
+RuntimeError: infretisrun failed in /local/data/data-fbsskr/Students/elias/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_well_lgv/production_seed (see infretis.out)
