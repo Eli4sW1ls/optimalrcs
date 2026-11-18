@@ -495,7 +495,7 @@ def main():
     pool = pool_mod.Pool(cfg['loop_dir'])
     out = os.path.join(cfg['loop_dir'], 'figures')
     os.makedirs(out, exist_ok=True)
-    if cfg['system_spec']['dim'] == 2:
+    if cfg['system_spec']['dim'] <= 2:                     # 2D, or underdamped 1D: the (x, v) plane
         grids = [Grid(cfg, pool)]
     else:
         w0 = float(cfg['system_spec']['calculator'].get('w_well', cfg['system_spec']['calculator']['params']).get('w0', 0.1))
