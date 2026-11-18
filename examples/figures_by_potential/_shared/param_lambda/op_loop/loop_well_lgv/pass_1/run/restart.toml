@@ -1,0 +1,242 @@
+[runner]
+workers = 4
+files = []
+wmdrun = [
+    "not used",
+    "not used",
+    "not used",
+    "not used",
+    "not used",
+    "not used",
+    "not used",
+    "not used",
+]
+
+[simulation]
+interfaces = [
+    -0.35,
+    0.0191956609496034,
+    0.15033380969466725,
+    0.2262471882007645,
+    0.28810377963118394,
+    0.318645754179544,
+    0.35,
+]
+steps = 1000
+seed = 1
+load_dir = "load"
+shooting_moves = [
+    "sh",
+    "sh",
+    "sh",
+    "sh",
+    "sh",
+    "sh",
+    "sh",
+]
+mode = "staple"
+staple_infinite_swap = true
+ensemble_engines = [
+    [
+        "engine",
+    ],
+    [
+        "engine",
+    ],
+    [
+        "engine",
+    ],
+    [
+        "engine",
+    ],
+    [
+        "engine",
+    ],
+    [
+        "engine",
+    ],
+    [
+        "engine",
+    ],
+]
+zeroswap = 0.5
+pick_scheme = 0
+
+[simulation.tis_set]
+maxlength = 40000
+allowmaxlength = false
+zero_momentum = false
+n_jumps = 4
+staple = true
+quantis = false
+lambda_minus_one = false
+accept_all = false
+
+[engine]
+class = "ase"
+engine = "ase"
+temperature = 11604.522060401008
+input_path = "."
+timestep = 0.05090252835578363
+subcycles = 1
+integrator = "langevin"
+langevin_fixcm = false
+langevin_friction = 0.09822694788464063
+
+[engine.calculator_settings]
+class = "ToytisPotential"
+spec = "cos_well:CosWellWalls"
+dim = 1
+module = "/local/data/data-fbsskr/Students/elias/optimalrcs/examples/param_lambda/loop/ase_calcs.py"
+
+[engine.particles]
+mass = [
+    1.0,
+]
+name = [
+    "H",
+]
+pos = [
+    [
+        -0.4,
+    ],
+]
+
+[engine.box]
+periodic = [
+    false,
+]
+
+[orderparameter]
+class = "LearnedLambda"
+module = "/local/data/data-fbsskr/Students/elias/optimalrcs/examples/param_lambda/infretis_orderp.py"
+model = "/local/data/data-fbsskr/Students/elias/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_well_lgv/models/lambda_1.npz"
+
+[[orderparameter.cvs]]
+class = "Position"
+index = [
+    0,
+    0,
+]
+periodic = false
+
+[[orderparameter.cvs]]
+class = "Velocity"
+index = 0
+dim = "x"
+
+[output]
+data_dir = "./"
+screen = 100
+pattern = false
+delete_old = false
+delete_old_all = false
+visual_validation = false
+data_file = "./infretis_data.txt"
+keep_maxop_trajs = false
+keep_traj_fnames = []
+keep_status = []
+
+[current]
+traj_num = 442
+cstep = 1000
+active = [
+    440,
+    439,
+    441,
+    433,
+    437,
+    434,
+    431,
+]
+locked = []
+size = 7
+wsubcycles = [
+    27215,
+    28559,
+    32061,
+    25848,
+]
+tsubcycles = 113683
+restarted_from = 244
+
+[current.frac]
+431 = [
+    "0.0",
+    "3.052261904761904762",
+    "2.6980952380952380953",
+    "3.5689285714285714287",
+    "2.3141666666666666668",
+    "2.5141666666666666668",
+    "7.852380952380952382",
+    "0.0",
+]
+433 = [
+    "0.0",
+    "3.8419444444444444445",
+    "3.0766666666666666666",
+    "3.225277777777777778",
+    "2.2586111111111111113",
+    "1.9308333333333333333",
+    "5.666666666666666667",
+    "0.0",
+]
+434 = [
+    "0.0",
+    "1.5855952380952380952",
+    "2.814761904761904762",
+    "2.1689285714285714286",
+    "1.5141666666666666667",
+    "1.5975",
+    "3.3190476190476190476",
+    "0.0",
+]
+437 = [
+    "0.0",
+    "1.8987500000000000001",
+    "0.91333333333333333335",
+    "2.69875",
+    "1.9654166666666666667",
+    "0.39875",
+    "1.1250000000000000001",
+    "0.0",
+]
+439 = [
+    "0.0",
+    "2.1844642857142857143",
+    "0.4657142857142857143",
+    "1.8511309523809523808",
+    "1.8987500000000000001",
+    "0.7320833333333333334",
+    "0.8678571428571428572",
+    "0.0",
+]
+440 = [
+    "5.0",
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+]
+441 = [
+    "0.0",
+    "0.16000000000000000001",
+    "0.16000000000000000001",
+    "0.16000000000000000001",
+    "0.16000000000000000001",
+    "0.16000000000000000001",
+    "0.20000000000000000002",
+    "0.0",
+]
+
+[current.rng_state]
+bit_generator = "PCG64"
+has_uint32 = 0
+uinteger = 0
+
+[current.rng_state.state]
+state = 58043101732605689729577613274485524969
+inc = 194290289479364712180083596243593368443

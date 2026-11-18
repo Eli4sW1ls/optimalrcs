@@ -1,0 +1,140 @@
+🔧 Starting internalrun with input: infretis.toml
+🚀 About to call setup_config - set breakpoint here!
+📋 Configuration loaded, starting scheduler...
+Process SpawnProcess-1:
+Process SpawnProcess-2:
+Process SpawnProcess-3:
+Traceback (most recent call last):
+  File "/local/data/data-fbsskr/Students/elias/rctis/bin/infretisrun", line 6, in <module>
+    sys.exit(infretisrun())
+             ~~~~~~~~~~~^^
+  File "/local/data/data-fbsskr/Students/elias/infretis/infretis/bin.py", line 38, in infretisrun
+    internalrun(input_file)
+    ~~~~~~~~~~~^^^^^^^^^^^^
+  File "/local/data/data-fbsskr/Students/elias/infretis/infretis/bin.py", line 70, in internalrun
+    scheduler(config)
+    ~~~~~~~~~^^^^^^^^
+  File "/local/data/data-fbsskr/Students/elias/infretis/infretis/scheduler.py", line 38, in scheduler
+    futures.add(runner.submit_work(worker_md_items))
+                ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/local/data/data-fbsskr/Students/elias/infretis/infretis/asyncrunner.py", line 164, in submit_work
+    time.sleep(0.05)
+    ~~~~~~~~~~^^^^^^
+KeyboardInterrupt
+Traceback (most recent call last):
+Traceback (most recent call last):
+Exception in thread Thread-1 (_start_event_loop):
+  File "/local/data/data-fbsskr/Students/elias/rctis/lib/python3.14/multiprocessing/process.py", line 320, in _bootstrap
+    self.run()
+    ~~~~~~~~^^
+  File "/local/data/data-fbsskr/Students/elias/rctis/lib/python3.14/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/local/data/data-fbsskr/Students/elias/rctis/lib/python3.14/concurrent/futures/process.py", line 243, in _process_worker
+    call_item = call_queue.get(block=True)
+  File "/local/data/data-fbsskr/Students/elias/rctis/lib/python3.14/multiprocessing/queues.py", line 100, in get
+    with self._rlock:
+         ^^^^^^^^^^^
+  File "/local/data/data-fbsskr/Students/elias/rctis/lib/python3.14/multiprocessing/synchronize.py", line 97, in __enter__
+    return self._semlock.__enter__()
+           ~~~~~~~~~~~~~~~~~~~~~~~^^
+KeyboardInterrupt
+  File "/local/data/data-fbsskr/Students/elias/rctis/lib/python3.14/multiprocessing/process.py", line 320, in _bootstrap
+    self.run()
+    ~~~~~~~~^^
+  File "/local/data/data-fbsskr/Students/elias/rctis/lib/python3.14/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/local/data/data-fbsskr/Students/elias/rctis/lib/python3.14/concurrent/futures/process.py", line 243, in _process_worker
+    call_item = call_queue.get(block=True)
+  File "/local/data/data-fbsskr/Students/elias/rctis/lib/python3.14/multiprocessing/queues.py", line 100, in get
+    with self._rlock:
+         ^^^^^^^^^^^
+  File "/local/data/data-fbsskr/Students/elias/rctis/lib/python3.14/multiprocessing/synchronize.py", line 97, in __enter__
+    return self._semlock.__enter__()
+           ~~~~~~~~~~~~~~~~~~~~~~~^^
+KeyboardInterrupt
+Traceback (most recent call last):
+  File "/local/data/data-fbsskr/Students/elias/rctis/lib/python3.14/multiprocessing/process.py", line 320, in _bootstrap
+    self.run()
+    ~~~~~~~~^^
+  File "/local/data/data-fbsskr/Students/elias/rctis/lib/python3.14/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/local/data/data-fbsskr/Students/elias/rctis/lib/python3.14/concurrent/futures/process.py", line 243, in _process_worker
+    call_item = call_queue.get(block=True)
+  File "/local/data/data-fbsskr/Students/elias/rctis/lib/python3.14/multiprocessing/queues.py", line 101, in get
+    res = self._recv_bytes()
+  File "/local/data/data-fbsskr/Students/elias/rctis/lib/python3.14/multiprocessing/connection.py", line 227, in recv_bytes
+    buf = self._recv_bytes(maxlength)
+  File "/local/data/data-fbsskr/Students/elias/rctis/lib/python3.14/multiprocessing/connection.py", line 452, in _recv_bytes
+    buf = self._recv(4)
+  File "/local/data/data-fbsskr/Students/elias/rctis/lib/python3.14/multiprocessing/connection.py", line 417, in _recv
+    chunk = read(handle, to_read)
+KeyboardInterrupt
+concurrent.futures.process._RemoteTraceback: 
+"""
+Traceback (most recent call last):
+  File "/local/data/data-fbsskr/Students/elias/rctis/lib/python3.14/concurrent/futures/process.py", line 255, in _process_worker
+    r = call_item.fn(*call_item.args, **call_item.kwargs)
+  File "/local/data/data-fbsskr/Students/elias/infretis/infretis/core/tis.py", line 68, in run_md
+    _, trials, status = select_shoot(picked)
+                        ~~~~~~~~~~~~^^^^^^^^
+  File "/local/data/data-fbsskr/Students/elias/infretis/infretis/core/tis.py", line 341, in select_shoot
+    accept, new_path, status = sh_moves[move](
+                               ~~~~~~~~~~~~~~^
+        ens_set, path, engines[0][0], start_cond=start_cond
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/local/data/data-fbsskr/Students/elias/infretis/infretis/core/tis.py", line 1961, in staple_sh
+    success_forw, _ = engine.propagate(
+                      ~~~~~~~~~~~~~~~~^
+        path_forw, ens_set, shpt_copy, reverse=False
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/local/data/data-fbsskr/Students/elias/infretis/infretis/classes/engines/enginebase.py", line 361, in propagate
+    msg_file.close()
+    ~~~~~~~~~~~~~~^^
+  File "/local/data/data-fbsskr/Students/elias/infretis/infretis/classes/formatter.py", line 557, in close
+    self.flush()
+    ~~~~~~~~~~^^
+  File "/local/data/data-fbsskr/Students/elias/infretis/infretis/classes/formatter.py", line 569, in flush
+    os.fsync(self.fileh.fileno())
+    ~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+KeyboardInterrupt
+"""
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/local/data/data-fbsskr/Students/elias/rctis/lib/python3.14/threading.py", line 1083, in _bootstrap_inner
+    self._context.run(self.run)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/local/data/data-fbsskr/Students/elias/rctis/lib/python3.14/threading.py", line 1025, in run
+    self._target(*self._args, **self._kwargs)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/local/data/data-fbsskr/Students/elias/infretis/infretis/asyncrunner.py", line 84, in _start_event_loop
+    self._loop.run_forever()
+    ~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/local/data/data-fbsskr/Students/elias/rctis/lib/python3.14/asyncio/base_events.py", line 678, in run_forever
+    self._run_once()
+    ~~~~~~~~~~~~~~^^
+  File "/local/data/data-fbsskr/Students/elias/rctis/lib/python3.14/asyncio/base_events.py", line 2064, in _run_once
+    handle._run()
+    ~~~~~~~~~~~^^
+  File "/local/data/data-fbsskr/Students/elias/rctis/lib/python3.14/asyncio/events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/local/data/data-fbsskr/Students/elias/infretis/infretis/asyncrunner.py", line 121, in _task_wrapper
+    md_item = await loop.run_in_executor(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        executor, functools.partial(self._task_f, md_item)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+KeyboardInterrupt
+🔧 Starting internalrun with input: restart.toml
+🚀 About to call setup_config - set breakpoint here!
+📋 Configuration loaded, starting scheduler...

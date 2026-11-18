@@ -1,0 +1,219 @@
+[runner]
+workers = 4
+files = []
+wmdrun = [
+    "not used",
+    "not used",
+    "not used",
+    "not used",
+    "not used",
+    "not used",
+    "not used",
+    "not used",
+]
+
+[simulation]
+interfaces = [
+    -0.35,
+    -0.18425968503156054,
+    0.12035958569669053,
+    0.27052843213245714,
+    0.3145063825892448,
+    0.35,
+]
+steps = 1000
+seed = 2
+load_dir = "load"
+shooting_moves = [
+    "sh",
+    "sh",
+    "sh",
+    "sh",
+    "sh",
+    "sh",
+]
+mode = "staple"
+staple_infinite_swap = true
+ensemble_engines = [
+    [
+        "engine",
+    ],
+    [
+        "engine",
+    ],
+    [
+        "engine",
+    ],
+    [
+        "engine",
+    ],
+    [
+        "engine",
+    ],
+    [
+        "engine",
+    ],
+]
+zeroswap = 0.5
+pick_scheme = 0
+
+[simulation.tis_set]
+maxlength = 40000
+allowmaxlength = false
+zero_momentum = false
+n_jumps = 4
+staple = true
+quantis = false
+lambda_minus_one = false
+accept_all = false
+
+[engine]
+class = "ase"
+engine = "ase"
+temperature = 11604.522060401008
+input_path = "."
+timestep = 0.05090252835578363
+subcycles = 1
+integrator = "langevin"
+langevin_fixcm = false
+langevin_friction = 0.09822694788464063
+
+[engine.calculator_settings]
+class = "ToytisPotential"
+spec = "cos_well:CosWellWalls"
+dim = 1
+module = "/local/data/data-fbsskr/Students/elias/optimalrcs/examples/param_lambda/loop/ase_calcs.py"
+
+[engine.particles]
+mass = [
+    1.0,
+]
+name = [
+    "H",
+]
+pos = [
+    [
+        -0.4,
+    ],
+]
+
+[engine.box]
+periodic = [
+    false,
+]
+
+[orderparameter]
+class = "LearnedLambda"
+module = "/local/data/data-fbsskr/Students/elias/optimalrcs/examples/param_lambda/infretis_orderp.py"
+model = "/local/data/data-fbsskr/Students/elias/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_well_lgv/models/lambda_2.npz"
+
+[[orderparameter.cvs]]
+class = "Position"
+index = [
+    0,
+    0,
+]
+periodic = false
+
+[[orderparameter.cvs]]
+class = "Velocity"
+index = 0
+dim = "x"
+
+[output]
+data_dir = "./"
+screen = 100
+pattern = false
+delete_old = false
+delete_old_all = false
+visual_validation = false
+data_file = "./infretis_data.txt"
+keep_maxop_trajs = false
+keep_traj_fnames = []
+keep_status = []
+
+[current]
+traj_num = 483
+cstep = 1000
+active = [
+    481,
+    482,
+    480,
+    479,
+    464,
+    475,
+]
+locked = []
+size = 6
+wsubcycles = [
+    34000,
+    31585,
+    34035,
+    32754,
+]
+tsubcycles = 132374
+
+[current.frac]
+464 = [
+    "0.0",
+    "0.67857142857142857144",
+    "1.234126984126984127",
+    "2.5674603174603174605",
+    "6.400793650793650794",
+    "5.119047619047619048",
+    "0.0",
+]
+475 = [
+    "0.0",
+    "0.17857142857142857142",
+    "0.9007936507936507937",
+    "0.40079365079365079363",
+    "1.4007936507936507936",
+    "4.1190476190476190475",
+    "0.0",
+]
+479 = [
+    "0.0",
+    "0.21428571428571428572",
+    "0.82539682539682539687",
+    "1.3253968253968253969",
+    "1.3253968253968253969",
+    "0.3095238095238095238",
+    "0.0",
+]
+480 = [
+    "0.0",
+    "0.21428571428571428572",
+    "0.82539682539682539687",
+    "0.82539682539682539687",
+    "0.82539682539682539687",
+    "0.3095238095238095238",
+    "0.0",
+]
+481 = [
+    "1.0",
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+]
+482 = [
+    "0.0",
+    "0.21428571428571428572",
+    "0.21428571428571428572",
+    "0.21428571428571428572",
+    "0.21428571428571428572",
+    "0.14285714285714285714",
+    "0.0",
+]
+
+[current.rng_state]
+bit_generator = "PCG64"
+has_uint32 = 0
+uinteger = 0
+
+[current.rng_state.state]
+state = 48100863887632455143940447818666933994
+inc = 121863417007658695389390353187995180015

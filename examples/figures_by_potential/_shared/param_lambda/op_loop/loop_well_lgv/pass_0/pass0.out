@@ -1,0 +1,20 @@
+Propagating in ensemble [0-]
+Propagating in ensemble [0+]
+Re-propagating [0+] since we started below lambda0
+Propagating [0-] in reverse
+Propagating [0+] in reverse
+Done! Making load dir
+Running with infretis.toml
+🔧 Starting internalrun with input: infretis.toml
+🚀 About to call setup_config - set breakpoint here!
+📋 Configuration loaded, starting scheduler...
+[pass0] iteration 0: 200 steps, 72 paths reached B, interfaces [-0.35, -0.2335, -0.117, -0.0005, 0.35]
+/local/data/data-fbsskr/Students/elias/inftools/inftools/tistools/path_weights.py:54: RuntimeWarning: invalid value encountered in divide
+  w = D["path_f"] / D["path_w"]
+The following command can now be ran:
+inft wham -toml combo.toml -data combo.txt -folder combo
+Weights saved to last_infretis_path_weigths.txt.
+Pcross saved to last_infretis_pcross.txt.
+* Active paths found. Trying to use previous active paths.
+* All ensemles are filled.
+[pass0] done: reached B = True, 1 iterations, 116237 saved frames

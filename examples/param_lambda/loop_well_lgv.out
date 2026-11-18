@@ -1,0 +1,431 @@
+== loop loop_well_lgv (well_lgv, infretis) in /local/data/data-fbsskr/Students/elias/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_well_lgv
+pass 0: 1 iterations, reached B: True, 116237 saved frames, final interfaces [-0.35, -0.306, -0.137, 0.127, 0.158, 0.176, 0.2, 0.204, 0.35]
+== pass 1
+pass 1: fits, lambda and interfaces from /local/data/data-fbsskr/Students/elias/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_well_lgv/pass_1/fit.json (resuming)
+run: resuming /local/data/data-fbsskr/Students/elias/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_well_lgv/pass_1/run at cycle 244 of 1000
+infretis run /local/data/data-fbsskr/Students/elias/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_well_lgv/pass_1/run: mode staple, infinite swap True, 7 ensembles, 435 finished paths in /local/data/data-fbsskr/Students/elias/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_well_lgv/pass_1/run/infretis_data.txt
+Interfaces: [-0.35, 0.0191956609496034, 0.15033380969466725, 0.2262471882007645, 0.28810377963118394, 0.318645754179544, 0.35]
+  path_w != 1 for 216 (path, ensemble) pairs, 16.7% of the occupancy; path_f and path_f / path_w differ there by a factor [2.]
+  Note (StapleTIS): path_f / path_w is the natural measure of the stored staple paths (crossing probabilities, rates). For committor pieces use path_f (--weights rejections): an LML/RMR core is stored twice, once with each turn (the extension's coin flip, w = 1/2 each), and path_f counts the core once; see docs/op_loop_report.md.
+Order parameters from /local/data/data-fbsskr/Students/elias/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_well_lgv/pass_1/run/load: 331 paths read
+  ensemble 001: 193 paths, 134 pieces, 19044 frames, total weight 289.8, cut at M = -0.35
+  ensemble 002: 189 paths, 189 pieces, 19475 frames, total weight 533.9, cut at M = 0.0191956609496034
+  ensemble 003: 219 paths, 219 pieces, 23154 frames, total weight 537.6, cut at M = 0.15033380969466725
+  ensemble 004: 238 paths, 238 pieces, 28690 frames, total weight 499.7, cut at M = 0.2262471882007645
+  ensemble 005: 251 paths, 251 pieces, 37696 frames, total weight 523.7, cut at M = 0.28810377963118394
+  ensemble 006: 206 paths, 206 pieces, 21760 frames, total weight 524.8, cut at M = 0.318645754179544
+Loaded 1237 pieces, 149819 frames total
+pass 1 re-check on its own paths: OK
+| k | lambda_k | up / down crossings | skip up | skip down | gap/delta | dist A | dist B | note |
+|---|---|---|---|---|---|---|---|---|
+| 1 | 0.0192 | 221 / 165 | 0.000 | 0.000 | 1.43 | 18.4 | – |  |
+| 2 | 0.1503 | 256 / 200 | 0.000 | 0.000 | 1.26 | – | – |  |
+| 3 | 0.2262 | 332 / 268 | 0.000 | 0.000 | 1.51 | – | – |  |
+| 4 | 0.2881 | 585 / 535 | 0.000 | 0.000 | 4.04 | – | – |  |
+| 5 | 0.3186 | 453 / 399 | 0.000 | 0.000 | 1.83 | – | 4.4 |  |
+
+| ensemble | window (L, M, R) | excursions | P(empty region) | 5% frames inside |
+|---|---|---|---|---|
+| 1 | (-0.3500, -0.3500, 0.0192) | 429 | 0.000 | 1 |
+| 2 | (-0.3500, 0.0192, 0.1503) | 227 | 0.000 | 4 |
+| 3 | (0.0192, 0.1503, 0.2262) | 276 | 0.000 | 5 |
+| 4 | (0.1503, 0.2262, 0.2881) | 392 | 0.000 | 8 |
+| 5 | (0.2262, 0.2881, 0.3186) | 418 | 0.000 | 11 |
+| 6 | (0.2881, 0.3186, 0.3500) | 256 | 0.000 | 5 |
+
+single-step turns: 0.000 of 4343; failures: none
+== pass 2
+gpu: waiting, in use by 916910 (/local/data/data-fbsskr/Students/elias/rctis/bin/python -Xfrozen_modules=off -m ipykernel_launcher -f /home/staff7/fbsskr/.local/share/jupyter/runtime/kernel-3c)
+gpu: free after 6.0 min; starting the fits of pass 2
+#=250, dr2=139.08, zqs_z=2.58321, sdzqs=7.57108, |dx|=0.110364, time=0.89217
+#=500, dr2=139.685, zqs_z=2.64219, sdzqs=8.32752, |dx|=0.00516256, time=1.58501
+#=750, dr2=141.917, zqs_z=2.55303, sdzqs=8.22571, |dx|=0.00381505, time=2.27103
+#=1000, dr2=143.402, zqs_z=2.2758, sdzqs=8.81374, |dx|=0.0048352, time=2.96
+#=1250, dr2=146.757, zqs_z=2.29923, sdzqs=8.02558, |dx|=0.0061548, time=3.64759
+#=1500, dr2=148.04, zqs_z=2.20703, sdzqs=8.54455, |dx|=0.00233412, time=4.33439
+#=1750, dr2=152.437, zqs_z=2.33306, sdzqs=12.9388, |dx|=0.00535176, time=5.02294
+#=2000, dr2=151.604, zqs_z=2.25636, sdzqs=12.2136, |dx|=0.0036791, time=5.71206
+#=2250, dr2=151.686, zqs_z=2.26227, sdzqs=11.8623, |dx|=0.0022613, time=6.39978
+#=2500, dr2=152.478, zqs_z=2.19652, sdzqs=11.8868, |dx|=0.00213477, time=7.0851
+#=2750, dr2=152.414, zqs_z=2.20735, sdzqs=11.7555, |dx|=0.000994108, time=7.77114
+#=3000, dr2=152.415, zqs_z=2.17374, sdzqs=11.5242, |dx|=0.00116249, time=8.45427
+#=3250, dr2=152.044, zqs_z=2.16525, sdzqs=11.4953, |dx|=0.00156955, time=9.14083
+#=3500, dr2=152.137, zqs_z=2.27605, sdzqs=11.4157, |dx|=0.000677567, time=9.8319
+#=3750, dr2=152.663, zqs_z=2.19193, sdzqs=11.3619, |dx|=0.000934105, time=10.5149
+#=4000, dr2=152.939, zqs_z=2.04703, sdzqs=11.4769, |dx|=0.00108266, time=11.2019
+teacher: 167154 frames, 4000 iterations, 11 s
+teacher: {'n_frames': 167154, 'seconds': 11.495040655136108, 'iterations': 4000, 'provisional_b': None, 'cvs': [np.str_('x'), np.str_('v')], 'final': {'iter': 4000.0, 'delta_r2': 152.9386810379929, 'max_z_zq_stopped': 2.0470348588215384, 'max_sd_zq_stopped': 11.476873330167606, 'delta_x': 0.0010826557966238544, 'time_elapsed': 11.201904296875}, 'rms_vs_exact': 0.0588105912599504}
+   student epoch   3: sdzqs    2.603 spread 0.7141
+   student epoch   6: sdzqs    2.646 spread 1.5878
+   student epoch   9: sdzqs    2.338 spread 1.3999
+   student epoch  12: sdzqs    2.418 spread 1.2504
+   student epoch  15: sdzqs    2.565 spread 1.0061
+   student epoch  18: sdzqs    2.518 spread 0.3204
+   student epoch  21: sdzqs    2.521 spread 1.1108
+   student epoch  24: sdzqs    2.494 spread 0.9426
+export: sigma_s 0.005241, kappa_A 4.47, kappa_B 0.33, maha thr 11.4
+diagnostics: SD(Z_q) new 18.327, previous model on the newest data 43.211; exact: spread 0.3133, logit RMSE 1.104
+plan: 9 interior levels (natural coordinate, ratio <= 10); predicted longest median 133 frames (budget 20000); levels q = [0.0011, 0.0041, 0.0154, 0.1028, 0.2809, 0.4559, 0.5582, 0.7042, 0.9129]
+placement: 6 interfaces kept of 11 planned; removed -0.2743 (dist_a 3.6), -0.0668 (skip_dn 0.031; gap 1.20), 0.2216 (gap 1.21), 0.2910 (gap 1.02), 0.3408 (last interface too close to B)
+run: 6 interfaces, 1000 cycles in /local/data/data-fbsskr/Students/elias/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_well_lgv/pass_2/run
+infretis run /local/data/data-fbsskr/Students/elias/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_well_lgv/pass_2/run: mode staple, infinite swap True, 6 ensembles, 477 finished paths in /local/data/data-fbsskr/Students/elias/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_well_lgv/pass_2/run/infretis_data.txt
+Interfaces: [-0.35, -0.18425968503156054, 0.12035958569669053, 0.27052843213245714, 0.3145063825892448, 0.35]
+  path_w != 1 for 98 (path, ensemble) pairs, 6.0% of the occupancy; path_f and path_f / path_w differ there by a factor [2.]
+  Note (StapleTIS): path_f / path_w is the natural measure of the stored staple paths (crossing probabilities, rates). For committor pieces use path_f (--weights rejections): an LML/RMR core is stored twice, once with each turn (the extension's coin flip, w = 1/2 each), and path_f counts the core once; see docs/op_loop_report.md.
+Order parameters from /local/data/data-fbsskr/Students/elias/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_well_lgv/pass_2/run/load: 326 paths read
+  ensemble 001: 233 paths, 167 pieces, 28270 frames, total weight 254.9, cut at M = -0.35
+  ensemble 002: 233 paths, 233 pieces, 30186 frames, total weight 510.0, cut at M = -0.18425968503156054
+  ensemble 003: 220 paths, 220 pieces, 29135 frames, total weight 446.7, cut at M = 0.12035958569669053
+  ensemble 004: 213 paths, 213 pieces, 40106 frames, total weight 421.8, cut at M = 0.27052843213245714
+  ensemble 005: 206 paths, 206 pieces, 29592 frames, total weight 463.0, cut at M = 0.3145063825892448
+Loaded 1039 pieces, 157289 frames total
+pass 2 re-check on its own paths: OK
+| k | lambda_k | up / down crossings | skip up | skip down | gap/delta | dist A | dist B | note |
+|---|---|---|---|---|---|---|---|---|
+| 1 | -0.1843 | 232 / 139 | 0.000 | 0.000 | 3.32 | 7.3 | – |  |
+| 2 | 0.1204 | 282 / 188 | 0.000 | 0.000 | 1.79 | – | – |  |
+| 3 | 0.2705 | 559 / 494 | 0.000 | 0.000 | 2.14 | – | – |  |
+| 4 | 0.3145 | 479 / 411 | 0.000 | 0.000 | 1.95 | – | 4.0 |  |
+
+| ensemble | window (L, M, R) | excursions | P(empty region) | 5% frames inside |
+|---|---|---|---|---|
+| 1 | (-0.3500, -0.3500, -0.1843) | 596 | 0.000 | 1 |
+| 2 | (-0.3500, -0.1843, 0.1204) | 275 | 0.000 | 9 |
+| 3 | (-0.1843, 0.1204, 0.2705) | 283 | 0.000 | 12 |
+| 4 | (0.1204, 0.2705, 0.3145) | 389 | 0.000 | 9 |
+| 5 | (0.2705, 0.3145, 0.3500) | 303 | 0.000 | 4 |
+
+single-step turns: 0.000 of 2968; failures: none
+stop test: continue (stability 5.1274; prospective SD(Z_q) 43.21093597477173 vs refit 18.327; interfaces changed)
+== pass 3
+#=250, dr2=250.047, zqs_z=2.26531, sdzqs=13.5714, |dx|=0.0301548, time=1.0435
+#=500, dr2=249.666, zqs_z=1.93845, sdzqs=14.1188, |dx|=0.00248843, time=2.08599
+#=750, dr2=249.104, zqs_z=2.36414, sdzqs=13.912, |dx|=0.00177297, time=3.11736
+#=1000, dr2=250.104, zqs_z=2.11182, sdzqs=14.2025, |dx|=0.00132487, time=4.15044
+#=1250, dr2=250.394, zqs_z=2.23022, sdzqs=14.0979, |dx|=0.000855608, time=5.18064
+#=1500, dr2=250.06, zqs_z=1.75228, sdzqs=14.1151, |dx|=0.00111691, time=6.20676
+#=1750, dr2=250.371, zqs_z=1.81878, sdzqs=14.1325, |dx|=0.000659537, time=7.23693
+#=2000, dr2=250.928, zqs_z=2.00884, sdzqs=14.1938, |dx|=0.00102795, time=8.27413
+#=2250, dr2=250.805, zqs_z=1.90051, sdzqs=14.2653, |dx|=0.000758554, time=9.30713
+#=2500, dr2=251.16, zqs_z=1.75357, sdzqs=14.1831, |dx|=0.00081944, time=10.3395
+#=2750, dr2=251.404, zqs_z=1.76092, sdzqs=14.1181, |dx|=0.000841869, time=11.3687
+#=3000, dr2=251.177, zqs_z=1.91611, sdzqs=13.9822, |dx|=0.00082263, time=12.4014
+#=3250, dr2=252.074, zqs_z=1.75967, sdzqs=14.1193, |dx|=0.000984519, time=13.4315
+#=3500, dr2=251.842, zqs_z=1.86768, sdzqs=13.9019, |dx|=0.000732896, time=14.4608
+#=3750, dr2=252.289, zqs_z=1.79931, sdzqs=13.9524, |dx|=0.000836488, time=15.4922
+#=4000, dr2=252.088, zqs_z=1.957, sdzqs=13.7874, |dx|=0.000780662, time=16.5281
+teacher: 301070 frames, 4000 iterations, 17 s
+teacher: {'n_frames': 301070, 'seconds': 16.60606575012207, 'iterations': 4000, 'provisional_b': None, 'cvs': [np.str_('x'), np.str_('v')], 'final': {'iter': 4000.0, 'delta_r2': 252.08791581406885, 'max_z_zq_stopped': 1.957000624344445, 'max_sd_zq_stopped': 13.787405645028166, 'delta_x': 0.0007806621993308033, 'time_elapsed': 16.52807331085205}, 'rms_vs_exact': 0.036571579191635895}
+   student epoch   3: sdzqs    4.166 spread 1.2704
+   student epoch   6: sdzqs    3.577 spread 1.9443
+   student epoch   9: sdzqs    3.297 spread 1.4994
+   student epoch  12: sdzqs    3.175 spread 1.9928
+   student epoch  15: sdzqs    3.121 spread 2.5690
+   student epoch  18: sdzqs    3.058 spread 2.1695
+   student epoch  21: sdzqs    3.230 spread 2.1813
+   student epoch  24: sdzqs    3.111 spread 2.1857
+export: sigma_s 0.005363, kappa_A 4.36, kappa_B 0.323, maha thr 12.8
+diagnostics: SD(Z_q) new 10.331, previous model on the newest data 8.130; exact: spread 0.3458, logit RMSE 0.759
+plan: 9 interior levels (natural coordinate, ratio <= 10); predicted longest median 138 frames (budget 20000); levels q = [0.0013, 0.0047, 0.0168, 0.1037, 0.2774, 0.435, 0.5255, 0.6495, 0.8921]
+placement: 6 interfaces kept of 11 planned; removed -0.2656 (gap 0.77), -0.0582 (skip_dn 0.032; gap 0.89), 0.2204 (gap 1.14), 0.2849 (gap 0.92), 0.3384 (last interface too close to B)
+placement refill (placement limits): added -0.0104 (q 0.0276; ratio 22 -> 5.9)
+run: 7 interfaces, 1000 cycles in /local/data/data-fbsskr/Students/elias/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_well_lgv/pass_3/run
+infretis run /local/data/data-fbsskr/Students/elias/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_well_lgv/pass_3/run: mode staple, infinite swap True, 7 ensembles, 481 finished paths in /local/data/data-fbsskr/Students/elias/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_well_lgv/pass_3/run/infretis_data.txt
+Interfaces: [-0.35, -0.17411997923282926, -0.010355460292583274, 0.12129683506059274, 0.26580030121664666, 0.30632656693586047, 0.35]
+  path_w != 1 for 143 (path, ensemble) pairs, 10.1% of the occupancy; path_f and path_f / path_w differ there by a factor [2.]
+  Note (StapleTIS): path_f / path_w is the natural measure of the stored staple paths (crossing probabilities, rates). For committor pieces use path_f (--weights rejections): an LML/RMR core is stored twice, once with each turn (the extension's coin flip, w = 1/2 each), and path_f counts the core once; see docs/op_loop_report.md.
+Order parameters from /local/data/data-fbsskr/Students/elias/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_well_lgv/pass_3/run/load: 348 paths read
+  ensemble 001: 257 paths, 191 pieces, 33082 frames, total weight 294.3, cut at M = -0.35
+  ensemble 002: 244 paths, 244 pieces, 31782 frames, total weight 535.3, cut at M = -0.17411997923282926
+  ensemble 003: 242 paths, 242 pieces, 32131 frames, total weight 560.0, cut at M = -0.010355460292583274
+  ensemble 004: 234 paths, 234 pieces, 31201 frames, total weight 518.6, cut at M = 0.12129683506059274
+  ensemble 005: 238 paths, 238 pieces, 40393 frames, total weight 529.1, cut at M = 0.26580030121664666
+  ensemble 006: 229 paths, 229 pieces, 29644 frames, total weight 553.3, cut at M = 0.30632656693586047
+Loaded 1378 pieces, 198233 frames total
+pass 3 re-check on its own paths: OK
+| k | lambda_k | up / down crossings | skip up | skip down | gap/delta | dist A | dist B | note |
+|---|---|---|---|---|---|---|---|---|
+| 1 | -0.1741 | 271 / 140 | 0.000 | 0.000 | 1.26 | 8.1 | – |  |
+| 2 | -0.0104 | 275 / 142 | 0.000 | 0.000 | 1.52 | – | – |  |
+| 3 | 0.1213 | 299 / 166 | 0.000 | 0.000 | 1.73 | – | – |  |
+| 4 | 0.2658 | 541 / 458 | 0.000 | 0.000 | 1.79 | – | – |  |
+| 5 | 0.3063 | 568 / 477 | 0.000 | 0.000 | 2.52 | – | 5.1 |  |
+
+| ensemble | window (L, M, R) | excursions | P(empty region) | 5% frames inside |
+|---|---|---|---|---|
+| 1 | (-0.3500, -0.3500, -0.1741) | 554 | 0.000 | 1 |
+| 2 | (-0.3500, -0.1741, -0.0104) | 298 | 0.000 | 7 |
+| 3 | (-0.1741, -0.0104, 0.1213) | 281 | 0.000 | 4 |
+| 4 | (-0.0104, 0.1213, 0.2658) | 291 | 0.000 | 8 |
+| 5 | (0.1213, 0.2658, 0.3063) | 415 | 0.000 | 9 |
+| 6 | (0.2658, 0.3063, 0.3500) | 339 | 0.000 | 5 |
+
+single-step turns: 0.000 of 3915; failures: none
+stop test: continue (stability 0.5834; interfaces changed; OOD 0.0030 (previous 0.0010))
+== pass 4
+#=250, dr2=363.32, zqs_z=1.80939, sdzqs=15.0162, |dx|=0.0103814, time=1.45288
+#=500, dr2=363.27, zqs_z=1.80807, sdzqs=15.1972, |dx|=0.00128821, time=2.89436
+#=750, dr2=363.022, zqs_z=1.79114, sdzqs=15.0636, |dx|=0.00118695, time=4.33933
+#=1000, dr2=363.369, zqs_z=1.80264, sdzqs=15.1013, |dx|=0.00090392, time=5.78403
+#=1250, dr2=363.171, zqs_z=1.79476, sdzqs=15.1118, |dx|=0.000599487, time=7.23274
+#=1500, dr2=363.243, zqs_z=1.80683, sdzqs=14.9, |dx|=0.00079321, time=8.67873
+#=1750, dr2=363.363, zqs_z=1.80422, sdzqs=15.042, |dx|=0.000583304, time=10.1224
+#=2000, dr2=364.052, zqs_z=1.80885, sdzqs=15.0876, |dx|=0.000643934, time=11.5662
+#=2250, dr2=364.235, zqs_z=1.80753, sdzqs=14.8701, |dx|=0.000718314, time=13.0131
+#=2500, dr2=363.833, zqs_z=1.80258, sdzqs=14.9273, |dx|=0.000419705, time=14.459
+#=2750, dr2=364.276, zqs_z=1.79954, sdzqs=14.9458, |dx|=0.000467638, time=15.9068
+#=3000, dr2=364.354, zqs_z=1.80689, sdzqs=14.9331, |dx|=0.00040508, time=17.3638
+#=3250, dr2=365.053, zqs_z=1.85874, sdzqs=15.0557, |dx|=0.000581227, time=18.8128
+#=3500, dr2=364.761, zqs_z=1.89189, sdzqs=15.0309, |dx|=0.000466825, time=20.2615
+#=3750, dr2=365.152, zqs_z=1.91035, sdzqs=15.0734, |dx|=0.000432542, time=21.7085
+#=4000, dr2=365.151, zqs_z=1.90399, sdzqs=15.0321, |dx|=0.000322449, time=23.1522
+teacher: 468554 frames, 4000 iterations, 23 s
+teacher: {'n_frames': 468554, 'seconds': 23.23829984664917, 'iterations': 4000, 'provisional_b': None, 'cvs': [np.str_('x'), np.str_('v')], 'final': {'iter': 4000.0, 'delta_r2': 365.15133835959136, 'max_z_zq_stopped': 1.903994960495308, 'max_sd_zq_stopped': 15.032078438839356, 'delta_x': 0.00032244925885215834, 'time_elapsed': 23.15219020843506}, 'rms_vs_exact': 0.029308437243626508}
+   student epoch   3: sdzqs    2.797 spread 0.3268
+   student epoch   6: sdzqs    2.786 spread 0.2685
+   student epoch   9: sdzqs    2.695 spread 0.2848
+   student epoch  12: sdzqs    2.801 spread 0.2782
+   student epoch  15: sdzqs    2.666 spread 0.2104
+   student epoch  18: sdzqs    2.738 spread 0.1553
+   student epoch  21: sdzqs    2.827 spread 0.1687
+   student epoch  24: sdzqs    2.788 spread 0.1580
+export: sigma_s 0.00537, kappa_A 4.36, kappa_B 0.322, maha thr 12
+diagnostics: SD(Z_q) new 6.919, previous model on the newest data 9.939; exact: spread 2.1203, logit RMSE 0.718
+plan: 9 interior levels (natural coordinate, ratio <= 10); predicted longest median 130 frames (budget 20000); levels q = [0.0019, 0.0065, 0.0219, 0.1145, 0.2859, 0.44, 0.5255, 0.672, 0.9037]
+placement: 6 interfaces kept of 11 planned; removed -0.2408 (gap 0.99), -0.0328 (skip_dn 0.033; gap 0.87), 0.2234 (gap 1.02), 0.2849 (gap 0.97), 0.3397 (last interface too close to B)
+run: 6 interfaces, 1000 cycles in /local/data/data-fbsskr/Students/elias/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_well_lgv/pass_4/run
+infretis run /local/data/data-fbsskr/Students/elias/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_well_lgv/pass_4/run: mode staple, infinite swap True, 6 ensembles, 490 finished paths in /local/data/data-fbsskr/Students/elias/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_well_lgv/pass_4/run/infretis_data.txt
+Interfaces: [-0.35, -0.1456606133640946, 0.13120504139498507, 0.2669539791929727, 0.3097822419118439, 0.35]
+  path_w != 1 for 122 (path, ensemble) pairs, 7.8% of the occupancy; path_f and path_f / path_w differ there by a factor [2.]
+  Note (StapleTIS): path_f / path_w is the natural measure of the stored staple paths (crossing probabilities, rates). For committor pieces use path_f (--weights rejections): an LML/RMR core is stored twice, once with each turn (the extension's coin flip, w = 1/2 each), and path_f counts the core once; see docs/op_loop_report.md.
+Order parameters from /local/data/data-fbsskr/Students/elias/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_well_lgv/pass_4/run/load: 356 paths read
+  ensemble 001: 219 paths, 147 pieces, 26954 frames, total weight 250.4, cut at M = -0.35
+  ensemble 002: 224 paths, 224 pieces, 26465 frames, total weight 454.5, cut at M = -0.1456606133640946
+  ensemble 003: 227 paths, 227 pieces, 26290 frames, total weight 475.1, cut at M = 0.13120504139498507
+  ensemble 004: 220 paths, 220 pieces, 46646 frames, total weight 451.7, cut at M = 0.2669539791929727
+  ensemble 005: 191 paths, 191 pieces, 30004 frames, total weight 458.2, cut at M = 0.3097822419118439
+Loaded 1009 pieces, 156359 frames total
+pass 4 re-check on its own paths: OK
+| k | lambda_k | up / down crossings | skip up | skip down | gap/delta | dist A | dist B | note |
+|---|---|---|---|---|---|---|---|---|
+| 1 | -0.1457 | 254 / 174 | 0.000 | 0.000 | 2.30 | 9.9 | – |  |
+| 2 | 0.1312 | 332 / 255 | 0.000 | 0.000 | 1.62 | – | – |  |
+| 3 | 0.2670 | 739 / 670 | 0.000 | 0.000 | 2.36 | – | – |  |
+| 4 | 0.3098 | 559 / 484 | 0.000 | 0.000 | 2.14 | – | 4.9 |  |
+
+| ensemble | window (L, M, R) | excursions | P(empty region) | 5% frames inside |
+|---|---|---|---|---|
+| 1 | (-0.3500, -0.3500, -0.1457) | 568 | 0.000 | 1 |
+| 2 | (-0.3500, -0.1457, 0.1312) | 288 | 0.000 | 11 |
+| 3 | (-0.1457, 0.1312, 0.2670) | 312 | 0.000 | 12 |
+| 4 | (0.1312, 0.2670, 0.3098) | 470 | 0.000 | 8 |
+| 5 | (0.2670, 0.3098, 0.3500) | 353 | 0.000 | 5 |
+
+single-step turns: 0.000 of 3326; failures: none
+stop test: continue (stability 3.1341; prospective SD(Z_q) 9.938916335282215 vs refit 6.919; interfaces changed)
+== pass 5
+#=250, dr2=443.11, zqs_z=1.7695, sdzqs=16.2367, |dx|=0.0145005, time=1.81151
+#=500, dr2=443.431, zqs_z=1.74979, sdzqs=15.8704, |dx|=0.00118161, time=3.61837
+#=750, dr2=443.528, zqs_z=1.80461, sdzqs=16.1407, |dx|=0.000527288, time=5.42982
+#=1000, dr2=444.557, zqs_z=1.8663, sdzqs=16.494, |dx|=0.000960811, time=7.26065
+#=1250, dr2=445.046, zqs_z=1.84142, sdzqs=16.4784, |dx|=0.000513757, time=9.07079
+#=1500, dr2=445.038, zqs_z=1.83037, sdzqs=16.3211, |dx|=0.000635301, time=10.9133
+#=1750, dr2=446.002, zqs_z=1.94378, sdzqs=16.678, |dx|=0.000605014, time=12.7825
+#=2000, dr2=445.225, zqs_z=1.82002, sdzqs=16.3277, |dx|=0.000564499, time=14.6168
+#=2250, dr2=445.796, zqs_z=1.87332, sdzqs=16.3046, |dx|=0.000474445, time=16.4462
+#=2500, dr2=446.412, zqs_z=2.05736, sdzqs=16.7842, |dx|=0.000531594, time=18.2706
+#=2750, dr2=446.499, zqs_z=1.98745, sdzqs=16.6264, |dx|=0.000454262, time=20.0889
+#=3000, dr2=446.794, zqs_z=2.00494, sdzqs=16.5491, |dx|=0.000488087, time=21.9192
+#=3250, dr2=446.939, zqs_z=2.03998, sdzqs=16.7105, |dx|=0.000387547, time=23.7707
+#=3500, dr2=446.697, zqs_z=1.92805, sdzqs=16.3122, |dx|=0.000446069, time=25.6226
+#=3750, dr2=447.558, zqs_z=2.10063, sdzqs=17.0129, |dx|=0.000444114, time=27.4752
+#=4000, dr2=447.318, zqs_z=2.05598, sdzqs=16.7783, |dx|=0.000412436, time=29.3148
+teacher: 598411 frames, 4000 iterations, 29 s
+teacher: {'n_frames': 598411, 'seconds': 29.418601751327515, 'iterations': 4000, 'provisional_b': None, 'cvs': [np.str_('x'), np.str_('v')], 'final': {'iter': 4000.0, 'delta_r2': 447.3181319845352, 'max_z_zq_stopped': 2.0559803118412745, 'max_sd_zq_stopped': 16.778270548678854, 'delta_x': 0.00041243640541124875, 'time_elapsed': 29.31477665901184}, 'rms_vs_exact': 0.03740581493599401}
+   student epoch   3: sdzqs    7.088 spread 0.0755
+   student epoch   6: sdzqs    7.987 spread 0.0712
+   student epoch   9: sdzqs    7.758 spread 0.0658
+   student epoch  12: sdzqs    6.455 spread 0.0644
+   student epoch  15: sdzqs    7.077 spread 0.0612
+   student epoch  18: sdzqs    6.973 spread 0.0673
+   student epoch  21: sdzqs    6.827 spread 0.0640
+   student epoch  24: sdzqs    7.026 spread 0.0608
+export: sigma_s 0.005306, kappa_A 4.41, kappa_B 0.326, maha thr 11.7
+diagnostics: SD(Z_q) new 10.379, previous model on the newest data 14.426; exact: spread 0.3816, logit RMSE 0.682
+plan: 9 interior levels (natural coordinate, ratio <= 10); predicted longest median 152 frames (budget 20000); levels q = [0.0012, 0.0043, 0.0149, 0.0911, 0.2568, 0.4328, 0.527, 0.6542, 0.8952]
+placement: 6 interfaces kept of 11 planned; removed -0.2691 (gap 0.95), -0.0695 (skip_up 0.011; skip_dn 0.010; gap 1.07), 0.2126 (gap 1.07), 0.2852 (gap 1.00), 0.3388 (last interface too close to B)
+placement refill (placement limits): added -0.0364 (q 0.0211; ratio 21 -> 4.9)
+run: 7 interfaces, 1000 cycles in /local/data/data-fbsskr/Students/elias/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_well_lgv/pass_5/run
+infretis run /local/data/data-fbsskr/Students/elias/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_well_lgv/pass_5/run: mode staple, infinite swap True, 7 ensembles, 405 finished paths in /local/data/data-fbsskr/Students/elias/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_well_lgv/pass_5/run/infretis_data.txt
+Interfaces: [-0.35, -0.18161845806116755, -0.036405557822611956, 0.10826667029134035, 0.26528191018213687, 0.3070575640588826, 0.35]
+  path_w != 1 for 143 (path, ensemble) pairs, 12.1% of the occupancy; path_f and path_f / path_w differ there by a factor [2.]
+  Note (StapleTIS): path_f / path_w is the natural measure of the stored staple paths (crossing probabilities, rates). For committor pieces use path_f (--weights rejections): an LML/RMR core is stored twice, once with each turn (the extension's coin flip, w = 1/2 each), and path_f counts the core once; see docs/op_loop_report.md.
+Order parameters from /local/data/data-fbsskr/Students/elias/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_well_lgv/pass_5/run/load: 288 paths read
+  ensemble 001: 210 paths, 132 pieces, 19258 frames, total weight 245.9, cut at M = -0.35
+  ensemble 002: 202 paths, 202 pieces, 19540 frames, total weight 517.7, cut at M = -0.18161845806116755
+  ensemble 003: 191 paths, 191 pieces, 18395 frames, total weight 560.4, cut at M = -0.036405557822611956
+  ensemble 004: 198 paths, 198 pieces, 21269 frames, total weight 538.6, cut at M = 0.10826667029134035
+  ensemble 005: 204 paths, 204 pieces, 39680 frames, total weight 512.2, cut at M = 0.26528191018213687
+  ensemble 006: 192 paths, 192 pieces, 31831 frames, total weight 517.9, cut at M = 0.3070575640588826
+Loaded 1119 pieces, 149973 frames total
+pass 5 re-check on its own paths: OK
+| k | lambda_k | up / down crossings | skip up | skip down | gap/delta | dist A | dist B | note |
+|---|---|---|---|---|---|---|---|---|
+| 1 | -0.1816 | 200 / 150 | 0.000 | 0.000 | 1.37 | 7.8 | – |  |
+| 2 | -0.0364 | 208 / 152 | 0.000 | 0.004 | 1.39 | – | – |  |
+| 3 | 0.1083 | 276 / 221 | 0.000 | 0.000 | 1.59 | – | – |  |
+| 4 | 0.2653 | 457 / 414 | 0.000 | 0.000 | 2.22 | – | – |  |
+| 5 | 0.3071 | 487 / 447 | 0.000 | 0.000 | 2.40 | – | 5.0 |  |
+
+| ensemble | window (L, M, R) | excursions | P(empty region) | 5% frames inside |
+|---|---|---|---|---|
+| 1 | (-0.3500, -0.3500, -0.1816) | 465 | 0.000 | 1 |
+| 2 | (-0.3500, -0.1816, -0.0364) | 247 | 0.000 | 7 |
+| 3 | (-0.1816, -0.0364, 0.1083) | 251 | 0.000 | 3 |
+| 4 | (-0.0364, 0.1083, 0.2653) | 246 | 0.000 | 6 |
+| 5 | (0.1083, 0.2653, 0.3071) | 349 | 0.000 | 10 |
+| 6 | (0.2653, 0.3071, 0.3500) | 271 | 0.000 | 4 |
+
+single-step turns: 0.000 of 4083; failures: none
+stop test: continue (stability 2.2928; prospective SD(Z_q) 14.426405036899087 vs refit 10.379; interfaces changed)
+== pass 6
+gpu: waiting, in use by 920039 (/local/data/data-fbsskr/Students/elias/rctis/bin/python -Xfrozen_modules=off -m ipykernel_launcher -f /home/staff7/fbsskr/.local/share/jupyter/runtime/kernel-2b)
+gpu: free after 14.0 min; starting the fits of pass 6
+#=250, dr2=537.862, zqs_z=1.80882, sdzqs=16.4323, |dx|=0.00675333, time=2.10117
+#=500, dr2=537.654, zqs_z=1.82056, sdzqs=16.642, |dx|=0.00101345, time=4.19807
+#=750, dr2=539.825, zqs_z=1.86329, sdzqs=16.9809, |dx|=0.00118724, time=6.28916
+#=1000, dr2=539.865, zqs_z=1.86794, sdzqs=16.9159, |dx|=0.000536986, time=8.38652
+#=1250, dr2=539.853, zqs_z=1.84603, sdzqs=16.7835, |dx|=0.000580447, time=10.4799
+#=1500, dr2=540.184, zqs_z=1.85788, sdzqs=16.5151, |dx|=0.000580235, time=12.588
+#=1750, dr2=540.134, zqs_z=1.88197, sdzqs=16.7077, |dx|=0.000512965, time=14.6973
+#=2000, dr2=540.694, zqs_z=1.86793, sdzqs=16.8035, |dx|=0.000573201, time=16.807
+#=2250, dr2=540.831, zqs_z=1.87683, sdzqs=16.9092, |dx|=0.000447205, time=18.9178
+#=2500, dr2=540.805, zqs_z=1.88093, sdzqs=16.9893, |dx|=0.000468736, time=21.0246
+#=2750, dr2=540.94, zqs_z=1.88166, sdzqs=16.854, |dx|=0.000314768, time=23.1365
+#=3000, dr2=541.225, zqs_z=1.8882, sdzqs=17.2025, |dx|=0.000581304, time=25.2356
+#=3250, dr2=541.539, zqs_z=1.93713, sdzqs=17.1453, |dx|=0.000423683, time=27.3316
+#=3500, dr2=541.411, zqs_z=1.93907, sdzqs=17.1255, |dx|=0.000389897, time=29.4282
+#=3750, dr2=542.037, zqs_z=1.91016, sdzqs=17.0448, |dx|=0.000370569, time=31.5278
+#=4000, dr2=541.998, zqs_z=1.906, sdzqs=17.0776, |dx|=0.000319018, time=33.6441
+teacher: 716122 frames, 4000 iterations, 34 s
+teacher: {'n_frames': 716122, 'seconds': 33.76731562614441, 'iterations': 4000, 'provisional_b': None, 'cvs': [np.str_('x'), np.str_('v')], 'final': {'iter': 4000.0, 'delta_r2': 541.9977477539052, 'max_z_zq_stopped': 1.9059985043091088, 'max_sd_zq_stopped': 17.077609827666414, 'delta_x': 0.0003190181186641916, 'time_elapsed': 33.644142866134644}, 'rms_vs_exact': 0.037185547468160704}
+   student epoch   3: sdzqs    6.398 spread 0.2415
+   student epoch   6: sdzqs    4.588 spread 0.1632
+   student epoch   9: sdzqs    5.742 spread 0.1528
+   student epoch  12: sdzqs    6.040 spread 0.1245
+   student epoch  15: sdzqs    6.264 spread 0.1373
+   student epoch  18: sdzqs    5.253 spread 0.1080
+   student epoch  21: sdzqs    5.238 spread 0.1190
+   student epoch  24: sdzqs    5.319 spread 0.1255
+export: sigma_s 0.005319, kappa_A 4.4, kappa_B 0.325, maha thr 11.7
+diagnostics: SD(Z_q) new 13.791, previous model on the newest data 18.982; exact: spread 0.6134, logit RMSE 0.633
+plan: 8 interior levels (natural coordinate, ratio <= 10); predicted longest median 146 frames (budget 20000); levels q = [0.002, 0.0189, 0.0949, 0.2568, 0.4299, 0.5286, 0.6604, 0.9001]
+placement: 6 interfaces kept of 10 planned; removed -0.2378 (gap 1.00), 0.2125 (gap 1.24), 0.2855 (gap 0.93), 0.3394 (last interface too close to B)
+placement refill (placement limits): added -0.2015 (q 0.00333; ratio 117 -> 20.7)
+run: 7 interfaces, 1000 cycles in /local/data/data-fbsskr/Students/elias/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_well_lgv/pass_6/run
+infretis run /local/data/data-fbsskr/Students/elias/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_well_lgv/pass_6/run: mode staple, infinite swap True, 7 ensembles, 462 finished paths in /local/data/data-fbsskr/Students/elias/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_well_lgv/pass_6/run/infretis_data.txt
+Interfaces: [-0.35, -0.20145756971223522, -0.04712909497433887, 0.11238843080562111, 0.26460977767111404, 0.30801959832975134, 0.35]
+  path_w != 1 for 199 (path, ensemble) pairs, 11.9% of the occupancy; path_f and path_f / path_w differ there by a factor [2.]
+  Note (StapleTIS): path_f / path_w is the natural measure of the stored staple paths (crossing probabilities, rates). For committor pieces use path_f (--weights rejections): an LML/RMR core is stored twice, once with each turn (the extension's coin flip, w = 1/2 each), and path_f counts the core once; see docs/op_loop_report.md.
+Order parameters from /local/data/data-fbsskr/Students/elias/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_well_lgv/pass_6/run/load: 353 paths read
+  ensemble 001: 246 paths, 166 pieces, 29879 frames, total weight 253.5, cut at M = -0.35
+  ensemble 002: 252 paths, 252 pieces, 29483 frames, total weight 564.3, cut at M = -0.20145756971223522
+  ensemble 003: 233 paths, 233 pieces, 29551 frames, total weight 542.2, cut at M = -0.04712909497433887
+  ensemble 004: 214 paths, 214 pieces, 26060 frames, total weight 548.3, cut at M = 0.11238843080562111
+  ensemble 005: 223 paths, 223 pieces, 50407 frames, total weight 494.7, cut at M = 0.26460977767111404
+  ensemble 006: 216 paths, 216 pieces, 35805 frames, total weight 575.1, cut at M = 0.30801959832975134
+Loaded 1304 pieces, 201185 frames total
+pass 6 re-check on its own paths: OK
+| k | lambda_k | up / down crossings | skip up | skip down | gap/delta | dist A | dist B | note |
+|---|---|---|---|---|---|---|---|---|
+| 1 | -0.2015 | 239 / 168 | 0.000 | 0.000 | 1.38 | 7.5 | – |  |
+| 2 | -0.0471 | 254 / 182 | 0.000 | 0.001 | 1.65 | – | – |  |
+| 3 | 0.1124 | 301 / 221 | 0.000 | 0.000 | 2.05 | – | – |  |
+| 4 | 0.2646 | 583 / 539 | 0.000 | 0.000 | 1.81 | – | – |  |
+| 5 | 0.3080 | 538 / 500 | 0.000 | 0.000 | 2.20 | – | 5.4 |  |
+
+| ensemble | window (L, M, R) | excursions | P(empty region) | 5% frames inside |
+|---|---|---|---|---|
+| 1 | (-0.3500, -0.3500, -0.2015) | 510 | 0.000 | 1 |
+| 2 | (-0.3500, -0.2015, -0.0471) | 308 | 0.000 | 6 |
+| 3 | (-0.2015, -0.0471, 0.1124) | 279 | 0.000 | 4 |
+| 4 | (-0.0471, 0.1124, 0.2646) | 285 | 0.000 | 8 |
+| 5 | (0.1124, 0.2646, 0.3080) | 416 | 0.000 | 8 |
+| 6 | (0.2646, 0.3080, 0.3500) | 313 | 0.000 | 5 |
+
+single-step turns: 0.000 of 4110; failures: none
+stop test: continue (stability 0.3949; prospective SD(Z_q) 18.982178432036626 vs refit 13.791; interfaces changed; OOD 0.0031 (previous 0.0002))
+== pass 7
+#=250, dr2=647.093, zqs_z=1.75311, sdzqs=18.955, |dx|=0.00999265, time=2.52415
+#=500, dr2=646.542, zqs_z=1.7436, sdzqs=18.8046, |dx|=0.000683021, time=5.04087
+#=750, dr2=647.274, zqs_z=1.73498, sdzqs=18.7057, |dx|=0.000782022, time=7.55229
+#=1000, dr2=647.554, zqs_z=1.70496, sdzqs=18.8917, |dx|=0.000335932, time=10.0648
+#=1250, dr2=648.185, zqs_z=1.7308, sdzqs=18.8599, |dx|=0.000414778, time=12.5756
+#=1500, dr2=648.092, zqs_z=1.75447, sdzqs=18.775, |dx|=0.000454152, time=15.1139
+#=1750, dr2=648.52, zqs_z=1.74801, sdzqs=18.8445, |dx|=0.000287664, time=17.6625
+#=2000, dr2=648.629, zqs_z=1.76464, sdzqs=18.855, |dx|=0.000383997, time=20.1754
+#=2250, dr2=648.971, zqs_z=1.80233, sdzqs=18.7694, |dx|=0.000325477, time=22.7119
+#=2500, dr2=649.587, zqs_z=1.81737, sdzqs=18.7643, |dx|=0.0004454, time=25.2316
+#=2750, dr2=649.401, zqs_z=1.81003, sdzqs=18.6617, |dx|=0.00030644, time=27.7493
+#=3000, dr2=649.607, zqs_z=1.76127, sdzqs=18.8584, |dx|=0.000251597, time=30.2696
+#=3250, dr2=649.332, zqs_z=1.71049, sdzqs=18.7351, |dx|=0.000264906, time=32.7877
+#=3500, dr2=649.656, zqs_z=1.7369, sdzqs=18.8349, |dx|=0.000224946, time=35.3064
+#=3750, dr2=650.364, zqs_z=1.81074, sdzqs=18.9103, |dx|=0.000409797, time=37.8184
+#=4000, dr2=650.248, zqs_z=1.7976, sdzqs=18.7681, |dx|=0.00028274, time=40.3329
+teacher: 877286 frames, 4000 iterations, 40 s
+teacher: {'n_frames': 877286, 'seconds': 40.467514991760254, 'iterations': 4000, 'provisional_b': None, 'cvs': [np.str_('x'), np.str_('v')], 'final': {'iter': 4000.0, 'delta_r2': 650.2484150711629, 'max_z_zq_stopped': 1.7976045736440514, 'max_sd_zq_stopped': 18.76809129407116, 'delta_x': 0.00028274019451018364, 'time_elapsed': 40.332855463027954}, 'rms_vs_exact': 0.029291615257186467}
+   student epoch   3: sdzqs    3.746 spread 0.1457
+   student epoch   6: sdzqs    4.494 spread 0.1406
+   student epoch   9: sdzqs    4.283 spread 0.0976
+   student epoch  12: sdzqs    3.465 spread 0.0996
+   student epoch  15: sdzqs    3.934 spread 0.0857
+   student epoch  18: sdzqs    3.754 spread 0.1506
+   student epoch  21: sdzqs    3.887 spread 0.0882
+   student epoch  24: sdzqs    3.876 spread 0.0900
+export: sigma_s 0.005359, kappa_A 4.37, kappa_B 0.323, maha thr 11.8
+diagnostics: SD(Z_q) new 10.069, previous model on the newest data 12.849; exact: spread 0.6937, logit RMSE 0.736
+plan: 8 interior levels (natural coordinate, ratio <= 10); predicted longest median 155 frames (budget 20000); levels q = [0.0018, 0.0161, 0.084, 0.241, 0.4154, 0.5157, 0.6528, 0.8987]
+placement: 7 interfaces kept of 10 planned; removed -0.2440 (gap 0.96), 0.2611 (gap 1.11), 0.3392 (last interface too close to B)
+placement refill (placement limits): added -0.2105 (q 0.00296; ratio 104 -> 19.1)
+run: 8 interfaces, 1000 cycles in /local/data/data-fbsskr/Students/elias/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_well_lgv/pass_7/run
+infretis run /local/data/data-fbsskr/Students/elias/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_well_lgv/pass_7/run: mode staple, infinite swap True, 8 ensembles, 432 finished paths in /local/data/data-fbsskr/Students/elias/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_well_lgv/pass_7/run/infretis_data.txt
+Interfaces: [-0.35, -0.2104975248558338, -0.06249861960511599, 0.10008719039905883, 0.2061361864198603, 0.28299259106437635, 0.306842273931348, 0.35]
+  path_w != 1 for 188 (path, ensemble) pairs, 9.7% of the occupancy; path_f and path_f / path_w differ there by a factor [2.]
+  Note (StapleTIS): path_f / path_w is the natural measure of the stored staple paths (crossing probabilities, rates). For committor pieces use path_f (--weights rejections): an LML/RMR core is stored twice, once with each turn (the extension's coin flip, w = 1/2 each), and path_f counts the core once; see docs/op_loop_report.md.
+Order parameters from /local/data/data-fbsskr/Students/elias/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_well_lgv/pass_7/run/load: 323 paths read
+  ensemble 001: 255 paths, 170 pieces, 19479 frames, total weight 303.6, cut at M = -0.35
+  ensemble 002: 254 paths, 254 pieces, 20862 frames, total weight 590.1, cut at M = -0.2104975248558338
+  ensemble 003: 242 paths, 242 pieces, 18258 frames, total weight 602.7, cut at M = -0.06249861960511599
+  ensemble 004: 245 paths, 245 pieces, 21492 frames, total weight 602.4, cut at M = 0.10008719039905883
+  ensemble 005: 251 paths, 251 pieces, 22857 frames, total weight 580.5, cut at M = 0.2061361864198603
+  ensemble 006: 239 paths, 239 pieces, 38584 frames, total weight 537.7, cut at M = 0.28299259106437635
+  ensemble 007: 229 paths, 229 pieces, 26529 frames, total weight 617.6, cut at M = 0.306842273931348
+Loaded 1630 pieces, 168061 frames total
+pass 7 re-check on its own paths: OK
+| k | lambda_k | up / down crossings | skip up | skip down | gap/delta | dist A | dist B | note |
+|---|---|---|---|---|---|---|---|---|
+| 1 | -0.2105 | 226 / 141 | 0.000 | 0.000 | 1.19 | 6.5 | – |  |
+| 2 | -0.0625 | 243 / 156 | 0.000 | 0.000 | 1.50 | – | – |  |
+| 3 | 0.1001 | 258 / 160 | 0.000 | 0.000 | 1.41 | – | – |  |
+| 4 | 0.2061 | 334 / 232 | 0.000 | 0.000 | 1.45 | – | – |  |
+| 5 | 0.2830 | 811 / 735 | 0.000 | 0.000 | 1.75 | – | – |  |
+| 6 | 0.3068 | 430 / 351 | 0.000 | 0.000 | 2.63 | – | 5.3 |  |
+
+| ensemble | window (L, M, R) | excursions | P(empty region) | 5% frames inside |
+|---|---|---|---|---|
+| 1 | (-0.3500, -0.3500, -0.2105) | 491 | 0.000 | 1 |
+| 2 | (-0.3500, -0.2105, -0.0625) | 292 | 0.000 | 6 |
+| 3 | (-0.2105, -0.0625, 0.1001) | 272 | 0.000 | 6 |
+| 4 | (-0.0625, 0.1001, 0.2061) | 275 | 0.000 | 6 |
+| 5 | (0.1001, 0.2061, 0.2830) | 308 | 0.000 | 6 |
+| 6 | (0.2061, 0.2830, 0.3068) | 398 | 0.000 | 4 |
+| 7 | (0.2830, 0.3068, 0.3500) | 276 | 0.000 | 4 |
+
+single-step turns: 0.000 of 4551; failures: none
+stop test: continue (stability 1.3019; prospective SD(Z_q) 12.849277589427352 vs refit 10.069; interfaces changed)
+stop: pass or MD-step budget reached (7 passes, 950574 MD steps)
+freeze: production run prepared in /local/data/data-fbsskr/Students/elias/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_well_lgv/production (not started); 8 interfaces, verified by pass 7 on its own paths
+production: running /local/data/data-fbsskr/Students/elias/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_well_lgv/production
+/local/data/data-fbsskr/Students/elias/rctis/lib/python3.14/site-packages/tistools/__init__.py:24: UserWarning: tistools.tica unavailable, TICA features disabled: No module named 'mlcolvar'
+  warnings.warn(f"tistools.tica unavailable, TICA features disabled: {e}")
+production: P_cross 0.6414 (rel. error 0.02), rate 0.3397 per time unit (rel. error 0.06); exact rate 0.337

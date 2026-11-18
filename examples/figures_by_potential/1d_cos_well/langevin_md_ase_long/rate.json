@@ -1,0 +1,36 @@
+{
+ "system": "well_lgv",
+ "integrator": "ase Langevin (exact_tools.vec_step)",
+ "dt": 0.005,
+ "gamma": 1.0,
+ "kT": 1.0,
+ "A": -0.35,
+ "B": 0.35,
+ "walkers": 4096,
+ "steps_per_walker": 2000000,
+ "burn_in": 20000,
+ "seed": 1,
+ "walker_steps": 8192000000,
+ "n_ab": 6902707,
+ "n_ba": 6902673,
+ "fraction_last_in_a": 0.49992979821777345,
+ "k_ab": 0.3370935693730692,
+ "k_ab_se": 0.00013629085423681967,
+ "k_ba": 0.3369972644609837,
+ "k_ba_se": 0.0001449240419631125,
+ "steps_per_ab": 593.3070760500192,
+ "seconds": 1298.0837154388428,
+ "note": "k = transitions / time with h (last state visited) = A, per reduced time unit",
+ "traj": {
+  "file": "traj.npy",
+  "shape": [
+   50,
+   2000000,
+   2
+  ],
+  "columns": [
+   "x",
+   "v"
+  ]
+ }
+}
