@@ -191,11 +191,19 @@ system (`loop/exact_zw.py`, k_AB = 2.115e-5 per time unit, checked against six s
 and the 2D grid committor of the two-channel system (`loop/exact_stag.py`, k_AB = 1.148e-4, half the flux per
 channel); the embedding has the committor and rate of Z.
 
-| system | what it tests | CVs | interfaces | initialization MD | production MD | rate / exact | rel. error |
-|---|---|---|---|---|---|---|---|
-| gate (`loop_zw`, ZChannelsW, dV_w 3 kT) | a slow w that moves the ridge | y, x, w | 14 | 11.1M | 12.8M | **1.14x** | 0.33 |
-| embedding (`loop_zu`, uncoupled double well in w) | a slow w the committor does not depend on | y, x, w | 5 | 12.0M | 5.4M | 3.02x | 2.69 |
-| two channels (`loop_stag`, staggered channels, overdamped) | a channel missing from the initial data | x, y | 12 | 17.4M | 1.6M | **0.54x** | 0.50 |
+| system | what it tests | CVs | interfaces | initialization MD | production MD | rate / exact | rel. error | seed lambda: rate / exact (rel. error) |
+|---|---|---|---|---|---|---|---|---|
+| gate (`loop_zw`, ZChannelsW, dV_w 3 kT) | a slow w that moves the ridge | y, x, w | 14 | 11.1M | 12.8M | **1.14x** | 0.33 | 1.61x (0.70) |
+| embedding (`loop_zu`, uncoupled double well in w) | a slow w the committor does not depend on | y, x, w | 5 | 12.0M | 5.4M | 3.02x | 2.69 | 5.75x (0.35) |
+| two channels (`loop_stag`, staggered channels, overdamped) | a channel missing from the initial data | x, y | 12 | 17.4M | 1.6M | **0.54x** | 0.50 | 15.6x (0.44) |
+| embedding without w (`loop_zu_xy`, same pass 0 as loop_zu) | what carrying the uncoupled w costs | y, x | 7 | 9.8M | 6.4M | 0.17x | 0.95 | (as loop_zu) |
+| embedding, frame budget fixed (`loop_zu_b`, same pass 0) | loop_zu after the frame-budget fix | y, x, w | 10 | 13.6M | 17.6M | **1.85x** | 0.51 | (as loop_zu) |
+| embedding without w, frame budget fixed (`loop_zu_xy_b`) | what carrying the uncoupled w costs | y, x | 13 | 12.9M | 12.7M | **1.08x** | 0.36 | (as loop_zu) |
+
+Seed-lambda controls (`python -m loop.experiments.seed_control setup|run <loop>`): lambda = the state CV, seeded from
+the same pool, 20 000 cycles with infinite swap; zu and zw use the 11 equally spaced y levels of the Z control (12.7M
+MD steps each, no initialization cost beyond pass 0), stag its 13 seed levels in x (1.3M MD steps). On Z the seed
+control at 20 000 cycles was 3.36x and still 2.8x at 50 000, so the zu and zw controls are not converged either.
 
 Figures (`python -m loop.plots <loop>`; 3D systems: one slice per w well, w = -0.1 and +0.1):
 
@@ -220,6 +228,29 @@ Findings:
    (downward skips of 15% at 0.24 and 0.46) and refill found nothing that passes, so one ensemble spans most of
    the barrier. The teacher's RMS against exact stayed at 0.19-0.20 (gate: 0.056). The CVs a lambda sees therefore
    have to be screened; see 4.
+   **Correction (2026-11-18): w is not the main cause.** The same loop on (y, x) only (`loop_zu_xy`, same pass 0)
+   failed the same way: 7 interfaces with one ensemble over lambda 0.165-0.85, teacher RMS against exact 0.16-0.24,
+   production 0.17x (rel. error 0.95). The pool view thinned whole paths uniformly to its 8M-frame budget (the
+   infinit passes hold 22.7M frames), so the teacher saw about a third of the few paths that reach B. In loop_zu_xy
+   the teacher also counted B paths in the thinned view: 14 of 43, below n_b = 20, so pass 1 fitted to a provisional
+   B at y >= 0.372 (logit RMSE 12). loop_zu kept enough for the count, but its teacher was as poor (RMS 0.20 and 0.17
+   at passes 1-2). The poor lambdas gave collapsed interface sets, and the passes produced few transitions (B paths per
+   loop pass, zu: 73, 43, 2, 1, 1, 7, 0; zu_xy: 71, 3, 13, 1, 1, 39, 0). The budgets now thin in two strata (paths
+   that reach B get at most half of it) with inverse-inclusion weights, and the B count is the pool's estimate (pass
+   1 of the same data: 42). loop_z and loop_zw did not hit this: their infinit passes had enough B paths for the
+   thinned view.
+   **Rerun with the fix, w kept (`loop_zu_b`): the loop works.** Production 1.85x (rel. error 0.51; loop_z's first
+   production: 2.03x, 0.50), 10 interfaces, teacher RMS against exact 0.035-0.12 from pass 2 and 0.056 at pass 7
+   (loop_z 0.064), student logit RMSE 0.33 at pass 7 (loop_z 0.44), and 325 B paths over the 7 loop passes (loop_z
+   279, loop_zw 390, loop_zu 127). So the uncoupled w did little harm here; the failure came from the frame budget. One
+   run per variant, so this is one realization, not a cost estimate. The interface sets still dropped to 7 at passes 2
+   and 4 (pass 5: 2 B paths) and recovered.
+   **The same without w (`loop_zu_xy_b`):** production 1.08x (rel. error 0.36), 13 interfaces from pass 4 on, teacher
+   RMS against exact 0.066-0.10 from pass 3 (0.086 at pass 7), student logit RMSE 0.26-0.53, 237 B paths over the 7
+   loop passes, spread evenly (26-41 per pass). The rates of the two reruns agree within their errors (1.85x +- 0.51
+   rel. against 1.08x +- 0.36). The run without w gave steadier interface sets (13 from pass 4; with w 7-13), and the
+   run with w a better final teacher (0.056 against 0.086). On this evidence the cost of an uncoupled slow CV is in
+   the stability of the interface sets, not in the rate. Pass 1 needed an infretis fix (plan, 2026-11-18).
 3. **Two channels: the loop does not find a channel that the initial data miss.** State A cuts the strip next to the
    channel mouths, so the RETIS paths of pass 0 stay on the side of infinit's initial path (upper channel: 139551
    frames past x = -0.9 at y > 0, none at y < 0, while plain dynamics from A enters both channels about equally).
@@ -229,11 +260,54 @@ Findings:
    and is too low before the lower channel's barrier; the interfaces at q 0.2-0.94 are placed for the lower channel
    and lie where q ~ 1 in the upper one (harmless for the estimate, wasted sampling). The relative error (0.50) does not flag the factor 2. Neither the learned lambda nor
    the trust-region blend can create transitions that the sampler does not make.
-4. **CV screening is not solved.** Neither the validation SD(Z_q) (insensitive: -1% when leaving out x on the gate)
-   nor the held-out Dirichlet energy (single block or 5-fold) separates the coupled w (+41%, 5/5 folds) from the
-   uncoupled one (+24%, 4/5 folds): with the path-ensemble weights the energy is not the equilibrium Dirichlet form,
-   so the committor need not minimize it. M3 used fixed CV sets (`[screen] enabled = false`); `loop/screen.py` is
-   kept for a later test (e.g. the committor conditioned on w bins).
+   **The seed lambda (x) is worse: 15.6x the exact rate, with a relative error of 0.44.** With lambda = x, the same x
+   level lies before the barrier in the lower channel and past it in the upper one. Shooting does not move a path
+   between channels, and in 20 000 cycles no lower-channel path reached ensemble 7: ensembles 3-6 (x -0.6 to 0) hold
+   46-85% lower-channel paths (weight share after a 10% burn-in), ensembles 7-11 (x >= 0.2) only upper-channel paths.
+   The crossing probability chains the easy pre-barrier progress of the lower channel (ratios 0.93, 0.87, 0.66) with
+   the post-barrier ratios of the upper one (about 1), so it is about 30 times too high. The learned lambda puts the
+   upper-channel barrier between two of its interfaces and gets the one-channel rate.
+4. **CV screening from the pool data fails; a short shooting test works.** Three data-only tests could not separate
+   the coupled w of the gate from the uncoupled w of the embedding:
+   - the validation SD(Z_q): insensitive (-1% when leaving out x on the gate);
+   - the held-out Dirichlet energy, single block or 5-fold: kept both (+41%, 5/5 folds against +24%, 4/5 folds).
+     With the path-ensemble weights it is not the equilibrium Dirichlet form, so the committor need not minimize it;
+   - split-half reproduction of the teacher's well difference (`loop/experiments/w_split.py`: the teacher on two
+     disjoint halves of the pool, the bin-mean q difference between w < 0 and w >= 0 frames over (y, x) compared
+     between the halves): on the full pools the correlation is 0.59 (MC-block halves) and 0.37 (even/odd passes) for
+     the gate, 0.00 and **0.68** for the embedding. On the infinit passes alone (what a pass-1 screening sees) only
+     2-7 paths per half reach B and the fits are 0.07-0.19 RMS off the exact committor.
+
+   The reason is in the data: a single teacher fit on (y, x, w) already gives the uncoupled w a well difference of
+   0.044 (RMS over the bins; exact: 0.0075, the binning floor) against 0.070 for the gate (exact 0.106). The pool of
+   the embedding holds 50 paths that reach B over 12 passes, clustered by pass (22 in pass 4, 4 in passes 6-11), and
+   the share of w < 0 frames swings from 0.27 to 0.97 between passes. The outcome information about w is a few
+   lineages, and every data split keeps them on both sides.
+
+   **Shooting test** (`loop/experiments/w_shoot.py`, the "fixed-length shooting" of E7):
+   - (y, x) of 400 pool frames with teacher q in 0.2-0.8;
+   - from each, 16 short overdamped trajectories with w = -0.1 and 16 with w = +0.1;
+   - the well difference d of the mean (y, x) displacement after 10, 50 and 200 steps, from two independent halves
+     of the shots;
+   - S = mean over points of d1 . d2, which is exactly 0 in expectation when w does not enter the (y, x) dynamics.
+
+   Result (z = S / s.e. over points; seeds 0-3 at 400 points, 1-3 at 100):
+
+   | system | 400 points, 5.1M walker steps (6-15 s) | 100 points, 4 shots per half |
+   |---|---|---|
+   | gate | max z 14.4-15.3 | 4.9-5.2 |
+   | embedding | max z 0.0-1.0 | 1.3-1.5 |
+
+   With a threshold of z = 3 it keeps the gate's w and drops the embedding's at both budgets. Two limitations:
+   - It conditions on w by setting it, which a toy system allows. A molecular system needs restrained starts or
+     binning by w.
+   - It tests whether w enters the dynamics of the other CVs near the transition region, which is sufficient for a
+     committor dependence only in combination with the fit. A coupled w that the committor does not need would
+     still be kept (the conservative error).
+
+   What dropping w gains in the loop: little in the rate. With the fixed frame budget the loop gave 1.85x on (y, x, w)
+   (`loop_zu_b`) and 1.08x on (y, x) (`loop_zu_xy_b`), equal within errors. Without w the interface sets were steadier
+   (finding 2).
 5. **Fixes found on the way** (none could show on Z or cc, which reach B in pass 0 and have small pools): the
    teacher's provisional B now reaches the export (it was always None, so lambda saturated past the data front);
    the blend's seed table ends at the states (it held its last value beyond the data); a pass writes its fit,

@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
-"""Production control with the seed order parameter (lambda = the state CV, the interfaces of the toytis training
-run), seeded from the same pool as the learned-lambda production run, for the comparison at equal MD steps.
+"""Production control with the seed order parameter (lambda = the state CV), seeded from the same pool as the
+learned-lambda production run, for the comparison at equal MD steps. Interfaces: `[seed_control] interfaces` of the
+loop config, else the system's `seed_interfaces` (ase_systems), else the toytis training-run set
+(staple_run.SEED_INTERFACES).
 
     python -m loop.experiments.seed_control setup <loop config> [--cycles N]
     python -m loop.experiments.seed_control run   <loop config>
@@ -29,7 +31,11 @@ class Identity:
 
 def setup(cfg, cycles):
     system = cfg['system_spec']
-    intf = staple_run.SEED_INTERFACES[system['name']]
+    intf = (cfg.get('seed_control', {}).get('interfaces') or system.get('seed_interfaces')
+            or staple_run.SEED_INTERFACES[system['name']])
+    intf = [float(v) for v in intf]
+    if not (np.isclose(intf[0], system['lambda_a']) and np.isclose(intf[-1], system['lambda_b']) and np.all(np.diff(intf) > 0)):
+        raise SystemExit(f'seed interfaces must increase from lambda_A to lambda_B: {intf}')
     out = os.path.join(cfg['loop_dir'], 'production_seed')
     pool = pool_mod.Pool(cfg['loop_dir'])
     seeds = os.path.join(cfg['loop_dir'], 'production_seed_seeds')
@@ -43,11 +49,16 @@ def setup(cfg, cycles):
 
 def run(cfg):
     out = os.path.join(cfg['loop_dir'], 'production_seed')
-    cost = be.run(out) if not os.path.isfile(os.path.join(out, 'restart.toml')) else be.cost(out)
+    steps = int(be.read_toml(os.path.join(out, 'infretis.toml'))['simulation']['steps'])
+    if not os.path.isfile(os.path.join(out, 'restart.toml')):
+        be.run(out)
+    elif be.cost(out)['cycles'] < steps:                   # an interrupted or crashed run: continue it
+        be.resume(out, steps)
     r = rates.staple_rate(out, burn_in=float(cfg.get('production', {}).get('burn_in', 0.1)))
-    r['cost'] = cost
-    if cfg['system_spec'].get('dim') == 2:
-        r['exact'] = rates.exact_rate(cfg['system_spec'])
+    r['cost'] = be.cost(out)
+    ref = rates.reference_rate(cfg['system_spec'])
+    if ref is not None:
+        r['exact'] = ref
     manifest.write(os.path.join(out, 'rates.json'), **r)
     print({k: v for k, v in r.items() if k not in ('interfaces', 'pcross')})
 

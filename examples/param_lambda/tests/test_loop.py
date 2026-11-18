@@ -289,3 +289,40 @@ def test_screen_keeps_only_cvs_whose_removal_hurts(monkeypatch):
     allm = np.ones(400, bool)
     assert np.isclose(screen.dirichlet(v, q, allm, lags=(1, 2))[1], 0.01)
     assert np.isclose(screen.dirichlet(v, q, allm, lags=(1, 2))[2], 0.04)
+
+
+def test_frame_budget_keeps_b_paths_and_reweights_the_rest():
+    """The teacher's frame cap (and the pool view's, same rule) keeps every piece of a path that reaches B and
+    weights the randomly thinned rest by the inverse keep fraction, so weighted totals stay unbiased."""
+    from types import SimpleNamespace
+    from loop import teacher
+    from loop.pool import reaches_b_rows
+    rng = np.random.default_rng(0)
+    n_pieces, length = 2000, 50
+    piece = np.repeat(np.arange(n_pieces), length)
+    path = piece // 2                                        # two pieces per path
+    b_paths = rng.choice(n_pieces // 2, 10, replace=False)
+    B = np.zeros(len(piece), bool)
+    B[np.isin(path, b_paths) & (np.arange(len(piece)) % length == length - 1)] = True
+    view = SimpleNamespace(n=len(piece), piece=piece, path=path, B=B)
+    totals = []
+    for seed in range(40):
+        mask, scale = teacher.select_frames(view, 20_000, seed=seed)
+        assert mask[np.isin(path, b_paths)].all()
+        assert abs(mask.sum() - 20_000) < 3000
+        totals.append(float(scale[mask].sum()))
+    assert abs(np.mean(totals) / len(piece) - 1) < 0.02     # inverse-inclusion weights: unbiased frame total
+    # pool rows: a piece whose state CV (column 1) reaches lambda_b marks its row
+    z = dict(piece_n=np.array([3, 2, 4]), piece_row=np.array([0, 0, 1]),
+             cv=np.c_[np.zeros(9), [0.1, 0.5, 0.2, 0.3, 0.9, 0.1, 0.2, 0.4, 0.3]])
+    assert reaches_b_rows(z, 0.85).tolist() == [0]
+    # when the B paths are most of the frames (pass-0 RETIS data), they get half the budget and the front counts
+    # them with their inclusion weights
+    from loop.pool import thin_strata
+    f_b, f_o = thin_strata(14_000_000, 1_000_000, 8_000_000)
+    assert np.isclose(f_b * 14e6, 4e6) and f_o == 1.0
+    keep_paths = np.arange(15)
+    v2 = SimpleNamespace(cv=np.c_[np.r_[np.full(15, 0.9), np.full(5, 0.3)]], state_cv=0, path=np.arange(20),
+                         path_id=np.arange(20), lambda_a=0.05, incl=np.r_[np.full(15, 1 / f_b), np.ones(5)])
+    _, arrivals = teacher.front(v2, [0.85], n_front=20)
+    assert arrivals[0] == round(15 / f_b)

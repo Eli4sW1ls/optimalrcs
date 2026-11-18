@@ -246,3 +246,58 @@ mutates `staridx`/`meta` of shared Path objects; infretis `staple_extender` over
   the rate is off without it (exact: 2x the one-channel rate). The mixed attempt is in loop_stag/attempt_artificial_lower/.
   Fixes found on the way stay: `passes.learn` passes the teacher's provisional B to the export (it was always None),
   and the blend's seed table ends at the states (it held its last value beyond the data).
+- **E7 screening and seed controls (2026-11-18).**
+  - *Split-half test failed* (`loop/experiments/w_split.py`): the teacher on two disjoint halves of the pool, the
+    well difference of its bin-mean q compared between halves. Correlation gate 0.59 / 0.37 (MC-block halves /
+    even-odd passes), embedding 0.00 / 0.68. A single (y, x, w) teacher fit already gives the uncoupled w a well
+    difference of 0.044 (gate 0.070; exact 0.0075 / 0.106). The embedding pool has 50 paths that reach B over 12
+    passes, clustered by lineage, so every split of the data keeps the same few w-labelled outcomes on both sides.
+    Conclusion: no data-only test on these pools can separate the two; the per-piece conditioning is impossible too
+    (28% / 63% of the frames lie in pieces that spend more than 20% in the other well).
+  - *Shooting test works* (`loop/experiments/w_shoot.py`): 400 transition-region points (teacher q 0.2-0.8), short
+    overdamped shots with w set to each well, paired statistic S = mean d1 . d2 of the well difference of the mean
+    (y, x) displacement (two independent halves of the shots; E S = 0 exactly for an uncoupled w). Gate z 14-15,
+    embedding z <= 1.0 (4 seeds, 5.1M walker steps, seconds); at a quarter of the budget 4.9-5.2 against <= 1.5.
+    Not yet wired into the loop (it needs a backend call for short shots from given configurations, and setting w
+    is a toy-system shortcut).
+  - *loop_zu_xy*: the embedding loop with teacher and student on (y, x) (`[screen] cvs`, new option in
+    `passes.run_passes`), from loop_zu's pass 0 with the labels removed.
+  - *Seed-lambda controls* (20 000 cycles, same pool): gate 1.61x (rel. error 0.70), embedding 5.75x (0.35), two
+    channels **15.6x (0.44)**. With lambda = x on the staggered channels, shooting cannot move paths between channels;
+    ensembles 3-6 hold mostly lower-channel paths (before their barrier), ensembles 7-11 only upper-channel ones (past
+    theirs), so the crossing probability chains the two and is about 30x too high. `seed_control.py` now takes the
+    interfaces from `[seed_control] interfaces` or the system's `seed_interfaces`, resumes an interrupted run and
+    uses `rates.reference_rate`.
+- **Frame-budget bug behind the embedding failure (2026-11-18).** `loop_zu_xy` (no w) failed like loop_zu (0.17x,
+  7 interfaces, teacher RMS 0.16-0.24). Cause: `pool.select(max_frames)` and `teacher.select_frames` thinned whole
+  paths uniformly, and `teacher.front` counted B paths in the thinned view: pass 1 kept 14 of 43, fell below
+  n_b = 20 and fitted to a provisional B at y >= 0.372, from which neither loop recovered. Fix: two strata (paths
+  that reach B, at most half the budget; the rest fills it), every kept piece weighted by its inverse inclusion
+  probability (`View.incl`, also in the piece weights), and `front` sums these factors (an estimate of the pool's
+  count; pass 1 now 42). Test `test_frame_budget_keeps_b_paths_and_reweights_the_rest`. Reruns from loop_zu's pass 0:
+  `loop_zu_b` (y, x, w) and `loop_zu_xy_b` (y, x).
+  - *loop_zu_b* (fixed budget, w kept): production **1.85x** (rel. error 0.51), 10 interfaces, 13.6M MD to
+    initialize and 17.6M in production, teacher RMS vs exact 0.056 at pass 7, student logit RMSE 0.33, 325 B paths in
+    7 passes (loop_zu: 127). The embedding works once the budget is fixed; the uncoupled w is not what broke loop_zu.
+    One realization each.
+  - *loop_zu_xy_b* crashed at pass 1, cycle 340: infretis `repex_staple.treat_output` raised `Ensemble 8 has invalid
+    pptype RML`. Interfaces [..., 0.818, 0.8366, B = 0.85]; refill added 0.8366, and it passed every placement check
+    including dist_b. Path 233, accepted by `staple_sh` in the last ensemble, starts in B (0.853), drops to 0.768
+    (below 0.818) and ends at 0.8373 just above 0.8366: an RML path, while `treat_output` allows only RMR in the
+    last ensemble. Correction: 233 was not the crashing path (its turns are at 9 and 7, so it never reached the
+    check). The second crash was path 320 (41 frames: B -> 0.812 -> B). Both of its turns are at B, but its label is
+    RML, because `staple_sh` labels the shot segment before the extension (the forward part stopped at lambda_7 and
+    the extender carried it back into B). Figure: `loop_zu_xy_b/pass_1/rml_paths.png`. The resumed run crashed
+    again. **infretis edit (authorized 2026-11-18):** `repex_staple.treat_output` now accepts every path type in the
+    last ensemble. When both turns are at B (index n - 1), one end (coin flip, as before for RMR) gets the turn of the
+    first interface above the path's minimum: n - 2 for an RMR path, which stays above L, and n - 3 for a path that
+    went below L, such as these "RML" ones (Elias: they turn one interface further back). Both turns at an interior
+    interface: no offsets. Only the ptype string in infretis_data.txt changes. The weights use `get_pptype` per
+    ensemble, and inftools (`istar.reading.parse_ptype_direction`) reads only the order of the two numbers, which
+    the coin flip randomizes either way. Between the edits, passes 5-7 and the production of loop_zu_xy_b ran with a
+    version that wrote n - 3 for every RMR path (e.g. 186 rows `10RMR12`/`12RMR10` in production). That leaves the
+    rate unchanged, and none of loop_zu_xy_b's runs met a both-at-B non-RMR path again. Crash log kept in
+    `loop_zu_xy_b/pass_1/infretis_crash_RML.out`; figure `loop_zu_xy_b/pass_1/rml_paths.png`.
+  - *loop_zu_xy_b* (fixed budget, no w): production **1.08x** (rel. error 0.36), 13 interfaces, 12.9M MD to
+    initialize and 12.7M in production, teacher RMS 0.086 at pass 7, 237 B paths in 7 passes. Equal to loop_zu_b
+    within errors; steadier interface sets without w.

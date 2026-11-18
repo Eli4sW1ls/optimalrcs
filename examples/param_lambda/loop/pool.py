@@ -102,8 +102,12 @@ class Pool:
         Splits (by whole path): the rows of a pass after its burn-in are cut into contiguous blocks of `block`
         of the rows; `val_blocks` / `test_blocks` are held out, the rest is training.
         max_frames: frame budget of the view; above it whole path-table rows (every piece of a stored path, the
-        mirrored ones included) are dropped at random with the same keep fraction in every pass (memory: a view of
-        23M frames peaks at 5.9 GB; the teacher uses at most teacher.max_frames of them anyway).
+        mirrored ones included) are dropped at random (memory: a view of 23M frames peaks at 5.9 GB). Two strata
+        (`thin_strata`): rows with a piece that reaches B are kept with f_B = min(1, budget / 2 / their frames), the
+        others with the fraction that fills the rest of the budget; every kept piece carries its inverse inclusion
+        probability (View.incl) and its weight is multiplied by it, so weighted averages and path counts
+        (teacher.front) stay unbiased. Uniform dropping, with counts on the thinned view, sent loop_zu_xy pass 1 to a
+        provisional B: the view kept 14 of the 43 B paths, below n_b = 20.
         """
         ks = self.passes()
         if passes == 'last':
@@ -139,13 +143,37 @@ class Pool:
             parts.append((k, z, m, keep, n_rows))
         total = sum(int(z['piece_n'][keep].sum()) for _, z, _, keep, _ in parts)
         if max_frames is not None and total > max_frames:
-            frac = max_frames / total
+            b_rows = [reaches_b_rows(z, float(m['lambda_b'])) for _, z, m, _, _ in parts]
+            n_b = sum(int(z['piece_n'][keep & np.isin(z['piece_row'], br)].sum())
+                      for (_, z, _, keep, _), br in zip(parts, b_rows))
+            f_b, f_o = thin_strata(n_b, total - n_b, max_frames)
             rng = np.random.default_rng(seed)
-            for _, z, _, keep, _ in parts:
+            for (_, z, _, keep, _), br in zip(parts, b_rows):
                 rows = np.unique(z['piece_row'][keep])
-                kept_rows = rows[rng.random(len(rows)) < frac]
-                keep &= np.isin(z['piece_row'], kept_rows)
+                is_b = np.isin(rows, br)
+                f = np.where(is_b, f_b, f_o)
+                kept = rows[rng.random(len(rows)) < f]
+                keep &= np.isin(z['piece_row'], kept)
+                incl = np.where(np.isin(z['piece_row'], br), 1.0 / f_b, 1.0 / f_o)
+                z['piece_incl'] = incl
+                z['piece_w'] = z['piece_w'].astype(float) * incl
         return View(parts, block=block, val_blocks=val_blocks, test_blocks=test_blocks, burn_in=burn_in)
+
+
+def thin_strata(n_b, n_other, budget):
+    """Keep fractions (f_B, f_other) for a frame budget: the B stratum gets at most half of it."""
+    f_b = min(1.0, 0.5 * budget / n_b) if n_b > 0 else 1.0
+    f_o = float(np.clip((budget - f_b * n_b) / max(n_other, 1), 0.02, 1.0))
+    return f_b, f_o
+
+
+def reaches_b_rows(z, lambda_b):
+    """Path-table rows of a pass store with a piece whose state CV (cv column 1) reaches lambda_b."""
+    n = z['piece_n']
+    if not len(n):
+        return np.zeros(0, z['piece_row'].dtype)
+    smax = np.maximum.reduceat(z['cv'][:, 1], np.r_[0, np.cumsum(n)[:-1]])
+    return np.unique(z['piece_row'][(smax >= lambda_b) & (n > 0)])
 
 
 class View:
@@ -153,7 +181,7 @@ class View:
 
     def __init__(self, parts, block=0.1, val_blocks=(1,), test_blocks=(3,), burn_in=0.0):
         cvs, lams, ts, pieces, paths, ws, qs, qx, ens, pass_f, piece_meta = [], [], [], [], [], [], [], [], [], [], []
-        src_idx = []
+        src_idx, incls = [], []
         piece_off = 0
         self.lambda_a = self.lambda_b = None
         self.cv_names = None
@@ -174,6 +202,7 @@ class View:
             uid = k * 10_000_000 + z['piece_pnr'][idx_pieces].astype(np.int64)
             paths.append(np.repeat(uid, n))
             ws.append(np.repeat(z['piece_w'][idx_pieces], n))
+            incls.append(np.repeat(z['piece_incl'][idx_pieces], n) if 'piece_incl' in z else np.ones(int(n.sum())))
             ens.append(np.repeat(z['piece_ens'][idx_pieces], n))
             pass_f.append(np.full(len(frame_idx), k, np.int32))
             qs.append(z['q_np'][frame_idx].astype(float) if 'q_np' in z else np.full(len(frame_idx), np.nan))
@@ -198,6 +227,7 @@ class View:
         self.path = np.concatenate(paths)
         w = np.concatenate(ws)
         self.w = (w / w.mean()).astype(np.float32)
+        self.incl = np.concatenate(incls)                      # inverse inclusion probability of the frame budget
         self.ens = np.concatenate(ens)
         self.pass_of_frame = np.concatenate(pass_f)
         self.src_idx = np.concatenate(src_idx)                 # frame index inside the pass store

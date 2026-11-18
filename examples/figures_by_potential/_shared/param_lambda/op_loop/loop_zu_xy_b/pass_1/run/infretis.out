@@ -1,0 +1,37 @@
+🔧 Starting internalrun with input: infretis.toml
+🚀 About to call setup_config - set breakpoint here!
+📋 Configuration loaded, starting scheduler...
+Traceback (most recent call last):
+  File "/home/elias/anaconda3/envs/test/bin/infretisrun", line 8, in <module>
+    sys.exit(infretisrun())
+             ^^^^^^^^^^^^^
+  File "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/APPTIS/infretis/infretis/bin.py", line 38, in infretisrun
+    internalrun(input_file)
+  File "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/APPTIS/infretis/infretis/bin.py", line 70, in internalrun
+    scheduler(config)
+  File "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/APPTIS/infretis/infretis/scheduler.py", line 30, in scheduler
+    worker_md_items = state.treat_output(future.result())
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/APPTIS/infretis/infretis/classes/repex_staple.py", line 1371, in treat_output
+    raise ValueError(
+ValueError: Ensemble 8 has invalid pptype RML.
+🔧 Starting internalrun with input: restart.toml
+🚀 About to call setup_config - set breakpoint here!
+📋 Configuration loaded, starting scheduler...
+Traceback (most recent call last):
+  File "/home/elias/anaconda3/envs/test/bin/infretisrun", line 8, in <module>
+    sys.exit(infretisrun())
+             ^^^^^^^^^^^^^
+  File "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/APPTIS/infretis/infretis/bin.py", line 38, in infretisrun
+    internalrun(input_file)
+  File "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/APPTIS/infretis/infretis/bin.py", line 70, in internalrun
+    scheduler(config)
+  File "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/APPTIS/infretis/infretis/scheduler.py", line 30, in scheduler
+    worker_md_items = state.treat_output(future.result())
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/APPTIS/infretis/infretis/classes/repex_staple.py", line 1371, in treat_output
+    raise ValueError(
+ValueError: Ensemble 8 has invalid pptype RML.
+🔧 Starting internalrun with input: restart.toml
+🚀 About to call setup_config - set breakpoint here!
+📋 Configuration loaded, starting scheduler...

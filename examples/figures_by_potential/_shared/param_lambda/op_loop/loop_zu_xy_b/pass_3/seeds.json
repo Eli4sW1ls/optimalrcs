@@ -1,0 +1,168 @@
+{
+ "report": {
+  "0": {
+   "pass_index": 5,
+   "pnr": 0,
+   "frames": [
+    0,
+    3
+   ],
+   "tainted": false
+  },
+  "1": {
+   "pass_index": 5,
+   "pnr": 9,
+   "frames": [
+    0,
+    674
+   ],
+   "tainted": false,
+   "pptype": "LMR",
+   "sh_region": [
+    1,
+    90
+   ]
+  },
+  "2": {
+   "pass_index": 5,
+   "pnr": 2,
+   "frames": [
+    1,
+    441
+   ],
+   "tainted": false,
+   "pptype": "RML",
+   "sh_region": [
+    74,
+    439
+   ]
+  },
+  "3": {
+   "pass_index": 5,
+   "pnr": 3,
+   "frames": [
+    1,
+    1458
+   ],
+   "tainted": false,
+   "pptype": "LMR",
+   "sh_region": [
+    191,
+    488
+   ]
+  },
+  "4": {
+   "pass_index": 5,
+   "pnr": 4,
+   "frames": [
+    566,
+    1868
+   ],
+   "tainted": false,
+   "pptype": "LMR",
+   "sh_region": [
+    692,
+    972
+   ]
+  },
+  "5": {
+   "pass_index": 5,
+   "pnr": 7,
+   "frames": [
+    0,
+    1757
+   ],
+   "tainted": false,
+   "pptype": "RML",
+   "sh_region": [
+    1434,
+    1453
+   ]
+  },
+  "6": {
+   "pass_index": 5,
+   "pnr": 34,
+   "frames": [
+    0,
+    18385
+   ],
+   "tainted": false,
+   "pptype": "LMR",
+   "sh_region": [
+    631,
+    645
+   ]
+  },
+  "7": {
+   "pass_index": 5,
+   "pnr": 143,
+   "frames": [
+    30035,
+    32484
+   ],
+   "tainted": false,
+   "pptype": "RML",
+   "sh_region": [
+    2224,
+    2266
+   ]
+  },
+  "8": {
+   "pass_index": 5,
+   "pnr": 162,
+   "frames": [
+    0,
+    7291
+   ],
+   "tainted": false,
+   "pptype": "RML",
+   "sh_region": [
+    1089,
+    6399
+   ]
+  },
+  "9": {
+   "pass_index": 5,
+   "pnr": 5,
+   "frames": [
+    19523,
+    40950
+   ],
+   "tainted": false,
+   "pptype": "LMR",
+   "sh_region": [
+    8674,
+    21333
+   ]
+  },
+  "10": {
+   "pass_index": 5,
+   "pnr": 17,
+   "frames": [
+    0,
+    510
+   ],
+   "tainted": false,
+   "pptype": "RML",
+   "sh_region": [
+    182,
+    391
+   ]
+  },
+  "11": {
+   "pass_index": 5,
+   "pnr": 8,
+   "frames": [
+    10986,
+    11671
+   ],
+   "tainted": false,
+   "pptype": "LMR",
+   "sh_region": [
+    442,
+    684
+   ]
+  }
+ },
+ "written": "2026-11-18 10:59:51"
+}

@@ -1,0 +1,11 @@
+# M3 native embedding without its slow CV (E7 control): loop_zu with teacher and student on (y, x) only. The w of
+# zu_br is still simulated (and carried through shooting points); only the CVs of the fits drop it. Pass 0 is
+# loop_zu's (pass_0 links to loop_zu/pass_0; the infinit pool passes are copies without labels), so the two loops
+# differ only in the CV set from pass 1 on. The question: what does carrying the uncoupled w cost (loop_zu: 5
+# interfaces, rate 3.0x exact, rel. error 2.7)?
+inherit = "loop_zu"
+name = "loop_zu_xy"
+
+[screen]
+enabled = false
+cvs = ["y", "x"]

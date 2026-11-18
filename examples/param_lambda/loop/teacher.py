@@ -2,7 +2,8 @@
 
 - Warm start: `seed_q` per frame (old frames keep their previous q, new frames start from the current
   parametric model's m(x), or from a linear ramp in the state CV on the first pass).
-- Fixed iteration budget; frames capped by dropping whole pieces evenly over the selection.
+- Fixed iteration budget; frames capped by dropping whole pieces at random in two strata (paths that reach B, at
+  most half the budget, and the rest), the kept pieces weighted by their inverse inclusion probability.
 - Provisional B: when fewer than `n_b` paths of the data reach B, the committor is fitted to
   B_k = {s >= s_front}, the highest interface with at least `n_front` (weighted) arrivals.
 - Returns q on every frame of the view (NaN for frames dropped by the cap, which the student never uses),
@@ -40,27 +41,39 @@ def _optimalrcs_cupy():
 
 def front(view, interfaces, n_front=50):
     """(s_front, arrivals): arrivals[k] = number of distinct paths of the view whose maximum state CV reaches
-    interfaces[k]; s_front = the highest interface above lambda_A with at least n_front arrivals (None if none)."""
+    interfaces[k], each path weighted by its inverse inclusion probability under the pool's frame budget (an
+    estimate of the pool's count); s_front = the highest interface above lambda_A with at least n_front arrivals
+    (None if none)."""
     s = view.cv[:, view.state_cv]
+    ip = np.searchsorted(view.path_id, view.path)
     smax = np.full(len(view.path_id), -np.inf)
-    np.maximum.at(smax, np.searchsorted(view.path_id, view.path), s)
-    arrivals = [int(np.sum(smax >= lv)) for lv in interfaces]
+    np.maximum.at(smax, ip, s)
+    # paths counted with their inverse inclusion probability (pool frame budget): an estimate of the pool's count
+    incl = np.ones(len(view.path_id))
+    if hasattr(view, 'incl'):
+        incl[ip] = view.incl
+    arrivals = [int(round(float(incl[smax >= lv].sum()))) for lv in interfaces]
     ok = [k for k, a in enumerate(arrivals) if a >= n_front and interfaces[k] > view.lambda_a]
     return (float(interfaces[max(ok)]) if ok else None), arrivals
 
 
 def select_frames(view, max_frames, seed=0):
-    """Frame mask: whole pieces, evenly thinned until at most max_frames remain."""
+    """(frame mask, per-frame weight factor): whole pieces, thinned at random until about max_frames remain. Two
+    strata as in pool.Pool.select: pieces of paths that reach B (at most half the budget) and the rest; the kept
+    pieces are weighted by their inverse inclusion probability."""
     if view.n <= max_frames:
-        return np.ones(view.n, bool)
+        return np.ones(view.n, bool), np.ones(view.n)
+    from loop.pool import thin_strata
     n_pieces = int(view.piece.max()) + 1
+    b_piece = np.zeros(n_pieces, bool)
+    b_piece[np.unique(view.piece[np.isin(view.path, np.unique(view.path[view.B]))])] = True
     sizes = np.bincount(view.piece, minlength=n_pieces)
-    keep_pieces = np.arange(n_pieces)
-    # drop every k-th piece until under budget (keeps the chain order)
-    frac = max_frames / view.n
+    n_b = int(sizes[b_piece].sum())
+    f_b, f_o = thin_strata(n_b, view.n - n_b, max_frames)
     rng = np.random.default_rng(seed)
-    keep = rng.random(n_pieces) < frac
-    return keep[view.piece]
+    f = np.where(b_piece, f_b, f_o)
+    keep = rng.random(n_pieces) < f
+    return keep[view.piece], (1.0 / f)[view.piece]
 
 
 def fit(view, cfg, seed_q=None, provisional_b=None, seed=0, log=None):
@@ -68,12 +81,12 @@ def fit(view, cfg, seed_q=None, provisional_b=None, seed=0, log=None):
     provisional_b: s_front or None. Returns dict(q, mask, history, iterations, seconds, ...)."""
     import cupy as cp
     orc = _optimalrcs_cupy()
-    mask = select_frames(view, int(cfg.get('max_frames', 4_000_000)), seed)
+    mask, wscale = select_frames(view, int(cfg.get('max_frames', 4_000_000)), seed)
     idx = np.flatnonzero(mask)
     # the arrays of the fit: contiguous pieces (the mask keeps whole pieces)
     piece = view.piece[idx]
     t = view.t[idx].astype(float)
-    w = view.w[idx].astype(float)
+    w = view.w[idx].astype(float) * wscale[idx]
     w = w / w.mean()
     group = view.path[idx]
     s = view.cv[idx, view.state_cv]

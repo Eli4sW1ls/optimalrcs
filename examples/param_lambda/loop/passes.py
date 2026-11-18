@@ -107,8 +107,9 @@ def run_passes(cfg, state, pool, log=None, max_passes=None):
             break
         # the teacher sees every CV unless [screen] teacher = "kept": a CV the teacher never sees cannot shape the
         # labels, so the student could not bring it back in a later screening (loop_zw, 2026-11-17)
-        cvs = None
-        if state.data['passes'] and cfg.get('screen', {}).get('teacher', 'all') == 'kept':
+        # `[screen] cvs`: a fixed CV subset for teacher and student (loop_zu_xy: the embedding without its w)
+        cvs = cfg.get('screen', {}).get('cvs')
+        if cvs is None and state.data['passes'] and cfg.get('screen', {}).get('teacher', 'all') == 'kept':
             cvs = state.data['passes'][-1].get('cvs_kept')
         rec = one_pass(cfg, pool, k, prev_model, prev_params, mode, log, cvs=cvs)
         state.data['passes'].append(rec)

@@ -191,11 +191,19 @@ system (`loop/exact_zw.py`, k_AB = 2.115e-5 per time unit, checked against six s
 and the 2D grid committor of the two-channel system (`loop/exact_stag.py`, k_AB = 1.148e-4, half the flux per
 channel); the embedding has the committor and rate of Z.
 
-| system | what it tests | CVs | interfaces | initialization MD | production MD | rate / exact | rel. error |
-|---|---|---|---|---|---|---|---|
-| gate (`loop_zw`, ZChannelsW, dV_w 3 kT) | a slow w that moves the ridge | y, x, w | 14 | 11.1M | 12.8M | **1.14x** | 0.33 |
-| embedding (`loop_zu`, uncoupled double well in w) | a slow w the committor does not depend on | y, x, w | 5 | 12.0M | 5.4M | 3.02x | 2.69 |
-| two channels (`loop_stag`, staggered channels, overdamped) | a channel missing from the initial data | x, y | 12 | 17.4M | 1.6M | **0.54x** | 0.50 |
+| system | what it tests | CVs | interfaces | initialization MD | production MD | rate / exact | rel. error | seed lambda: rate / exact (rel. error) |
+|---|---|---|---|---|---|---|---|---|
+| gate (`loop_zw`, ZChannelsW, dV_w 3 kT) | a slow w that moves the ridge | y, x, w | 14 | 11.1M | 12.8M | **1.14x** | 0.33 | 1.61x (0.70) |
+| embedding (`loop_zu`, uncoupled double well in w) | a slow w the committor does not depend on | y, x, w | 5 | 12.0M | 5.4M | 3.02x | 2.69 | 5.75x (0.35) |
+| two channels (`loop_stag`, staggered channels, overdamped) | a channel missing from the initial data | x, y | 12 | 17.4M | 1.6M | **0.54x** | 0.50 | 15.6x (0.44) |
+| embedding without w (`loop_zu_xy`, same pass 0 as loop_zu) | what carrying the uncoupled w costs | y, x | 7 | 9.8M | 6.4M | 0.17x | 0.95 | (as loop_zu) |
+| embedding, frame budget fixed (`loop_zu_b`, same pass 0) | loop_zu after the frame-budget fix | y, x, w | 10 | 13.6M | 17.6M | **1.85x** | 0.51 | (as loop_zu) |
+| embedding without w, frame budget fixed (`loop_zu_xy_b`) | what carrying the uncoupled w costs | y, x | 13 | 12.9M | 12.7M | **1.08x** | 0.36 | (as loop_zu) |
+
+Seed-lambda controls (`python -m loop.experiments.seed_control setup|run <loop>`): lambda = the state CV, seeded from
+the same pool, 20 000 cycles with infinite swap; zu and zw use the 11 equally spaced y levels of the Z control (12.7M
+MD steps each, no initialization cost beyond pass 0), stag its 13 seed levels in x (1.3M MD steps). On Z the seed
+control at 20 000 cycles was 3.36x and still 2.8x at 50 000, so the zu and zw controls are not converged either.
 
 Figures (`python -m loop.plots <loop>`; 3D systems: one slice per w well, w = -0.1 and +0.1):
 
@@ -220,6 +228,29 @@ Findings:
    (downward skips of 15% at 0.24 and 0.46) and refill found nothing that passes, so one ensemble spans most of
    the barrier. The teacher's RMS against exact stayed at 0.19-0.20 (gate: 0.056). The CVs a lambda sees therefore
    have to be screened; see 4.
+   **Correction (2026-11-18): w is not the main cause.** The same loop on (y, x) only (`loop_zu_xy`, same pass 0)
+   failed the same way: 7 interfaces with one ensemble over lambda 0.165-0.85, teacher RMS against exact 0.16-0.24,
+   production 0.17x (rel. error 0.95). The pool view thinned whole paths uniformly to its 8M-frame budget (the
+   infinit passes hold 22.7M frames), so the teacher saw about a third of the few paths that reach B. In loop_zu_xy
+   the teacher also counted B paths in the thinned view: 14 of 43, below n_b = 20, so pass 1 fitted to a provisional
+   B at y >= 0.372 (logit RMSE 12). loop_zu kept enough for the count, but its teacher was as poor (RMS 0.20 and 0.17
+   at passes 1-2). The poor lambdas gave collapsed interface sets, and the passes produced few transitions (B paths per
+   loop pass, zu: 73, 43, 2, 1, 1, 7, 0; zu_xy: 71, 3, 13, 1, 1, 39, 0). The budgets now thin in two strata (paths
+   that reach B get at most half of it) with inverse-inclusion weights, and the B count is the pool's estimate (pass
+   1 of the same data: 42). loop_z and loop_zw did not hit this: their infinit passes had enough B paths for the
+   thinned view.
+   **Rerun with the fix, w kept (`loop_zu_b`): the loop works.** Production 1.85x (rel. error 0.51; loop_z's first
+   production: 2.03x, 0.50), 10 interfaces, teacher RMS against exact 0.035-0.12 from pass 2 and 0.056 at pass 7
+   (loop_z 0.064), student logit RMSE 0.33 at pass 7 (loop_z 0.44), and 325 B paths over the 7 loop passes (loop_z
+   279, loop_zw 390, loop_zu 127). So the uncoupled w did little harm here; the failure came from the frame budget. One
+   run per variant, so this is one realization, not a cost estimate. The interface sets still dropped to 7 at passes 2
+   and 4 (pass 5: 2 B paths) and recovered.
+   **The same without w (`loop_zu_xy_b`):** production 1.08x (rel. error 0.36), 13 interfaces from pass 4 on, teacher
+   RMS against exact 0.066-0.10 from pass 3 (0.086 at pass 7), student logit RMSE 0.26-0.53, 237 B paths over the 7
+   loop passes, spread evenly (26-41 per pass). The rates of the two reruns agree within their errors (1.85x +- 0.51
+   rel. against 1.08x +- 0.36). The run without w gave steadier interface sets (13 from pass 4; with w 7-13), and the
+   run with w a better final teacher (0.056 against 0.086). On this evidence the cost of an uncoupled slow CV is in
+   the stability of the interface sets, not in the rate. Pass 1 needed an infretis fix (plan, 2026-11-18).
 3. **Two channels: the loop does not find a channel that the initial data miss.** State A cuts the strip next to the
    channel mouths, so the RETIS paths of pass 0 stay on the side of infinit's initial path (upper channel: 139551
    frames past x = -0.9 at y > 0, none at y < 0, while plain dynamics from A enters both channels about equally).
@@ -229,11 +260,54 @@ Findings:
    and is too low before the lower channel's barrier; the interfaces at q 0.2-0.94 are placed for the lower channel
    and lie where q ~ 1 in the upper one (harmless for the estimate, wasted sampling). The relative error (0.50) does not flag the factor 2. Neither the learned lambda nor
    the trust-region blend can create transitions that the sampler does not make.
-4. **CV screening is not solved.** Neither the validation SD(Z_q) (insensitive: -1% when leaving out x on the gate)
-   nor the held-out Dirichlet energy (single block or 5-fold) separates the coupled w (+41%, 5/5 folds) from the
-   uncoupled one (+24%, 4/5 folds): with the path-ensemble weights the energy is not the equilibrium Dirichlet form,
-   so the committor need not minimize it. M3 used fixed CV sets (`[screen] enabled = false`); `loop/screen.py` is
-   kept for a later test (e.g. the committor conditioned on w bins).
+   **The seed lambda (x) is worse: 15.6x the exact rate, with a relative error of 0.44.** With lambda = x, the same x
+   level lies before the barrier in the lower channel and past it in the upper one. Shooting does not move a path
+   between channels, and in 20 000 cycles no lower-channel path reached ensemble 7: ensembles 3-6 (x -0.6 to 0) hold
+   46-85% lower-channel paths (weight share after a 10% burn-in), ensembles 7-11 (x >= 0.2) only upper-channel paths.
+   The crossing probability chains the easy pre-barrier progress of the lower channel (ratios 0.93, 0.87, 0.66) with
+   the post-barrier ratios of the upper one (about 1), so it is about 30 times too high. The learned lambda puts the
+   upper-channel barrier between two of its interfaces and gets the one-channel rate.
+4. **CV screening from the pool data fails; a short shooting test works.** Three data-only tests could not separate
+   the coupled w of the gate from the uncoupled w of the embedding:
+   - the validation SD(Z_q): insensitive (-1% when leaving out x on the gate);
+   - the held-out Dirichlet energy, single block or 5-fold: kept both (+41%, 5/5 folds against +24%, 4/5 folds).
+     With the path-ensemble weights it is not the equilibrium Dirichlet form, so the committor need not minimize it;
+   - split-half reproduction of the teacher's well difference (`loop/experiments/w_split.py`: the teacher on two
+     disjoint halves of the pool, the bin-mean q difference between w < 0 and w >= 0 frames over (y, x) compared
+     between the halves): on the full pools the correlation is 0.59 (MC-block halves) and 0.37 (even/odd passes) for
+     the gate, 0.00 and **0.68** for the embedding. On the infinit passes alone (what a pass-1 screening sees) only
+     2-7 paths per half reach B and the fits are 0.07-0.19 RMS off the exact committor.
+
+   The reason is in the data: a single teacher fit on (y, x, w) already gives the uncoupled w a well difference of
+   0.044 (RMS over the bins; exact: 0.0075, the binning floor) against 0.070 for the gate (exact 0.106). The pool of
+   the embedding holds 50 paths that reach B over 12 passes, clustered by pass (22 in pass 4, 4 in passes 6-11), and
+   the share of w < 0 frames swings from 0.27 to 0.97 between passes. The outcome information about w is a few
+   lineages, and every data split keeps them on both sides.
+
+   **Shooting test** (`loop/experiments/w_shoot.py`, the "fixed-length shooting" of E7):
+   - (y, x) of 400 pool frames with teacher q in 0.2-0.8;
+   - from each, 16 short overdamped trajectories with w = -0.1 and 16 with w = +0.1;
+   - the well difference d of the mean (y, x) displacement after 10, 50 and 200 steps, from two independent halves
+     of the shots;
+   - S = mean over points of d1 . d2, which is exactly 0 in expectation when w does not enter the (y, x) dynamics.
+
+   Result (z = S / s.e. over points; seeds 0-3 at 400 points, 1-3 at 100):
+
+   | system | 400 points, 5.1M walker steps (6-15 s) | 100 points, 4 shots per half |
+   |---|---|---|
+   | gate | max z 14.4-15.3 | 4.9-5.2 |
+   | embedding | max z 0.0-1.0 | 1.3-1.5 |
+
+   With a threshold of z = 3 it keeps the gate's w and drops the embedding's at both budgets. Two limitations:
+   - It conditions on w by setting it, which a toy system allows. A molecular system needs restrained starts or
+     binning by w.
+   - It tests whether w enters the dynamics of the other CVs near the transition region, which is sufficient for a
+     committor dependence only in combination with the fit. A coupled w that the committor does not need would
+     still be kept (the conservative error).
+
+   What dropping w gains in the loop: little in the rate. With the fixed frame budget the loop gave 1.85x on (y, x, w)
+   (`loop_zu_b`) and 1.08x on (y, x) (`loop_zu_xy_b`), equal within errors. Without w the interface sets were steadier
+   (finding 2).
 5. **Fixes found on the way** (none could show on Z or cc, which reach B in pass 0 and have small pools): the
    teacher's provisional B now reaches the export (it was always None, so lambda saturated past the data front);
    the blend's seed table ends at the states (it held its last value beyond the data); a pass writes its fit,
@@ -358,6 +432,7 @@ Verification round 2: removed [(0.0759, 'gap 1.22; dist_a 3.3'), (0.8369, 'last 
 | production run | interfaces | cycles | MD steps | MD steps of the initialization | P_cross (rel. error) | rate per time unit (rel. error) | rate / exact |
 |---|---|---|---|---|---|---|---|
 | learned lambda (frozen) | 14 | 20,000 | 12,761,422 | 11,100,533 | 3.36e-06 (0.35) | 2.41e-05 (0.33) | 1.14x |
+| seed lambda (control) | 11 | 20,000 | 12,656,448 | 0 | 5.37e-06 (0.85) | 3.42e-05 (0.70) | 1.61x |
 
 Exact rate 2.12e-05 per time unit (loop/exact_zw.py (3DTPT on a grid, h = 0.004): examples/figures_by_potential/3d_zpot_w/exact/q_tpt_h0.004.npz).
 
@@ -385,6 +460,59 @@ Verification round 1: removed none; passes; 638,194 MD steps.
 | production run | interfaces | cycles | MD steps | MD steps of the initialization | P_cross (rel. error) | rate per time unit (rel. error) | rate / exact |
 |---|---|---|---|---|---|---|---|
 | learned lambda (frozen) | 5 | 20,000 | 5,434,211 | 12,029,792 | 4.78e-06 (2.86) | 3.41e-05 (2.69) | 3.02x |
+| seed lambda (control) | 11 | 20,000 | 12,653,726 | 0 | 9.25e-06 (0.35) | 6.5e-05 (0.35) | 5.75x |
+
+Exact rate 1.13e-05 per time unit (z_br: toy2d.exact_committor_brownian (TPT on a grid, h = 0.004)).
+
+### loop_zu_b
+
+Pass 0 (infinit, seed order parameter): reached B = True; 4 iterations stored. Total MD steps of the initialization: 13,608,466.
+
+| pass | interfaces | teacher RMS vs exact | SD(Z_q) new | SD(Z_q) previous model | stability max | spread vs exact | logit RMSE vs exact | longest / shortest median length [1*]+ | re-check | MD steps | fit s | pass s |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 1 | 12 | 0.220 | 15.76 | – | – | 0.1083 | 0.958 | 2186 / 31 | fails | 707,410 | 573 | 1326 |
+| 2 | 7 | 0.035 | 35.63 | 191.95 | 0.170 | 0.1923 | 0.436 | 1096 / 455 | OK | 449,293 | 485 | 639 |
+| 3 | 11 | 0.121 | 5.45 | 6.60 | 1.283 | 0.2500 | 0.930 | 9612 / 130 | OK | 1,609,825 | 560 | 1154 |
+| 4 | 9 | 0.065 | 33.16 | 17.83 | 0.542 | 0.1576 | 0.652 | 13129 / 633 | fails | 781,832 | 480 | 722 |
+| 5 | 10 | 0.051 | 7.78 | 8.31 | 0.134 | 0.1431 | 0.448 | 23931 / 439 | OK | 1,214,605 | 586 | 1039 |
+| 6 | 13 | 0.054 | 9.32 | 8.83 | 0.433 | 0.2139 | 0.387 | 3305 / 118 | fails | 693,793 | 482 | 744 |
+| 7 | 10 | 0.056 | 13.48 | 17.65 | 0.192 | 0.2809 | 0.329 | 7872 / 209 | OK | 1,233,772 | 477 | 906 |
+
+Last interfaces: `[0.05, 0.08747, 0.14002, 0.21376, 0.32947, 0.61357, 0.81694, 0.8322, 0.84487, 0.85]`
+Re-check of the last pass on its own paths: all checks pass.
+Accepted paths with an empty shooting region per ensemble: 1: 0/150, 2: 0/135, 3: 0/159, 4: 0/149, 5: 0/80, 6: 0/22, 7: 0/38, 8: 0/57, 9: 0/31.
+
+Frozen set (pass 7): `[0.05, 0.0875, 0.14, 0.2138, 0.3295, 0.6136, 0.8169, 0.8322, 0.8449, 0.85]`.
+
+| production run | interfaces | cycles | MD steps | MD steps of the initialization | P_cross (rel. error) | rate per time unit (rel. error) | rate / exact |
+|---|---|---|---|---|---|---|---|
+| learned lambda (frozen) | 10 | 20,000 | 17,649,587 | 13,608,466 | 3.06e-06 (0.53) | 2.1e-05 (0.51) | 1.85x |
+
+Exact rate 1.13e-05 per time unit (z_br: toy2d.exact_committor_brownian (TPT on a grid, h = 0.004)).
+
+### loop_zu_xy_b
+
+Pass 0 (infinit, seed order parameter): reached B = True; 4 iterations stored. Total MD steps of the initialization: 12,917,868.
+
+| pass | interfaces | teacher RMS vs exact | SD(Z_q) new | SD(Z_q) previous model | stability max | spread vs exact | logit RMSE vs exact | longest / shortest median length [1*]+ | re-check | MD steps | fit s | pass s |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 1 | 10 | 0.217 | 49.20 | – | – | 0.0535 | 1.240 | 20714 / 231 | fails | 1,150,742 | 522 | 173 |
+| 2 | 9 | 0.127 | 36.07 | 57.97 | 2.433 | 0.2774 | 0.945 | 23771 / 691 | OK | 1,137,802 | 388 | 818 |
+| 3 | 12 | 0.066 | 11.34 | 13.21 | 0.190 | 0.1079 | 0.266 | 12371 / 522 | OK | 1,058,084 | 393 | 749 |
+| 4 | 13 | 0.077 | 8.42 | 10.63 | 0.416 | 0.1696 | 0.259 | 3286 / 182 | fails | 697,957 | 474 | 699 |
+| 5 | 13 | 0.104 | 6.79 | 7.72 | 0.167 | 0.1987 | 0.372 | 3355 / 246 | fails | 695,326 | 513 | 760 |
+| 6 | 13 | 0.095 | 6.37 | 6.52 | 0.211 | 0.1244 | 0.419 | 3726 / 150 | fails | 662,322 | 481 | 712 |
+| 7 | 13 | 0.086 | 4.66 | 4.60 | 0.137 | 0.1371 | 0.527 | 3353 / 242 | OK | 597,699 | 549 | 756 |
+
+Last interfaces: `[0.05, 0.06349, 0.096, 0.14525, 0.19439, 0.24622, 0.42437, 0.78355, 0.79055, 0.79657, 0.80532, 0.8225, 0.85]`
+Re-check of the last pass on its own paths: all checks pass.
+Accepted paths with an empty shooting region per ensemble: 1: 0/117, 2: 0/90, 3: 0/120, 4: 0/104, 5: 0/106, 6: 0/83, 7: 0/25, 8: 0/49, 9: 0/70, 10: 0/102, 11: 0/97, 12: 0/76.
+
+Frozen set (pass 7): `[0.05, 0.0635, 0.096, 0.1453, 0.1944, 0.2462, 0.4244, 0.7835, 0.7906, 0.7966, 0.8053, 0.8225, 0.85]`.
+
+| production run | interfaces | cycles | MD steps | MD steps of the initialization | P_cross (rel. error) | rate per time unit (rel. error) | rate / exact |
+|---|---|---|---|---|---|---|---|
+| learned lambda (frozen) | 13 | 20,000 | 12,681,929 | 12,917,868 | 1.65e-06 (0.36) | 1.22e-05 (0.36) | 1.08x |
 
 Exact rate 1.13e-05 per time unit (z_br: toy2d.exact_committor_brownian (TPT on a grid, h = 0.004)).
 
@@ -411,5 +539,6 @@ Frozen set (pass 7): `[-1.6, -1.4132, -1.243, -0.6364, 0.4659, 0.8785, 1.1487, 1
 | production run | interfaces | cycles | MD steps | MD steps of the initialization | P_cross (rel. error) | rate per time unit (rel. error) | rate / exact |
 |---|---|---|---|---|---|---|---|
 | learned lambda (frozen) | 12 | 20,000 | 1,591,950 | 17,365,098 | 1.89e-05 (0.48) | 6.23e-05 (0.50) | 0.54x |
+| seed lambda (control) | 13 | 20,000 | 1,334,828 | 0 | 0.000522 (0.43) | 0.00179 (0.44) | 15.63x |
 
 Exact rate 0.000115 per time unit (toy2d.exact_committor_brownian (TPT on a grid, h = 0.01): examples/figures_by_potential/2d_staggered_channels/exact/brownian_g1_dt0.005/q_tpt_h0.01.npz).

@@ -1,0 +1,3 @@
+# loop_zu_xy (teacher and student on y, x only) rerun after the frame-budget fix; see loop_zu_b.toml. Same pass 0.
+inherit = "loop_zu_xy"
+name = "loop_zu_xy_b"

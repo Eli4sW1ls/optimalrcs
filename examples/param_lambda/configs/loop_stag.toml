@@ -47,3 +47,4 @@ staple_infinite_swap = true
 [plots]
 x_range = [-1.95, 1.95]             # the whole transverse box: the data cover the upper channel only, and the default
                                     # (data quantiles) cut the lower channel off the maps
+

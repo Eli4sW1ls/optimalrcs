@@ -1,0 +1,7 @@
+# loop_zu rerun after the frame-budget fix (2026-11-18): the pool view and the teacher thin whole paths in two strata
+# (paths that reach B, at most half the budget, and the rest) with inverse-inclusion weights, and the B count of the
+# provisional-B decision is the pool's estimate. loop_zu and loop_zu_xy thinned uniformly and counted B paths in the
+# thinned view (14 of 43 at pass 1), so pass 1 fitted to a provisional B at y >= 0.372 and neither loop recovered.
+# Same pass 0 as loop_zu (pass_0 links to loop_zu/pass_0; the infinit pool passes are copies without labels).
+inherit = "loop_zu"
+name = "loop_zu_b"

@@ -1,0 +1,168 @@
+{
+ "report": {
+  "0": {
+   "pass_index": 4,
+   "pnr": 0,
+   "frames": [
+    0,
+    3
+   ],
+   "tainted": false
+  },
+  "1": {
+   "pass_index": 4,
+   "pnr": 2,
+   "frames": [
+    0,
+    115
+   ],
+   "tainted": false,
+   "pptype": "LMR",
+   "sh_region": [
+    1,
+    13
+   ]
+  },
+  "2": {
+   "pass_index": 4,
+   "pnr": 14,
+   "frames": [
+    0,
+    276
+   ],
+   "tainted": false,
+   "pptype": "LMR",
+   "sh_region": [
+    1,
+    49
+   ]
+  },
+  "3": {
+   "pass_index": 4,
+   "pnr": 3,
+   "frames": [
+    0,
+    146
+   ],
+   "tainted": false,
+   "pptype": "LMR",
+   "sh_region": [
+    59,
+    115
+   ]
+  },
+  "4": {
+   "pass_index": 4,
+   "pnr": 4,
+   "frames": [
+    152,
+    239
+   ],
+   "tainted": false,
+   "pptype": "LMR",
+   "sh_region": [
+    42,
+    72
+   ]
+  },
+  "5": {
+   "pass_index": 4,
+   "pnr": 24,
+   "frames": [
+    296,
+    544
+   ],
+   "tainted": false,
+   "pptype": "RML",
+   "sh_region": [
+    154,
+    216
+   ]
+  },
+  "6": {
+   "pass_index": 4,
+   "pnr": 18,
+   "frames": [
+    835,
+    988
+   ],
+   "tainted": false,
+   "pptype": "RML",
+   "sh_region": [
+    38,
+    112
+   ]
+  },
+  "7": {
+   "pass_index": 4,
+   "pnr": 5,
+   "frames": [
+    0,
+    307
+   ],
+   "tainted": false,
+   "pptype": "LMR",
+   "sh_region": [
+    210,
+    282
+   ]
+  },
+  "8": {
+   "pass_index": 4,
+   "pnr": 16,
+   "frames": [
+    0,
+    461
+   ],
+   "tainted": false,
+   "pptype": "LMR",
+   "sh_region": [
+    294,
+    416
+   ]
+  },
+  "9": {
+   "pass_index": 4,
+   "pnr": 7,
+   "frames": [
+    219,
+    528
+   ],
+   "tainted": false,
+   "pptype": "RML",
+   "sh_region": [
+    16,
+    251
+   ]
+  },
+  "10": {
+   "pass_index": 4,
+   "pnr": 34,
+   "frames": [
+    721,
+    1180
+   ],
+   "tainted": false,
+   "pptype": "LMR",
+   "sh_region": [
+    168,
+    292
+   ]
+  },
+  "11": {
+   "pass_index": 4,
+   "pnr": 413,
+   "frames": [
+    0,
+    1435
+   ],
+   "tainted": false,
+   "pptype": "RML",
+   "sh_region": [
+    1,
+    1312
+   ]
+  }
+ },
+ "written": "2026-11-18 01:01:39"
+}
