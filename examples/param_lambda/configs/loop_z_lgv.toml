@@ -14,4 +14,4 @@ shooting = "sh"
 shooting = "sh"                     # not wire fencing: it reverses paths (velocity CVs), as loop_well_lgv
 
 [teacher]
-lag = 4                             # stopped lag windows with recorded v (loop_well_lgv: lag 1 stalls along energy contours)
+lag = 1                             # stopped lag windows with recorded v (loop_well_lgv: lag 1 stalls along energy contours)
