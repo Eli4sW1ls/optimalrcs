@@ -199,6 +199,12 @@ channel); the embedding has the committor and rate of Z.
 | embedding without w (`loop_zu_xy`, same pass 0 as loop_zu) | what carrying the uncoupled w costs | y, x | 7 | 9.8M | 6.4M | 0.17x | 0.95 | (as loop_zu) |
 | embedding, frame budget fixed (`loop_zu_b`, same pass 0) | loop_zu after the frame-budget fix | y, x, w | 10 | 13.6M | 17.6M | **1.85x** | 0.51 | (as loop_zu) |
 | embedding without w, frame budget fixed (`loop_zu_xy_b`) | what carrying the uncoupled w costs | y, x | 13 | 12.9M | 12.7M | **1.08x** | 0.36 | (as loop_zu) |
+| replicate of loop_zu_b (`loop_zu_b_s2`, seed 100) | seed-to-seed spread | y, x, w | 10 | 11.2M | 8.6M | **1.50x** | 0.36 | |
+| replicate of loop_zw (`loop_zw_s2`, seed 100) | seed-to-seed spread | y, x, w | 14 | 8.5M | 13.1M | **0.65x** | 0.51 | |
+| replicate of loop_zu_xy_b (`loop_zu_xy_b_s2`, seed 100) | seed-to-seed spread | y, x | 10 | 17.7M | (freeze refused) | – | – | |
+| gate, 12 passes (`loop_zw_x12`, loop_zw extended) | do more passes help | y, x, w | 14 | 13.4M | 13.0M | **0.94x** | 0.69 | |
+| gate, pass stop on accepted paths (`loop_zw_paths`) | 100 paths per ensemble per pass instead of 1000 cycles | y, x, w | 14 | 14.1M | 12.8M | **1.19x** | 0.54 | |
+| loop_zu_xy_b_s2 extended to 12 passes (`loop_zu_xy_b_s2_x12`) | do more passes help | y, x | 9 | 22.0M | 23.4M | 0.37x | 0.62 | |
 
 Seed-lambda controls (`python -m loop.experiments.seed_control setup|run <loop>`): lambda = the state CV, seeded from
 the same pool, 20 000 cycles with infinite swap; zu and zw use the 11 equally spaced y levels of the Z control (12.7M
@@ -213,7 +219,7 @@ Figures (`python -m loop.plots <loop>`; 3D systems: one slice per w well, w = -0
 ![two channels, interfaces](../examples/figures_by_potential/_shared/param_lambda/op_loop/loop_stag/figures/interfaces.png)
 ![two channels, committor maps](../examples/figures_by_potential/_shared/param_lambda/op_loop/loop_stag/figures/maps.png)
 
-Further figures in each loop's `figures/`: `maps*.png` (model and teacher against the exact committor),
+Further figures in each loop's `figures/`: `paths*.png` (the frozen lambda with a few production paths), `maps*.png` (model and teacher against the exact committor),
 `calibration.png`, `convergence.png`, `tis_pass<k>.png`, `feps_pass<k>.png`.
 
 Findings:
@@ -315,12 +321,58 @@ Findings:
    taken as finished); the pool view drops whole paths at random above `pool.max_frames` (the 3D pools hold 21-23M
    frames, 5.9 GB as a view); the GPU lock exempts every process that has the lock file open (a deadlock between
    an offline script and loop_stag).
-6. **An infretis edge case that is not understood**: `REPEX_state_staple.treat_output` raised `ValueError: Ensemble
-   ... has invalid pptype RML` twice (loop_zu pass 1, top ensemble; the gate production at cycle 15 512, ensemble 1).
-   It stores a path whose two turns lie at one interface only as LML in ensemble 1 and RMR in the last ensemble.
-   A replay of the loop_zu state (2771 cycles) and the resumed gate production with a wrapper that saves the trial
-   path did not reproduce it, so the path that triggers it is still unknown; a guard built on a synthetic path was
-   reverted (that path cannot be produced: the extender stops at the first turn).
+6. **An infretis edge case, now understood and fixed (2026-11-18)**: `REPEX_state_staple.treat_output` raised
+   `ValueError: Ensemble ... has invalid pptype RML` (loop_zu pass 1, the gate production, loop_zu_xy_b pass 1). The
+   path is a shot in the last ensemble that the extender carried back into B: both turns at B, but labelled RML from
+   the segment before the extension. `treat_output` now accepts every path type in the last ensemble (plan,
+   2026-11-18). The case in ensemble 1 (gate production) is presumably the mirror image at A; it has not recurred.
+7. **Seed replicates (seed 100, same pass 0): the rates agree within their errors, but the learned lambda varies a
+   lot between seeds.** Figure: `op_loop/figures/replicates.png` (`python -m loop.plot_replicates`).
+
+   | system | rate / exact, seed 0 | seed 100 | student logit RMSE at pass 7, seed 0 / 100 |
+   |---|---|---|---|
+   | embedding with w (`loop_zu_b`) | 1.85x (0.51) | 1.50x (0.36) | 0.33 / 0.94 |
+   | gate (`loop_zw`) | 1.14x (0.33) | 0.65x (0.51) | 0.79 / 0.81 |
+   | embedding without w (`loop_zu_xy_b`) | 1.08x (0.36) | freeze refused | 0.53 / 1.37 |
+
+   All five finished productions lie within about 1 sigma of the exact rate. loop_zu_xy_b_s2 started badly: student
+   RMSE 2.55 at pass 1 against 1.24 for seed 0, from the same pass-0 data and a teacher of similar quality (RMS 0.28
+   against 0.22). It improved every pass but was still at 1.37 at pass 7, and both verification rounds failed
+   (ensemble 5, downward skips 3.7%), so the freeze refused and there is no production. Across all seven loops of M3
+   and M5 the student RMSE stops improving by pass 3 in five (later passes move it by +-0.3, sometimes upwards:
+   loop_zu_xy_b 0.26 -> 0.53, loop_zu_b_s2 0.56 -> 0.94). The stop test never fired: every loop ran to max_passes = 7,
+   because "interfaces changed" is true at every pass (placement re-plans every time).
+
+## M5: underdamped dynamics, lambda(x, v) (`loop_well_lgv`)
+
+1D cos well with walls (toytis CosWellWalls), ASE Langevin, kT 1, gamma 1, dt 0.005, A x <= -0.35, B x >= 0.35; the
+CVs are (x, v), the states stay in x. Exact committor of the ASE chain on a 701 x 501 grid
+(`loop/exact_well_lgv.py`), reference rate from GPU MD of the same step (`loop/md_well_lgv.py`): k_AB = 0.33709 +-
+0.00014 (4096 walkers x 2M steps, seed 1; the 1M-step run gave 0.33703 +- 0.00023), one transition per 593 steps.
+
+**The loop learns the velocity dependence and the rate is right: 1.008x the MD rate (rel. error 0.061).**
+
+| | interfaces | initialization MD | production MD | P_cross (rel. error) | rate / MD rate | rel. error |
+|---|---|---|---|---|---|---|
+| learned lambda(x, v) | 8 | 0.95M | 1.67M | 0.641 (0.018) | **1.008x** | 0.061 |
+
+- *MD check of the exact committor* (`python -m loop.plot_well_lgv`, 50 saved walkers x 2M steps, every 25th
+  frame): the fraction of frames whose next state is B lies on q_exact in every logit bin. Binned against the exact
+  committor, the z-scores have RMS 2.35 with no pattern, which fits about 8 correlated frames per relaxation time
+  1/gamma. The MD density of x matches exp(-V).
+- *Learning*: student logit RMSE 1.56, 1.10, 0.76, 0.72, 0.68, 0.63, 0.74 over passes 1-7 (plateau from pass 3),
+  teacher RMS 0.03-0.06. The re-check passed on every pass. The largest errors lie in two corners: next to A at
+  v << 0, where q < 1e-5 and the fit is too high, and next to B at v >> 0, where q > 1 - 1e-5 and the fit is too low.
+  Both are extreme logits that no interface uses. By pass 7 the isosurfaces follow the spiral of q(x, v) in the
+  central well.
+- *Cost*: the rate error comes from the flux (6%), not from P_cross (1.8%). This barrier is not a rare event
+  (P_cross = 0.64, one transition per 593 steps): plain MD with the same 1.67M steps sees about 2800 transitions and
+  gets a rate error of about 2%. So this system tests the velocity machinery: v read from the frame with the sign
+  of vel_rev, reversed paths recomputed, no mirrored pieces. It says nothing about efficiency. An efficiency test
+  needs a higher barrier.
+- *Long lambda = x control* (`production_seed`, 100 000 cycles, seed interfaces -0.35 ... 0.35 in steps of 0.1): at
+  52k cycles when pulled. Its rate has to be computed on the workstation, where `load/` is (`loop.rates.staple_rate`).
+
 
 ## How to read the numbers
 

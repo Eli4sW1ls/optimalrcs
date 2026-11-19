@@ -36,7 +36,8 @@ def staple_rate(run_dir, burn_in=0.1, n_snap=40, data_file=None, toml_file=None,
     with contextlib.redirect_stdout(sink):
         n_rows = sum(1 for line in open(data_file) if line.strip() and not line.startswith('#'))
         wr = calculate_infretis_weights(data_file, toml_file, nskip=int(burn_in * n_rows), verbose=verbose)
-        compute_path_taus(wr, load_dir=os.path.join(run_dir, 'load'))
+        compute_path_taus(wr, load_dir=os.path.join(run_dir, 'load'),     # the archive of a pruned run (archive_runs)
+                          h5_file=be.order_h5(run_dir))
         table = PathTable(wr)
         plocs, (p, q, M) = compute_plocs(table, return_msm=True)
         rates = compute_rates(M, table.tau_matrices(), plocs[-1], time_fac=1.0)

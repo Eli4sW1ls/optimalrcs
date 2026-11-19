@@ -40,6 +40,8 @@ def subprocess_env(threads=1):
     env = os.environ.copy()
     old = env.get('PYTHONPATH', '')
     env['PYTHONPATH'] = ':'.join(_SOURCES + [EXAMPLES, PARAM_LAMBDA] + ([old] if old else []))
+    if os.path.isdir(TOYTIS):
+        env.setdefault('TOYTIS', TOYTIS)          # ase_calcs.py (loaded by infretis) reads it
     for v in ('OMP_NUM_THREADS', 'OPENBLAS_NUM_THREADS', 'MKL_NUM_THREADS'):
         env[v] = str(threads)
     return env

@@ -16,7 +16,10 @@ import sys
 import numpy as np
 from ase.calculators.calculator import Calculator, all_changes
 
-TOYTIS = os.environ.get('TOYTIS', '/home/staff7/fbsskr/Notebooks/Students/elias/toytis')
+# env TOYTIS, else the first checkout that exists (this machine, the workstation)
+_TOYTIS_CANDIDATES = ['/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/PyRETIS3/toytis',
+                      '/home/staff7/fbsskr/Notebooks/Students/elias/toytis']
+TOYTIS = os.environ.get('TOYTIS') or next((p for p in _TOYTIS_CANDIDATES if os.path.isdir(p)), _TOYTIS_CANDIDATES[0])
 
 
 class FlatWalls1D(Calculator):

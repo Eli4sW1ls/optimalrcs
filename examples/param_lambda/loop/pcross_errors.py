@@ -22,11 +22,12 @@ if __name__ == '__main__':
     a = ap.parse_args()
     cfg = controller.load_loop_config(a.config)
     from inftools.analysis.rec_error_staple import error_analysis_staple
+    from loop.backends import infretis_backend as be
     for sub in a.dirs:
         d = os.path.join(cfg['loop_dir'], sub)
         df = os.path.join(d, 'infretis_data.txt')
         n = sum(1 for line in open(df) if line.strip() and not line.startswith('#'))
         out = os.path.join(d, 'error_analysis')
-        error_analysis_staple(d, nskip=int(a.burn_in * n), interval=a.interval, pathlengths=True,
+        error_analysis_staple(d, nskip=int(a.burn_in * n), interval=a.interval, pathlengths=True, h5=be.order_h5(d),
                               outdir=out, output=os.path.join(out, 'report.txt'), quiet_progress=True)
         print('done', sub)

@@ -319,3 +319,85 @@ mutates `staridx`/`meta` of shared Path objects; infretis `staple_extender` over
     at lag 1 (`lags` in the config was unused). Stopped windows (t, min(t + lag, tau_t)); at lag 1 equal to the
     library update (test). loop_well_lgv uses lag 4 (staple paths with recorded v: lag 4 RMS 0.015 vs lag 1 0.019).
   - Runs on the workstation: the loop, the seed-lambda control as the long lambda = x infretis run, the long MD.
+- **Results and workflow review (2026-11-18, evening).**
+  - *loop_well_lgv* (workstation): production 1.008x the MD rate (rel. error 0.061; P_cross 0.641 +- 1.8%, the rest
+    is flux), 8 interfaces, 0.95M MD to initialize, 1.67M in production. Student logit RMSE plateaus at 0.63-0.76
+    from pass 3. Long MD (4096 x 2M steps, 50 walkers saved): k_AB 0.33709 +- 0.00014, and the MD committor matches
+    q_exact (`loop/plot_well_lgv.py`). The velocity-CV machinery works. The system is not a rare event (plain MD at
+    equal cost: about 2% error), so it cannot show a gain in efficiency.
+  - *M3 replicates (seed 100)*: loop_zu_b_s2 1.50x (0.36), loop_zw_s2 0.65x (0.51), both within errors of seed 0.
+    loop_zu_xy_b_s2: student RMSE 2.55 at pass 1 (seed 0: 1.24, same pass 0), 1.37 at pass 7, freeze refused (both
+    verification rounds: skip_dn 3.7% in ensemble 5), no production.
+  - *Workflow findings*: (1) the stop test never fires: all 7 loops ran to max_passes, because "interfaces changed" is
+    true at every pass; (2) the student RMSE stops improving by pass 3 in 5 of 7 loops, and later passes sometimes
+    make it worse; (3) the freeze takes the last pass, not the best one; (4) pass 0 is about half the initialization
+    cost on the Z systems (6.9M of 11-18M); (5) the teacher always runs to its iteration cap (6000 on Z, 4000 on
+    well_lgv), and no convergence history is saved; (6) between seeds the learned lambda varies more than the rate.
+  - Proposed changes (not yet decided):
+    - Stop rule: compare interface sets with a tolerance in q (or drop that condition) and keep the stability and
+      prospective tests; until then use max_passes 4.
+    - Freeze the best pass by an internal score (prospective SD(Z_q) or stability), not the last one. Whether those
+      scores track the exact RMSE has to be checked on the 7 finished loops first.
+    - Teacher iterations: refit one stored pass at 2x and 4x max_iter and compare against exact; save the history.
+    - M5 efficiency: a higher-barrier variant of the well (rate about 1e-4 to 1e-5 per time unit), same machinery.
+- **Offline checks: passes, teacher iterations, student budget (2026-11-19).** Scripts in
+  `examples/param_lambda/loop/experiments/` (`extend_loop.py`, `teacher_iters.py`, `student_variants.py`); results
+  under `op_loop/<loop>/experiments/`.
+  - *Longer loops* (copies continued from pass 7 to 12; logit RMSE vs exact per pass, 8-12):
+    - loop_zw_x12: 0.737, 0.659, 0.529, 0.503, 0.503. Still falling about 0.09 per pass at pass 7; levels off at
+      0.50 from pass 10. 7 passes are too few here. Froze pass 12 (verification 1 OK), production prepared, not run.
+    - loop_zu_xy_b_s2_x12: 0.954, 0.608, 1.093, 1.192, 1.228 (exact spread 0.09, 0.16, 0.41, 0.38, 0.54). Best at
+      pass 9, then it drifts away; the passes that got worse were the ones flagged internally (stability 0.33 at pass
+      10, spacing checks failing on the pass's own paths at 10-12). Froze pass 12 (verification 2 OK; 9 interfaces),
+      i.e. a worse lambda than pass 9. Production prepared, not run.
+    - So: no fixed pass count fits both. A pass whose own internal checks fail should not replace the previous lambda.
+  - *Teacher iterations* (loop_zu_b, loop_zw; 8 chunks of 3000, each warm-started from the previous one):
+    - Warm start (pass-7 labels) and cold start (linear ramp) agree from 6000 iterations on (RMS 0.019 vs 0.021 at
+      15000, 0.103 vs 0.101 at 24000): within one pass budget the start is forgotten.
+    - The result swings with the seed and not with the iteration count (RMS 0.02-0.12, logit RMSE 0.43-0.75 on
+      loop_zu_b). On loop_zw, refitting the pass-7 labels makes them worse (logit 0.89 to 1.2-1.8).
+    - More iterations do not help; 6000 is not too few.
+  - *Teacher ensemble* (6 independent 6000-iteration fits from the same warm start, mean of the logits):
+    - loop_zu_b: members 0.39-0.69, mean of 6: 0.273 (q RMS 0.026); better than every member and than the start (0.406).
+    - loop_zw: members 0.60-0.89, mean of 6: 0.678 (q RMS 0.070, members 0.049-0.095); not monotone in the number of
+      members (0.95 at 5). Logit averaging is sensitive to members that go to the clip limits; a median or q-space
+      mean has not been tried yet.
+  - *Student budget and architecture* (loop_zu_b pass-7 labels, 3 CVs y, x, w; teacher vs exact 0.278):
+
+    | variant | exact logit RMSE | vs teacher | train s |
+    |---|---|---|---|
+    | [64,64], 24 epochs (loop) | 0.327 | 0.154 | (lock wait) |
+    | [64,64], 96 epochs | 0.326 | 0.143 | 245 |
+    | [128,128], 96 epochs | 0.324 | 0.138 | 150 |
+    | [64,64,64], 96 epochs | 0.325 | 0.138 | 445 |
+
+    Neither more epochs nor a larger network help: the student is limited by its labels, not by its capacity.
+    w256_e96 was OOM-killed at 4 GB, and the warm variant and the 4-5 CV loops (loop_zw, loop_zu_xy_b) did not run yet.
+- **Pass stop on accepted paths (`loop_zw_paths`, 2026-11-19).** `[run] pass_stop = "paths"` (passes.py
+  `_extend_until_sampled`): a learning pass runs 1000 cycles, then blocks of 250 until every ensemble holds 100
+  accepted paths after the 20% burn-in (unweighted: the weights only set the distribution of the same data); hard
+  stop at 200 x n_ens accepted paths, safety cap 6000 cycles. Same pass 0 as loop_zw (`extend_loop --pass0-only`).
+  - Pass 1 ran under a first version (stop at 2000 accepted paths in all: 3500 cycles); passes 2-5 stopped on target
+    at 2500, 2750, 3250, 3250 cycles (1505-1901 paths), never at the hard stop. The bottleneck was always a middle
+    ensemble (2 or 6), at the end ensemble 6; the first ensembles and those near B fill 2x faster.
+  - Logit RMSE vs exact against the MD steps of the data the lambda was fitted on (pass 0 included):
+    loop_zw_paths 1.51 (4.23M), 1.26 (5.80M), 0.835 (7.19M), 0.629 (8.95M), 0.571 (10.92M); loop_zw (1000-cycle
+    passes) 0.976 (7.41M), 0.737 (8.68M), 0.659 (9.32M), 0.529 (10.01M), 0.503 (10.66M). Ahead up to about 9M,
+    slightly behind at the end; within the teacher's fit-to-fit noise (about +-0.1-0.15). Same quality with 5
+    teacher fits instead of 11. Total 12.9M MD steps (loop_zw_x12: 13.4M).
+  - Froze pass 5 (verification 1 OK, 14 interfaces). Production (20 000 cycles, 12.8M MD steps): **1.19x exact**,
+    rel. error 0.54 (P_cross plateau 0.46). loop_zw_x12 (pass 12, 14 interfaces): 0.94x, 0.69 at 13.0M.
+    loop_zu_xy_b_s2_x12 (pass 12, 9 interfaces after verification round 2 removed three): 0.37x, 0.62 at 23.4M;
+    its running rate falls from about 1.5x at 5M to 0.17x at 13M and climbs back to 0.37x, not converged. Its set
+    has two wide gaps in q (0.00072 -> 0.043 and 0.043 -> 0.46), where the P_cross variance comes from. All four zw
+    productions (1.14x, 0.65x, 0.94x, 1.19x) agree with exact within their errors; more passes or the paths rule
+    did not reduce the production error at equal production MD.
+  - Figures: `python -m loop.plots <loop>` now also writes `paths*.png` (the frozen lambda, exact isocommittors and
+    two reactive + two LMR production paths). `_read_runav` cut fixed-width columns wrongly once MFPT > 1e6 (rows
+    dropped, running rate truncated): fixed, all pcross_convergence.png regenerated (2026-11-19).
+  - Storage (2026-11-19): every finished production / verification run and every pass run except pass 0 and each
+    loop's last two passes archived to <run>/archive.h5 and load/ pruned to the active paths (`loop.archive_runs`).
+    Readers take the archive through `infretis_backend.order_h5` whenever its check passed (a pruned load/ still
+    exists, so its presence no longer means it is complete). Seeds skip pruned paths (no traj.txt).
+  - Bug found and fixed on the way: the cost of an extended pass was recorded after its first block only (passes 1-2
+    corrected from restart.toml; originals *.bak_costfix).

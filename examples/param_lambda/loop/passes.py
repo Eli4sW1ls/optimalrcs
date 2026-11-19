@@ -207,6 +207,50 @@ def one_pass(cfg, pool, k, prev_model, prev_params, mode, log, cvs=None):
     return rec
 
 
+def _extend_until_sampled(cfg, run_dir, target_file, mode, log):
+    """The pass_stop = "paths" rule on a finished block: resume the run by check_every cycles until every ensemble
+    holds min_paths_per_ensemble accepted paths (after the burn-in, unweighted: the weights only set the
+    distribution of the same data) and the run min_paths_total accepted paths (all rows). Hard stops: the total
+    reaches hard_paths_per_ensemble x n_ens (a stuck ensemble does not recover with more cycles: loop_zu_xy_b_s2_x12
+    pass 9, ensemble 7 had 11, 13, 15 paths at 1000, 1250, 1500 cycles), or max_cycles.
+    The target is written before each extension, so an interrupted pass resumes to it."""
+    run = cfg['run']
+    need_total = int(run.get('min_paths_total', 0))
+    need_ens = int(run.get('min_paths_per_ensemble', 0))
+    hard_per_ens = run.get('hard_paths_per_ensemble')
+    warn = int(run.get('warn_paths_per_ensemble', 0))
+    step = int(run.get('check_every', 250))
+    cap = int(run.get('max_cycles', 4000))
+    burn = float(cfg['pool'].get('burn_in', 0.0))
+    weighting = cfg['pool'].get('weighting') if mode == 'staple' else None
+    ext_wall = 0.0
+    while True:
+        done = be.cost(run_dir)['cycles']
+        c = be.ensemble_counts(run_dir, burn_in=burn, weighting=weighting)
+        worst = int(np.argmin(c['count']))
+        hard = int(hard_per_ens) * len(c['count']) if hard_per_ens else None
+        ok = c['total'] >= need_total and c['count'][worst] >= need_ens
+        common.say(f'pass stop: cycle {done}, {c["total"]} accepted paths (min {need_total}'
+                   + (f', hard stop {hard}' if hard else '') + f'); per ensemble after the burn-in {c["count"]} '
+                   f'(fewest: ensemble {worst}, {c["count"][worst]} of {need_ens})', log=log)
+        hit_hard = hard is not None and c['total'] >= hard
+        if ok or hit_hard or done >= cap:
+            if not ok:
+                common.say(f'WARNING: {"hard path stop " + str(hard) if hit_hard else "max_cycles " + str(cap)} reached '
+                           f'with {c["total"]} accepted paths, ensemble {worst} at {c["count"][worst]} of {need_ens}', log=log)
+            low = [e for e, v in enumerate(c['count']) if v < warn]
+            if low:
+                common.say(f'WARNING: fewer than {warn} accepted paths in ensembles {low} '
+                           f'({[c["count"][e] for e in low]})', log=log)
+            return dict(rule='paths', min_paths_total=need_total, min_paths_per_ensemble=need_ens, hard_paths=hard,
+                        stopped_by='target' if ok else ('hard_paths' if hit_hard else 'max_cycles'), cycles=done, total=c['total'], kept=c['kept'],
+                        count=c['count'], reached=bool(ok), worst_ensemble=worst, low_paths=low,
+                        extension_wall_seconds=ext_wall)
+        target = min(done + step, cap)
+        manifest.write(target_file, cycles=target)
+        ext_wall += float(be.resume(run_dir, target).get('wall_seconds') or 0.0)
+
+
 def _slim(res):
     return {key: v for key, v in res.items() if key not in ('rows',)} | dict(rows=[{a: b for a, b in r.items()} for r in res['rows']])
 
@@ -338,7 +382,18 @@ def run_and_check(cfg, pool, pdir, model, model_path, intfs, mode, cycles, seed,
     import shutil
     system, run, ic = cfg['system_spec'], dict(cfg['run']), cfg['interfaces']
     run_dir = os.path.join(pdir, 'run')
+    # [run] pass_stop = "paths": a learning pass runs min_cycles, then blocks of check_every cycles until every
+    # ensemble holds min_paths_per_ensemble accepted paths after the pool's burn-in and the run min_paths_total in
+    # all; hard stops at hard_paths_per_ensemble x n_ens accepted paths and at max_cycles. An ensemble with fewer
+    # than warn_paths_per_ensemble paths at the end is reported. Verification and production runs keep their
+    # fixed cycle counts.
+    adaptive = kind == 'pass' and run.get('pass_stop', 'cycles') == 'paths'
+    target_file = os.path.join(pdir, 'run_target.json')
+    if adaptive:
+        cycles = int(run.get('min_cycles', 500))
     if not os.path.isfile(os.path.join(run_dir, 'restart.toml')):
+        if os.path.isfile(target_file):
+            os.remove(target_file)
         for d in (run_dir, os.path.join(pdir, 'seeds')):
             if os.path.isdir(d):
                 shutil.rmtree(d)
@@ -355,10 +410,16 @@ def run_and_check(cfg, pool, pdir, model, model_path, intfs, mode, cycles, seed,
             raise ValueError(f'{run_dir} was run with interfaces {np.round(ran, 5).tolist()}, not the requested '
                              f'{np.round(intfs, 5).tolist()}: a re-check on it would be meaningless; move the run '
                              f'directory aside (or rerun with the original set)')
+        if adaptive and os.path.isfile(target_file):     # the extension the stop rule had asked for
+            cycles = int(manifest.read(target_file)['cycles'])
         if be.cost(run_dir)['cycles'] < cycles:              # interrupted (stopped or suspended): continue it
             common.say(f'run: resuming {run_dir} at cycle {be.cost(run_dir)["cycles"]} of {cycles}', log=log)
             be.resume(run_dir, cycles)
         cost = be.cost(run_dir)
+    if adaptive:                    # the cost of the whole run, after the extensions
+        stop = _extend_until_sampled(cfg, run_dir, target_file, mode, log)
+        cost = dict(be.cost(run_dir), wall_seconds=(cost.get('wall_seconds') or 0.0) + stop['extension_wall_seconds'],
+                    pass_stop=stop)
     pieces = be.load_pieces(run_dir, burn_in_fraction=0.0, paths_per_ensemble=cfg['pool'].get('cap_paths_per_ensemble'),
                             weighting=cfg['pool'].get('weighting') if mode == 'staple' else None)
     raw = be.raw_paths(run_dir)

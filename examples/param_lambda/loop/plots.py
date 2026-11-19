@@ -8,6 +8,8 @@
                        and the exact isocommittors at the same committor levels (dashed)
 - maps.png             one row per pass: teacher q (bin means of the pass's labels on the pooled frames), the
                        model's committor m(x), the exact committor, and logit m - logit q_exact
+- paths.png            production: the frozen lambda's isosurfaces, the exact isocommittors and a few accepted
+                       paths (two A -> B, two crossing staples at a low and a high interface); also `--paths-only`
 - calibration.png      bin means of logit m (and logit q_teacher) against logit q_exact, per pass
 - convergence.png      teacher RMS, isosurface spread and logit RMSE against the exact committor, per pass
 - pcross_convergence.png   production runs (learned lambda, refilled interfaces, seed-lambda control): running
@@ -168,6 +170,86 @@ def fig_interfaces(cfg, st, grid, out):
     fig.tight_layout()
     fig.savefig(os.path.join(out, f'interfaces{_sfx(grid)}.png'), dpi=130, bbox_inches='tight')
     plt.close(fig)
+
+
+PATH_COLS = ['#eb6834', '#1baf7a', '#e87ba4', '#c98500']     # categorical slots 2, 3, 5, 4 (blue / red taken)
+
+
+def _pick_paths(cfg, sub, w_sign=None, n_reactive=2, n_staple=2):
+    """A few accepted paths of a production run: the shortest reactive ones (a frame in A and one in B) among the
+    newest, and the
+    shortest crossing staple (LMR) at a low and at a high interface. 3D: only paths whose median w has the sign of
+    the slice. Returns [(label, cv array (frames x n_cv))]; needs the paths' load dirs."""
+    s = cfg['system_spec']
+    run = os.path.join(cfg['loop_dir'], sub)
+    rows = [ln.split() for ln in open(os.path.join(run, 'infretis_data.txt')) if ln.strip() and not ln.startswith('#')]
+    reactive, staples = [], {}
+    for r in rows[::-1]:
+        d = os.path.join(run, 'load', r[0], 'order.txt')
+        if not os.path.isfile(d):
+            continue
+        ptype, n = r[4], int(r[1])
+        lmr = 'LMR' in ptype
+        if len(reactive) >= 4 * n_reactive and not lmr:
+            continue
+        if lmr and len(reactive) >= 4 * n_reactive:
+            k = int(ptype.split('LMR')[0])
+            if k in staples and staples[k][2] <= n:
+                continue
+        cv = np.loadtxt(d, comments='#', ndmin=2)[:, 2:]
+        if w_sign is not None and cv.shape[1] > 2 and np.sign(np.median(cv[:, 2])) != w_sign:
+            continue
+        hit_a, hit_b = cv[:, 0].min() <= s['lambda_a'], cv[:, 0].max() >= s['lambda_b']
+        if hit_a and hit_b and len(reactive) < 4 * n_reactive:
+            reactive.append((f'path {r[0]}: {"A -> B" if cv[0, 0] < cv[-1, 0] else "B -> A"}, {len(cv)} frames', cv))
+        elif lmr and not hit_b:
+            a, b = ptype.split('LMR')
+            k = int(a)
+            if k not in staples or len(cv) < staples[k][2]:
+                staples[k] = (f'path {r[0]}: staple LMR, turns at interfaces {a} and {b}, {len(cv)} frames', cv, len(cv))
+    ks = sorted(staples)
+    pick = list(dict.fromkeys([ks[len(ks) // 4], ks[(3 * len(ks)) // 4]])) if ks else []
+    reactive = sorted(reactive, key=lambda t: len(t[1]))[:n_reactive]      # the shortest of the newest 4 n
+    return reactive + [staples[k][:2] for k in pick][:n_staple]
+
+
+def fig_paths(cfg, grid, out, sub='production'):
+    """The frozen production lambda (blue isosurfaces at its interfaces), the exact isocommittors at the same
+    levels (red dashed) and a few accepted production paths projected on (state CV, second CV)."""
+    fz = os.path.join(cfg['loop_dir'], 'freeze.json')
+    if not (os.path.isfile(fz) and os.path.isdir(os.path.join(cfg['loop_dir'], sub, 'load'))):
+        return None
+    with open(fz) as f:
+        fr = json.load(f)
+    paths = _pick_paths(cfg, sub, None if grid.w is None else np.sign(grid.w))
+    if not paths:
+        return None
+    fig, ax = plt.subplots(figsize=(8.5, 4.6))
+    grid.background(ax)
+    m = LambdaModel(fr['model'])
+    L = m(grid.cv).reshape(grid.shape)
+    inner = fr['interfaces'][1:-1]
+    ax.contour(grid.ys, grid.xs, L.T, levels=inner, colors=BLUE, linewidths=1.0)
+    h = m.h_of_lambda(np.array(inner))
+    ax.contour(grid.ys, grid.xs, grid.q_exact.T, levels=np.sort(np.unique(np.clip(h, 1e-6, 1 - 1e-6))),
+               colors=RED, linewidths=0.7, linestyles='--')
+    _mark_unvisited(ax, grid)
+    for (lab, cv), col in zip(paths, PATH_COLS):
+        ax.plot(cv[:, 0], cv[:, 1], color=col, lw=0.8, alpha=0.9, label=lab)
+        ax.plot(cv[0, 0], cv[0, 1], 'o', ms=5, color=col, mec='#fcfcfb', mew=1.0)
+    ax.plot([], [], color=BLUE, lw=1.0, label=f'lambda isosurfaces (pass {fr["pass_index"]}, {len(fr["interfaces"])} interfaces)')
+    ax.plot([], [], color=RED, lw=0.7, ls='--', label='exact isocommittors, same q levels')
+    ax.legend(fontsize=7, loc='upper left', bbox_to_anchor=(1.01, 1.0))
+    names = cfg['system_spec']['cv_names']
+    ax.set_xlabel(f'{names[0]} (A left of the first black line, B right of the second)')
+    ax.set_ylabel(names[1])
+    note = '' if grid.w is None else f'; paths with median w {"<" if grid.w < 0 else ">"} 0, projected on (y, x)'
+    ax.set_title(f'{cfg["name"]}{_slice_note(grid)}: production paths (dot = first frame){note}', loc='left')
+    fig.tight_layout()
+    path = os.path.join(out, f'paths{_sfx(grid)}.png')
+    fig.savefig(path, dpi=140, bbox_inches='tight')
+    plt.close(fig)
+    return path
 
 
 def _teacher_frames(cfg, pool, k):
@@ -377,14 +459,26 @@ PROD_RUNS = [('production', 'learned lambda', BLUE), ('production_refill3', 'lea
 
 
 def _read_runav(path):
-    """inftools *_runav.txt: a header line, then one row per snapshot. Wide negative values can run into the next
-    column (no separator), so the numbers are taken by pattern rather than by whitespace."""
+    """inftools *_runav.txt: a header line, then one fixed-width row per snapshot (each column starts where its
+    header name starts). Wide values fill their column with no separator (MFPT > 1e6 runs into the next one), so the
+    rows are cut at the header offsets; a row that does not parse that way is taken by number pattern."""
     import re
     num = re.compile(r'-?\d+(?:\.\d+)?(?:[eE][-+]?\d+)?')
     with open(path) as f:
-        head = f.readline().split()
-        rows = [[float(v) for v in num.findall(line)] for line in f if line.strip()]
-    rows = [r for r in rows if len(r) == len(head)]
+        hline = f.readline()
+        head = hline.split()
+        starts = [m.start() for m in re.finditer(r'\S+', hline)]
+        rows = []
+        for line in f:
+            if not line.strip():
+                continue
+            cuts = starts[1:] + [None]
+            try:
+                rows.append([float(line[a:b]) for a, b in zip(starts, cuts)])
+            except ValueError:
+                r = [float(v) for v in num.findall(line)]
+                if len(r) == len(head):
+                    rows.append(r)
     return head, np.array(rows)
 
 
@@ -479,11 +573,19 @@ def _init_md(cfg, sub):
         return json.load(f).get('md_steps', 0)
 
 
+def _grids(cfg, pool):
+    if cfg['system_spec']['dim'] <= 2:                     # 2D, or underdamped 1D: the (x, v) plane
+        return [Grid(cfg, pool)]
+    w0 = float(cfg['system_spec']['calculator'].get('w_well', cfg['system_spec']['calculator']['params']).get('w0', 0.1))
+    return [Grid(cfg, pool, w=-w0), Grid(cfg, pool, w=w0)]
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument('config')
     ap.add_argument('--no-tis', action='store_true')
     ap.add_argument('--pcross-only', action='store_true', help='only pcross_convergence.png')
+    ap.add_argument('--paths-only', action='store_true', help='only paths*.png')
     a = ap.parse_args()
     cfg = controller.load_loop_config(a.config)
     if a.pcross_only:
@@ -493,16 +595,18 @@ def main():
         return
     st = _passes(cfg)
     pool = pool_mod.Pool(cfg['loop_dir'])
+    if a.paths_only:
+        out = os.path.join(cfg['loop_dir'], 'figures')
+        os.makedirs(out, exist_ok=True)
+        for grid in _grids(cfg, pool):
+            print(fig_paths(cfg, grid, out))
+        return
     out = os.path.join(cfg['loop_dir'], 'figures')
     os.makedirs(out, exist_ok=True)
-    if cfg['system_spec']['dim'] <= 2:                     # 2D, or underdamped 1D: the (x, v) plane
-        grids = [Grid(cfg, pool)]
-    else:
-        w0 = float(cfg['system_spec']['calculator'].get('w_well', cfg['system_spec']['calculator']['params']).get('w0', 0.1))
-        grids = [Grid(cfg, pool, w=-w0), Grid(cfg, pool, w=w0)]
-    for grid in grids:
+    for grid in _grids(cfg, pool):
         fig_interfaces(cfg, st, grid, out); print(f'interfaces{_sfx(grid)}.png')
         fig_maps(cfg, st, grid, pool, out); print(f'maps{_sfx(grid)}.png')
+        print(fig_paths(cfg, grid, out))
     fig_calibration(cfg, st, pool, out); print('calibration.png')
     fig_convergence(cfg, st, out); print('convergence.png')
     if not a.no_tis:

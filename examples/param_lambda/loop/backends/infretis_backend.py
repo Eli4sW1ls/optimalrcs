@@ -202,6 +202,25 @@ def md_steps(workdir):
     return cost(workdir)['md_steps']
 
 
+def ensemble_counts(workdir, burn_in=0.0, weighting=None):
+    """Accepted paths of a run per ensemble, from infretis_data.txt (rows = paths in the order they ended).
+    Returns dict(total = all rows, kept = rows after the first `burn_in` fraction, count = per ensemble the kept
+    paths with positive weight there). Unweighted: the weights only set the distribution of the same data; with
+    infinite swap a path counts in every ensemble it occupies."""
+    settings = infretis_data.read_settings(workdir)
+    n_ens = len(settings['interfaces'])
+    f = os.path.join(workdir, 'infretis_data.txt')
+    if not os.path.isfile(f):
+        return dict(total=0, kept=0, count=[0] * n_ens)
+    data = infretis_data.read_infretis_data(f, n_ens)
+    if weighting is None:
+        weighting, _ = infretis_data.default_weighting(settings)
+    W = np.asarray(infretis_data._pair_weights(data, weighting, n_ens), float)
+    n = len(W)
+    W = W[int(burn_in * n):]
+    return dict(total=n, kept=len(W), count=[int(c) for c in (W > 0).sum(axis=0)] if len(W) else [0] * n_ens)
+
+
 # ---------------------------------------------------------------------------------------------------
 # pass 0: infinit with the seed order parameter until B is reached
 # ---------------------------------------------------------------------------------------------------
@@ -249,6 +268,23 @@ def data_files(workdir):
     return [f for f in files if os.path.isfile(f)]
 
 
+def order_h5(workdir):
+    """The run's archive (<run>/archive.h5, loop/archive_runs.py) when it holds every path: its check passed, or
+    load/ is gone. None otherwise (read load/<pnr>/order.txt). A pruned load/ keeps only the active paths, so its
+    existence does not mean it is complete."""
+    h5 = os.path.join(workdir, 'archive.h5')
+    if not os.path.isfile(h5):
+        return None
+    if not os.path.isdir(os.path.join(workdir, 'load')):
+        return h5
+    rep = os.path.join(workdir, 'archive_report.json')
+    try:
+        with open(rep) as f:
+            return h5 if json.load(f).get('check', {}).get('ok') else None
+    except (OSError, ValueError):
+        return None
+
+
 def raw_paths(workdir, data_file=None, toml_file=None, weighting=None, max_paths=None):
     """Whole paths of a run: per path the order array [lambda, cv_0, ...] (n_frames, 1 + dim), the row of the
     path table, the W row (path_f / path_w by the run's default weighting), ptype, generating ensemble, and the
@@ -267,7 +303,7 @@ def raw_paths(workdir, data_file=None, toml_file=None, weighting=None, max_paths
     load_dir = os.path.join(workdir, 'load')
     out = dict(settings=settings, weighting=weighting, rows=[], pnr=[], ops=[], W=[], ptype=[], gen_ens=[],
                move=[], tainted=[], length=[])
-    with OrderSource(load_dir=load_dir) as src:
+    with OrderSource(load_dir=load_dir, h5_file=order_h5(workdir)) as src:   # the archive of a pruned run
         for r in rows:
             pnr = int(data['pnr'][r])
             op = src.get(pnr)
