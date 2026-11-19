@@ -1,0 +1,35 @@
+{
+ "run": "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_zw/production_seed",
+ "time": "2026-11-19 13:13:36",
+ "finished": "20000 cycles",
+ "archive_seconds": 205.76472115516663,
+ "archive_bytes": 813258283,
+ "check": {
+  "ok": true,
+  "n_dirs": 13149,
+  "n_data_paths": 13138,
+  "missing_dirs": [],
+  "n_missing_dirs": 0,
+  "data_paths_without_dir": 0,
+  "sample": 50,
+  "sample_mismatch": []
+ },
+ "prune": {
+  "kept": [
+   "13105",
+   "13109",
+   "13130",
+   "13134",
+   "13135",
+   "13138",
+   "13144",
+   "13145",
+   "13146",
+   "13147",
+   "13148"
+  ],
+  "removed": 13138,
+  "missing_active": []
+ },
+ "load_pruned": true
+}

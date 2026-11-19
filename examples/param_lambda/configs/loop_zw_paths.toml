@@ -1,0 +1,21 @@
+# loop_zw with the pass stop on sampled paths instead of a fixed cycle count (2026-11-19). Every learning pass runs
+# at least 1000 cycles, then until each ensemble holds 100 accepted paths after the 20% burn-in (unweighted);
+# hard stop at 200 x n_ens accepted paths in all (2800 with 14 ensembles), safety cap 6000 cycles. Pass 1 ran under
+# the first version of this config (stop at 2000 accepted paths in all: 3500 cycles; every ensemble had 100 at
+# 2250). Same pass 0 as loop_zw (prepared with `python -m loop.experiments.extend_loop loop_zw loop_zw_paths
+# --pass0-only`). Compare against loop_zw_x12 by logit RMSE vs MD steps: 0.53 at pass 10 (about 10.8M MD steps in
+# total), 0.50 at passes 11-12 (13.4M).
+inherit = "loop_zw"
+name = "loop_zw_paths"
+
+[run]
+pass_stop = "paths"
+min_paths_per_ensemble = 100
+hard_paths_per_ensemble = 200       # hard stop at 200 x n_ens accepted paths in all
+warn_paths_per_ensemble = 50        # reported at the end of a pass
+min_cycles = 1000
+check_every = 250
+max_cycles = 6000
+
+[stop]
+max_passes = 5                      # ~2300 cycles (~1.5M MD steps) per pass: 5 passes ~ 12M MD steps in total

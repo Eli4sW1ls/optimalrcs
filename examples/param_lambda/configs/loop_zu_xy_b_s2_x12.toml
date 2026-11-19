@@ -1,0 +1,7 @@
+# Extension of loop_zu_xy_b_s2 past 7 passes (2026-11-18): does the loop converge within 7 passes or need more? A copy made by
+# loop/experiments/extend_loop.py (pool without the verification passes, links to the source's pass dirs).
+inherit = "loop_zu_xy_b_s2"
+name = "loop_zu_xy_b_s2_x12"
+
+[stop]
+max_passes = 12
