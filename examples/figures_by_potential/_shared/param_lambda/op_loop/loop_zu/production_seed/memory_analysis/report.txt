@@ -1,0 +1,44 @@
+================================================================================
+RUNNING ESTIMATE + RECURSIVE BLOCK ERROR ANALYSIS (infretis STAPLE)
+================================================================================
+Simulation      : /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_zu/production_seed
+Data file       : /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_zu/production_seed/infretis_data.txt
+TOML file       : /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_zu/production_seed/infretis.toml
+Output dir      : /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_zu/production_seed/memory_analysis
+Interval        : 100 paths
+Skip from start : 1321
+
+Interfaces      : 11  [0.05, 0.13, 0.21, 0.29, 0.37, 0.45, 0.53, 0.61, 0.69, 0.77, 0.85]
+lm1             : None
+Paths available : 11889 (after skip)
+Running estimates: 118 steps, 100 -> 11889 (step 100)
+
+Running estimates completed in 1s.
+
+Using 118 valid snapshots for error analysis (skipping first 0 for stability)
+
+    Block Error Summary:
+    ---------------------------------------------------
+    Data points analyzed          : 118
+    Max block length              : 23
+    
+    Final P_cross                 : 9.73993e-06
+    P_cross Rel. Error (Plateau)  : 0.3409 (34.09%)
+    P_cross Stat. Inefficiency    : 0.5
+    
+    Q Matrix Average Rel Error    : 0.2494
+    P Matrix Average Rel Error    : 0.3391
+    
+    
+Written to /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_zu/production_seed/memory_analysis:
+  pcross_runav.txt
+  qmat_runav.txt
+  pmat_runav.txt
+  pcross_block_errors_100.txt / .png
+  qmat_block_errors_100.txt / .png
+  pmat_block_errors_100.txt / .png
+
+Read the relative error against block length and take the plateau: short
+blocks are still correlated and underestimate the error, while very long
+blocks leave too few of them for the standard error to be meaningful.
+================================================================================

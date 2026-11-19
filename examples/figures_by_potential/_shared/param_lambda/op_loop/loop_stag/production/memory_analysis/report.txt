@@ -1,0 +1,44 @@
+================================================================================
+RUNNING ESTIMATE + RECURSIVE BLOCK ERROR ANALYSIS (infretis STAPLE)
+================================================================================
+Simulation      : /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_stag/production
+Data file       : /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_stag/production/infretis_data.txt
+TOML file       : /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_stag/production/infretis.toml
+Output dir      : /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_stag/production/memory_analysis
+Interval        : 100 paths
+Skip from start : 997
+
+Interfaces      : 12  [-1.6, -1.4132150353524238, -1.2430197906942642, -0.6364185467177336, 0.46594494861583513, 0.8785419050214798, 1.148686167467238, 1.3316189025382834, 1.4509150604503773, 1.5283656867417554, 1.573032214853186, 1.6]
+lm1             : None
+Paths available : 8976 (after skip)
+Running estimates: 89 steps, 100 -> 8976 (step 100)
+
+Running estimates completed in 1s.
+
+Using 89 valid snapshots for error analysis (skipping first 0 for stability)
+
+    Block Error Summary:
+    ---------------------------------------------------
+    Data points analyzed          : 89
+    Max block length              : 17
+    
+    Final P_cross                 : 1.86535e-05
+    P_cross Rel. Error (Plateau)  : 0.5084 (50.84%)
+    P_cross Stat. Inefficiency    : 1.0
+    
+    Q Matrix Average Rel Error    : 0.4440
+    P Matrix Average Rel Error    : 1.5031
+    
+    
+Written to /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_stag/production/memory_analysis:
+  pcross_runav.txt
+  qmat_runav.txt
+  pmat_runav.txt
+  pcross_block_errors_100.txt / .png
+  qmat_block_errors_100.txt / .png
+  pmat_block_errors_100.txt / .png
+
+Read the relative error against block length and take the plateau: short
+blocks are still correlated and underestimate the error, while very long
+blocks leave too few of them for the standard error to be meaningful.
+================================================================================
