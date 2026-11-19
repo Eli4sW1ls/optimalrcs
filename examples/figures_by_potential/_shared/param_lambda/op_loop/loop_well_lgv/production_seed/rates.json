@@ -1,0 +1,46 @@
+{
+ "pcross": [
+  1.0,
+  0.8222702710798513,
+  0.8095313398125131,
+  0.8095313398125131,
+  0.8087049540567229,
+  0.7681855144665719,
+  0.6466403328840299,
+  0.6371556515728392
+ ],
+ "pcross_global": 0.6371556515728392,
+ "n_paths": 52258,
+ "interfaces": [
+  -0.35,
+  -0.25,
+  -0.15,
+  -0.05,
+  0.05,
+  0.15,
+  0.25,
+  0.35
+ ],
+ "time_per_frame": 0.005,
+ "Flux": 0.0026526931291925926,
+ "Flux_nb": 0.0026478067542206572,
+ "MFPT_AB": 591.6535134206929,
+ "MFPT_nb_AB": 592.7453759274367,
+ "Rate": 0.0016901784191535,
+ "Rate_nb": 0.0016870650377244273,
+ "rate_per_time": 0.3380356838307,
+ "rel_err_pcross": 0.004968727692680442,
+ "rel_err_rate": 0.015913543789948907,
+ "cost": {
+  "cycles": 100000,
+  "saved_frames": 11712530,
+  "md_steps": 11712530
+ },
+ "exact": {
+  "rate": 0.33703,
+  "rel_err": 0.00067,
+  "steps_per_ab": 593.4,
+  "source": "loop/md_well_lgv.py: 4096 walkers x 1M steps of the ASE Langevin chain, k = n(A->B) / time last in A (figures_by_potential/1d_cos_well/langevin_md_ase/rate.json)"
+ },
+ "written": "2026-11-19 00:05:01"
+}
