@@ -1,0 +1,114 @@
+== staple_fit loop_stag_staple production in /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_stag_staple
+placement: 13 interfaces kept of 13 planned; removed none
+infretis run /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_stag_staple/verify_1/run: mode staple, infinite swap True, 13 ensembles, 1020 finished paths in /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_stag_staple/verify_1/run/infretis_data.txt
+Interfaces: [-1.6, -1.4741019479466284, -1.2245171743524845, -1.063800771774683, -0.9990526319227071, -0.9244864497668387, -0.7247532921706688, 0.18403473087641098, 1.1788736875044457, 1.577060623163058, 1.5992350247287326, 1.5997790629186666, 1.6]
+  path_w != 1 for 751 (path, ensemble) pairs, 50.9% of the occupancy; path_f and path_f / path_w differ there by a factor [2.]
+  Note (StapleTIS): path_f / path_w is the natural measure of the stored staple paths (crossing probabilities, rates). For committor pieces use path_f (--weights rejections): an LML/RMR core is stored twice, once with each turn (the extension's coin flip, w = 1/2 each), and path_f counts the core once; see docs/op_loop_report.md.
+Order parameters from /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_stag_staple/verify_1/run/load: 855 paths read
+  ensemble 001: 163 paths, 319 pieces, 6877 frames, total weight 3048.5, cut at M = -1.6
+  ensemble 002: 140 paths, 280 pieces, 52289 frames, total weight 3022.7, cut at M = -1.4741019479466284
+  ensemble 003: 145 paths, 290 pieces, 72488 frames, total weight 2955.6, cut at M = -1.2245171743524845
+  ensemble 004: 167 paths, 334 pieces, 90391 frames, total weight 2997.3, cut at M = -1.063800771774683
+  ensemble 005: 216 paths, 432 pieces, 166124 frames, total weight 2764.2, cut at M = -0.9990526319227071
+  ensemble 006: 198 paths, 396 pieces, 106698 frames, total weight 2921.1, cut at M = -0.9244864497668387
+  ensemble 007: 74 paths, 148 pieces, 41109 frames, total weight 3014.0, cut at M = -0.7247532921706688
+  ensemble 008: 76 paths, 152 pieces, 50103 frames, total weight 2890.0, cut at M = 0.18403473087641098
+  ensemble 009: 73 paths, 146 pieces, 49078 frames, total weight 2642.0, cut at M = 1.1788736875044457
+  ensemble 010: 33 paths, 66 pieces, 14646 frames, total weight 2395.5, cut at M = 1.577060623163058
+  ensemble 011: 115 paths, 226 pieces, 70719 frames, total weight 2860.1, cut at M = 1.5992350247287326 (2 paths without a core in this ensemble, dropped)
+  ensemble 012: 136 paths, 270 pieces, 43336 frames, total weight 3134.5, cut at M = 1.5997790629186666 (1 paths without a core in this ensemble, dropped)
+Loaded 3059 pieces, 763858 frames total
+verification 1 re-check on its own paths: [('gap', 9, 0.2316648303517293), ('accepted_paths_with_empty_shooting_region', -1, 4)]
+| k | lambda_k | up / down crossings | skip up | skip down | gap/delta | dist A | dist B | note |
+|---|---|---|---|---|---|---|---|---|
+| 1 | -1.4741 | 636 / 635 | 0.000 | 0.000 | 2.88 | 4.4 | – |  |
+| 2 | -1.2245 | 660 / 667 | 0.000 | 0.000 | 2.36 | – | – |  |
+| 3 | -1.0638 | 612 / 617 | 0.001 | 0.000 | 2.53 | – | – |  |
+| 4 | -0.9991 | 5810 / 5795 | 0.000 | 0.000 | 4.21 | – | – |  |
+| 5 | -0.9245 | 1299 / 1283 | 0.000 | 0.000 | 7.38 | – | – |  |
+| 6 | -0.7248 | 417 / 425 | 0.000 | 0.000 | 7.47 | – | – |  |
+| 7 | 0.1840 | 287 / 288 | 0.000 | 0.000 | 2.88 | – | – |  |
+| 8 | 1.1789 | 211 / 214 | 0.000 | 0.000 | 2.15 | – | – |  |
+| 9 | 1.5771 | 115 / 118 | 0.000 | 0.000 | 0.23 | – | – |  |
+| 10 | 1.5992 | 1587 / 1593 | 0.000 | 0.000 | 3.94 | – | – |  |
+| 11 | 1.5998 | 761 / 770 | 0.000 | 0.000 | 2.38 | – | 4.5 |  |
+
+| ensemble | window (L, M, R) | excursions | P(empty region) | 5% frames inside |
+|---|---|---|---|---|
+| 1 | (-1.6000, -1.6000, -1.4741) | 660 | 0.000 | 1 |
+| 2 | (-1.6000, -1.4741, -1.2245) | 216 | 0.000 | 19 |
+| 3 | (-1.4741, -1.2245, -1.0638) | 215 | 0.000 | 14 |
+| 4 | (-1.2245, -1.0638, -0.9991) | 323 | 0.000 | 19 |
+| 5 | (-1.0638, -0.9991, -0.9245) | 737 | 0.001 | 16 |
+| 6 | (-0.9991, -0.9245, -0.7248) | 628 | 0.000 | 13 |
+| 7 | (-0.9245, -0.7248, 0.1840) | 224 | 0.000 | 15 |
+| 8 | (-0.7248, 0.1840, 1.1789) | 130 | 0.000 | 13 |
+| 9 | (0.1840, 1.1789, 1.5771) | 79 | 0.000 | 20 |
+| 10 | (1.1789, 1.5771, 1.5992) | 101 | 0.000 | 9 |
+| 11 | (1.5771, 1.5992, 1.5998) | 229 | 0.000 | 22 |
+| 12 | (1.5992, 1.5998, 1.6000) | 316 | 0.000 | 21 |
+
+single-step turns: 0.000 of 46118; failures: [('gap', 9, 0.2316648303517293), ('accepted_paths_with_empty_shooting_region', -1, 4)]
+placement: 10 interfaces kept of 13 planned; removed 1.5992 (gap 0.23), 1.5998 (gap 0.24), 1.5771 (last interface too close to B)
+placement refill (placement limits): added 1.5986 (q 0.997; ratio 3439 -> 195.4)
+run: 11 interfaces, 2000 cycles in /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_stag_staple/verify_2/run
+infretis run /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_stag_staple/verify_2/run: mode staple, infinite swap True, 11 ensembles, 1111 finished paths in /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_stag_staple/verify_2/run/infretis_data.txt
+Interfaces: [-1.6, -1.4741019479466284, -1.2245171743524845, -1.063800771774683, -0.9990526319227071, -0.9244864497668387, -0.7247532921706688, 0.18403473087641098, 1.1788736875044457, 1.5985825096869961, 1.6]
+  path_w != 1 for 778 (path, ensemble) pairs, 44.9% of the occupancy; path_f and path_f / path_w differ there by a factor [2.]
+  Note (StapleTIS): path_f / path_w is the natural measure of the stored staple paths (crossing probabilities, rates). For committor pieces use path_f (--weights rejections): an LML/RMR core is stored twice, once with each turn (the extension's coin flip, w = 1/2 each), and path_f counts the core once; see docs/op_loop_report.md.
+Order parameters from /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_stag_staple/verify_2/run/load: 905 paths read
+  ensemble 001: 225 paths, 424 pieces, 8633 frames, total weight 2840.0, cut at M = -1.6
+  ensemble 002: 179 paths, 358 pieces, 63250 frames, total weight 3014.0, cut at M = -1.4741019479466284
+  ensemble 003: 192 paths, 384 pieces, 90198 frames, total weight 2841.3, cut at M = -1.2245171743524845
+  ensemble 004: 205 paths, 410 pieces, 110165 frames, total weight 2871.6, cut at M = -1.063800771774683
+  ensemble 005: 283 paths, 566 pieces, 222298 frames, total weight 2653.0, cut at M = -0.9990526319227071
+  ensemble 006: 260 paths, 520 pieces, 141279 frames, total weight 2890.9, cut at M = -0.9244864497668387
+  ensemble 007: 111 paths, 222 pieces, 55060 frames, total weight 2936.1, cut at M = -0.7247532921706688
+  ensemble 008: 87 paths, 174 pieces, 57794 frames, total weight 2829.1, cut at M = 0.18403473087641098
+  ensemble 009: 71 paths, 142 pieces, 59897 frames, total weight 2634.0, cut at M = 1.1788736875044457
+  ensemble 010: 55 paths, 110 pieces, 53209 frames, total weight 2396.0, cut at M = 1.5985825096869961
+Loaded 3310 pieces, 861783 frames total
+verification 2 re-check on its own paths: OK
+| k | lambda_k | up / down crossings | skip up | skip down | gap/delta | dist A | dist B | note |
+|---|---|---|---|---|---|---|---|---|
+| 1 | -1.4741 | 724 / 729 | 0.000 | 0.000 | 2.92 | 4.4 | – |  |
+| 2 | -1.2245 | 858 / 863 | 0.000 | 0.000 | 2.34 | – | – |  |
+| 3 | -1.0638 | 781 / 797 | 0.000 | 0.000 | 2.62 | – | – |  |
+| 4 | -0.9991 | 6786 / 6817 | 0.000 | 0.000 | 4.22 | – | – |  |
+| 5 | -0.9245 | 1655 / 1665 | 0.000 | 0.000 | 7.34 | – | – |  |
+| 6 | -0.7248 | 552 / 554 | 0.000 | 0.000 | 7.14 | – | – |  |
+| 7 | 0.1840 | 333 / 331 | 0.000 | 0.000 | 2.84 | – | – |  |
+| 8 | 1.1789 | 192 / 190 | 0.000 | 0.000 | 2.34 | – | – |  |
+| 9 | 1.5986 | 442 / 440 | 0.000 | 0.000 | 1.30 | – | 23.3 |  |
+
+| ensemble | window (L, M, R) | excursions | P(empty region) | 5% frames inside |
+|---|---|---|---|---|
+| 1 | (-1.6000, -1.6000, -1.4741) | 813 | 0.000 | 1 |
+| 2 | (-1.6000, -1.4741, -1.2245) | 274 | 0.000 | 17 |
+| 3 | (-1.4741, -1.2245, -1.0638) | 303 | 0.000 | 15 |
+| 4 | (-1.2245, -1.0638, -0.9991) | 399 | 0.000 | 16 |
+| 5 | (-1.0638, -0.9991, -0.9245) | 886 | 0.000 | 16 |
+| 6 | (-0.9991, -0.9245, -0.7248) | 788 | 0.000 | 12 |
+| 7 | (-0.9245, -0.7248, 0.1840) | 274 | 0.000 | 15 |
+| 8 | (-0.7248, 0.1840, 1.1789) | 142 | 0.000 | 24 |
+| 9 | (0.1840, 1.1789, 1.5986) | 76 | 0.000 | 32 |
+| 10 | (1.1789, 1.5986, 1.6000) | 123 | 0.000 | 14 |
+
+single-step turns: 0.000 of 37843; failures: none
+freeze: production run prepared in /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_stag_staple/production (not started); 11 interfaces, verified by verification 2 on its own paths
+production: running /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_stag_staple/production
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/param_lambda/loop/staple_fit.py", line 301, in <module>
+    main()
+  File "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/param_lambda/loop/staple_fit.py", line 297, in main
+    {'fit': cmd_fit, 'production': cmd_production}[a.stage](cfg, log)
+  File "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/param_lambda/loop/staple_fit.py", line 283, in cmd_production
+    controller.run_production(cfg, log)
+  File "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/param_lambda/loop/controller.py", line 173, in run_production
+    cost = be.run(out)
+           ^^^^^^^^^^^
+  File "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/param_lambda/loop/backends/infretis_backend.py", line 165, in run
+    raise RuntimeError(f'infretisrun failed in {workdir} (see {log})')
+RuntimeError: infretisrun failed in /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_stag_staple/production (see infretis.out)

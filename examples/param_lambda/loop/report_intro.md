@@ -5,6 +5,116 @@ interfaces that pass a spacing gate, and valid initial paths to a production Sta
 infretis with the ASE engine (overdamped Langevin, the toy potentials of the toytis runs), with inftools' infinit
 as pass 0. Plan and design: [`op_loop_plan.md`](op_loop_plan.md). Code: `examples/param_lambda/loop/`.
 
+## The method
+
+![flowchart](../examples/figures_by_potential/_shared/param_lambda/op_loop/flowchart.png)
+
+**Goal.** Path sampling needs an order parameter λ(x) that tells how far a configuration has progressed from A
+to B, plus interfaces placed along it. The ideal λ is the **committor** q(x): the probability that a trajectory
+started at x reaches B before A. The loop learns an approximation of q from short sampling runs, then hands it
+to a production run.
+
+Settings are config keys of `examples/param_lambda/configs/loop_*.toml`. The values below are the defaults of
+`loop_flat1d.toml`, with Z's own value in brackets (`loop_z.toml`) where it differs.
+
+0. **Pass 0, infinit** (`[pass0]`, `loop/backends/infretis_backend.py`, `pass0_infinit.py`).
+   - inftools' infinit runs short RETIS iterations with the seed order parameter (the state CV, e.g. y), 100
+     [200] steps each, at most 8 [12] iterations. infinit settings: `pL = 0.3`, `lamres = 0.001`, `skip = 0.1`.
+   - It stops when 20 finished paths (`n_b`) have reached B.
+   - Every iteration is stored in the pool.
+1. **Path pool** (`[pool]`, `loop/pool.py`).
+   - Every path of every pass, cut at its first crossing of the interface below its ensemble, with the CVs and the
+     weight of each frame.
+   - Weight: path_f (`weighting = "rejections"`), which is the unbiased one for committor pieces (Findings).
+   - After a λ switch the first 20% of each pass's paths are dropped (`burn_in`).
+   - At most 1500 paths per ensemble.
+   - MC blocks of 10% of each pass give the validation and test splits.
+2. **Teacher, NPNEq** (`[teacher]`, `loop/teacher.py`; method: `optimalrcs-cupy/nonparametrics.py`).
+   - **Setup:** a fixed budget of 3000 [6000] iterations per pass, at most 4M frames (whole pieces dropped at
+     random beyond that, the rest reweighted), lag 1.
+   - **Each iteration:** a correction that is a polynomial of degree `ny = 6` in (current q, one CV drawn at
+     random), with ridge regularization `gamma = 0.1`. Z also offers the CVs u, v = (y ± x)/√2 (`features`).
+   - **Warm start:** stored frames keep their q from the last pass; new frames start from the current λ's
+     committor.
+   - **Provisional B:** while fewer than 20 paths reach B, q is fitted with B moved down to the highest interface
+     that at least 50 paths reached (`provisional_b`, `n_front`).
+3. **CV screening** (`[screen]`, `loop/screen.py`; on by default for systems with more than two CVs).
+   - The student is trained on all CVs and once with each CV left out, in 5-fold cross-validation over the MC
+     blocks.
+   - A CV is kept if leaving it out raises the held-out Dirichlet energy Σ w (q(x_{t+1}) − q(x_t))² by more than
+     10% (`tol`) in total and in a majority of the folds.
+   - The state CV is always kept.
+4. **Student, MLP** (`[student]`, `loop/student.py`; model `models.MLP`).
+   - **Architecture:** SiLU network with two hidden layers of 64 (`arch = [64, 64]`), warm-started from the last
+     pass.
+   - **Loss:** weighted MSE of logit q (×5 for 0.05 < q < 0.95), plus β = 10 × the MSE of the increments at lags
+     1, 2, 4, 8 frames along the pieces.
+   - **Training:** 24 epochs, batch 4096, AdamW (lr 3e-3, weight decay 1e-4). Of 8 checkpoints, the one with the
+     lowest stopped SD(Z_q) on the validation paths is kept.
+   - **Export** (`lambda_runtime.LambdaModel`):
+     - a monotone calibration of the output to q;
+     - λ = the state CV in A and B, so the states do not change;
+     - ramps near the states that keep the lowest planned level at least 3 RMS steps from A, and the highest
+       one from B;
+     - a fallback to a monotone function of the state CV on frames outside the training data (Mahalanobis
+       distance).
+5. **Interfaces** (`[interfaces]`, `loop/interfaces.py`; background in
+   [`param_lambda_interface_spacing.md`](param_lambda_interface_spacing.md)).
+   - **Plan** (`plan_natural`):
+     - 8 [10] interior levels, equally spaced in the natural coordinate u(h) = ∫ dh / √(2 D(h)). Here h is the
+       model's committor and D(h) the diffusion of h per saved frame, so each gap takes about the same
+       diffusive time to cross.
+     - The crossing-probability ratio of neighbours is capped at 10 (`max_ratio`).
+     - Levels are added two at a time while the predicted longest median path length × 1.3 exceeds
+       `length_budget` = 5000 [6000] frames.
+   - **Gate** (`check`), on the stored paths:
+     - **skip:** P(a crossing of λ_k also crosses the next interface in the same step) ≤ 1% (`eps`), both
+       directions, where λ_k has ≥ 100 crossings.
+     - **gap:** λ_{k+1} − λ_k ≥ 1 × (95% quantile of the per-step change of λ at λ_k) (`c`).
+     - **distance from the states:** the 5% quantile of (s − λ_A) on frames crossing the first interface ≥ 3
+       RMS steps of s (`n_a`); likewise for the last interface against B.
+     - **shooting region:** per ensemble, an excursion through its window must hold frames: P(empty) ≤ 1% and
+       the 5% quantile of the number of frames inside ≥ 3 (`n_sh`).
+     - **single-step turns:** ≤ 1% of the replayed staple turns.
+   - **Thin** (`place`): placement uses limits 1.25× stricter than the gate (`place_margin`), so a set that
+     passes on the stored paths also passes on the next pass's own paths.
+     - A greedy forward pass drops planned levels that fail skip, gap or distance.
+     - Then one interface per round is removed from the windows that fail the ensemble or turn checks.
+   - **Refill** (`refill`, default on): every pair of neighbours whose crossing-probability ratio still exceeds
+     10 gets the best-splitting of 40 candidates (equally spaced in logit h) that passes the same margined limits.
+     At most 10 are added.
+6. **Seed paths** (`loop/seed.py`). For each ensemble, a segment of a stored path, newest passes first, that is
+   valid under the new λ and interfaces. Staple seeds are extended to the sampler's turn rule and validated with
+   infretis' own `StaplePath`.
+7. **Sampling pass** (`[run]`, `loop/passes.py: run_and_check`).
+   - infretis StapleTIS with infinite swap, 500 [1000] cycles, 2 [4] workers, with λ as the order parameter
+     (`infretis_orderp.LearnedLambda`).
+   - The new paths go into the pool, and the gate is re-run on the pass's own paths (the "re-check").
+8. **Converged?** (`[stop]`, `loop/passes.py: stop_test`). All of these must hold:
+   - **stability:** the isosurface spread of the new λ on the old λ's committor slabs, and vice versa, ≤ 3× the
+     slab floor (0.013) at every resolved level;
+   - **prospective Z_q:** the previous λ, not refitted, scores SD(Z_q) on the newest paths within 20% of the
+     refit (`zq_tolerance`);
+   - **interfaces:** no interface moved by more than 2% of λ_B − λ_A (`interface_tol`);
+   - **re-check:** passes, with no unverified interface;
+   - **OOD:** the share of frames outside the training data is ≤ 1% and not rising.
+
+   Otherwise the loop runs another pass, up to 4 [7] passes or 5e7 [4e8] MD steps (`max_passes`,
+   `max_md_steps`), and then freezes anyway.
+9. **Freeze** (`[production]`, `loop/passes.py: freeze`). λ is fixed.
+   - If the last pass's re-check failed: up to 3 [2] verification runs of 500 [2000] cycles (`verify_rounds`,
+     `verify_cycles`). Each re-thins the interfaces on the failed run's own paths and is re-checked on its own
+     paths.
+   - If none passes, the freeze is refused (`freeze.json`).
+10. **Production** (`run.py loop <config> --production`, `loop/rates.py`). A StapleTIS run of 10 000 [20 000]
+    cycles, infinite swap, with the frozen λ, interfaces and seed paths. Crossing probability and rate come from
+    inftools' iSTAR analysis (path_f / path_w weights), with block errors.
+
+Full design and its review decisions: [`op_loop_plan.md`](op_loop_plan.md). Per-pass records:
+`<loop dir>/pass_<k>/manifest.json`.
+
+The flowchart is drawn by `python -m loop.flowchart`.
+
 ## Findings
 
 **StapleTIS weights in infretis (notes section 15): committor pieces need path_f, in every mode including infinite

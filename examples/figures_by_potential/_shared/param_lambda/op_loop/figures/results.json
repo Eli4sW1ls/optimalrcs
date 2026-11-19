@@ -1,0 +1,317 @@
+[
+ {
+  "label": "2D Z potential, Brownian",
+  "name": "loop_z",
+  "freeze": {
+   "pass_index": 7,
+   "model": "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_z/models/lambda_7.npz",
+   "interfaces": [
+    0.05,
+    0.061510125299040805,
+    0.08593528395900021,
+    0.1395572267592689,
+    0.20230635231510252,
+    0.2925303218501212,
+    0.5377217945765423,
+    0.7993587282877277,
+    0.8218650486848297,
+    0.8343137921811219,
+    0.8434448948153679,
+    0.85
+   ],
+   "ok": true,
+   "fails": [],
+   "source": "verification 1",
+   "verification": [
+    {
+     "round": 1,
+     "interfaces": [
+      0.05,
+      0.061510125299040805,
+      0.08593528395900021,
+      0.1395572267592689,
+      0.20230635231510252,
+      0.2925303218501212,
+      0.5377217945765423,
+      0.7993587282877277,
+      0.8218650486848297,
+      0.8343137921811219,
+      0.8434448948153679,
+      0.85
+     ],
+     "removed": [
+      [
+       0.814178940818594,
+       "gap 1.12"
+      ],
+      [
+       0.8448935865578842,
+       "last interface too close to B"
+      ]
+     ],
+     "refilled": [
+      {
+       "lam": 0.8434448948153679,
+       "q": 0.944907951509595,
+       "between": [
+        0.8343137921811219,
+        0.85
+       ],
+       "ratio_before": 10.707791343729284,
+       "ratio_after": 4.651691072790583
+      }
+     ],
+     "ok": true,
+     "fails": [],
+     "md_steps": 1964131
+    }
+   ],
+   "written": "2026-11-17 00:46:26"
+  },
+  "learned": {
+   "rate": 1.2474211911884416e-05,
+   "rel_err": 0.25888373119394203,
+   "exact": 1.1315125502493061e-05,
+   "ratio": 1.1024369026340868,
+   "md_steps": 45387843,
+   "cycles": 50000
+  },
+  "seed": {
+   "rate": 3.169598850407557e-05,
+   "rel_err": 0.4499395389120219,
+   "exact": 1.1315125502493061e-05,
+   "ratio": 2.8012052095305524,
+   "md_steps": 31289761,
+   "cycles": 50000
+  },
+  "seed_interfaces": [
+   0.05,
+   0.13,
+   0.21,
+   0.29,
+   0.37,
+   0.45,
+   0.53,
+   0.61,
+   0.69,
+   0.77,
+   0.85
+  ]
+ },
+ {
+  "label": "1D well, Langevin: \u03bb(x, v)",
+  "name": "loop_well_lgv",
+  "freeze": {
+   "pass_index": 7,
+   "model": "/local/data/data-fbsskr/Students/elias/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_well_lgv/models/lambda_7.npz",
+   "interfaces": [
+    -0.35,
+    -0.2104975248558338,
+    -0.06249861960511599,
+    0.10008719039905883,
+    0.2061361864198603,
+    0.28299259106437635,
+    0.306842273931348,
+    0.35
+   ],
+   "ok": true,
+   "fails": [],
+   "source": "pass 7",
+   "verification": [],
+   "written": "2026-11-18 20:34:40"
+  },
+  "learned": {
+   "rate": 0.33967666153984094,
+   "rel_err": 0.060996083581200865,
+   "exact": 0.33703,
+   "ratio": 1.0078528960028512,
+   "md_steps": 1674252,
+   "cycles": 20000
+  },
+  "seed": null,
+  "seed_interfaces": [
+   -0.35,
+   -0.25,
+   -0.15,
+   -0.05,
+   0.05,
+   0.15,
+   0.25,
+   0.35
+  ]
+ },
+ {
+  "label": "two channels: loop (initial data cover one channel)",
+  "name": "loop_stag",
+  "freeze": {
+   "pass_index": 7,
+   "model": "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_stag/models/lambda_7.npz",
+   "interfaces": [
+    -1.6,
+    -1.4132150353524238,
+    -1.2430197906942642,
+    -0.6364185467177336,
+    0.46594494861583513,
+    0.8785419050214798,
+    1.148686167467238,
+    1.3316189025382834,
+    1.4509150604503773,
+    1.5283656867417554,
+    1.573032214853186,
+    1.6
+   ],
+   "ok": true,
+   "fails": [],
+   "source": "pass 7",
+   "verification": [],
+   "written": "2026-11-17 21:27:29"
+  },
+  "learned": {
+   "rate": 6.23284471974264e-05,
+   "rel_err": 0.501826299706307,
+   "exact": 0.00011475827117383994,
+   "ratio": 0.5431281471904456,
+   "md_steps": 1591950,
+   "cycles": 20000
+  },
+  "seed": {
+   "rate": 0.001793113565682847,
+   "rel_err": 0.4361102447889351,
+   "exact": 0.00011475827117383994,
+   "ratio": 15.625135751361872,
+   "md_steps": 1334828,
+   "cycles": 20000
+  },
+  "seed_interfaces": [
+   -1.6,
+   -1.2,
+   -0.8,
+   -0.6,
+   -0.4,
+   -0.2,
+   0.0,
+   0.2,
+   0.4,
+   0.6,
+   0.8,
+   1.2,
+   1.6
+  ]
+ },
+ {
+  "label": "two channels: converged staple data (both channels)",
+  "name": "loop_stag_staple",
+  "freeze": {
+   "pass_index": 1,
+   "model": "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_stag_staple/models/lambda_1.npz",
+   "interfaces": [
+    -1.6,
+    -1.4741019479466284,
+    -1.2245171743524845,
+    -1.063800771774683,
+    -0.9990526319227071,
+    -0.9244864497668387,
+    -0.7247532921706688,
+    0.18403473087641098,
+    1.1788736875044457,
+    1.5985825096869961,
+    1.6
+   ],
+   "ok": true,
+   "fails": [],
+   "source": "verification 2",
+   "verification": [
+    {
+     "round": 1,
+     "interfaces": [
+      -1.6,
+      -1.4741019479466284,
+      -1.2245171743524845,
+      -1.063800771774683,
+      -0.9990526319227071,
+      -0.9244864497668387,
+      -0.7247532921706688,
+      0.18403473087641098,
+      1.1788736875044457,
+      1.577060623163058,
+      1.5992350247287326,
+      1.5997790629186666,
+      1.6
+     ],
+     "removed": [],
+     "refilled": [],
+     "ok": false,
+     "fails": [
+      [
+       "gap",
+       9,
+       0.2316648303517293
+      ],
+      [
+       "accepted_paths_with_empty_shooting_region",
+       -1,
+       4
+      ]
+     ],
+     "md_steps": 409746
+    },
+    {
+     "round": 2,
+     "interfaces": [
+      -1.6,
+      -1.4741019479466284,
+      -1.2245171743524845,
+      -1.063800771774683,
+      -0.9990526319227071,
+      -0.9244864497668387,
+      -0.7247532921706688,
+      0.18403473087641098,
+      1.1788736875044457,
+      1.5985825096869961,
+      1.6
+     ],
+     "removed": [
+      [
+       1.5992350247287326,
+       "gap 0.23"
+      ],
+      [
+       1.5997790629186666,
+       "gap 0.24"
+      ],
+      [
+       1.577060623163058,
+       "last interface too close to B"
+      ]
+     ],
+     "refilled": [
+      {
+       "lam": 1.5985825096869961,
+       "q": 0.9969412808537879,
+       "between": [
+        1.1788736875044457,
+        1.6
+       ],
+       "ratio_before": 3438.8112015106544,
+       "ratio_after": 195.42595266796457
+      }
+     ],
+     "ok": true,
+     "fails": [],
+     "md_steps": 489231
+    }
+   ],
+   "written": "2026-11-19 18:35:23"
+  },
+  "learned": {
+   "rate": 3.0553590610363666e-05,
+   "rel_err": 0.4838276308444975,
+   "exact": 0.00011475827117383994,
+   "ratio": 0.26624303675749866,
+   "md_steps": 7580822,
+   "cycles": 20000
+  },
+  "seed": null,
+  "seed_interfaces": []
+ }
+]

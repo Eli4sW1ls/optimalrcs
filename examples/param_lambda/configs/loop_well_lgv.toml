@@ -44,3 +44,6 @@ verify_rounds = 2
 
 [production.run]
 staple_infinite_swap = true
+
+[plots]
+x_range = [-2.7, 3.0]               # v: the plot range when the pool is not on this machine (the run was on the workstation)

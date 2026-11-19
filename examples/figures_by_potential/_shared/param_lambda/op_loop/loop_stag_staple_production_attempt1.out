@@ -1,0 +1,43 @@
+== staple_fit loop_stag_staple production in /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_stag_staple
+seed search: valid data paths per ensemble (upper, lower channel, up to 3 each): {1: (3, 3), 2: (3, 3), 3: (3, 3), 4: (3, 3), 5: (1, 3), 6: (0, 3), 7: (0, 3), 8: (0, 3), 9: (0, 3), 10: (0, 3), 11: (3, 3), 12: (3, 3)}
+seed candidates: one [0-] path (overdamped dynamics inside A) and 33 whole paths of the converged staple data (/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/2d_staggered_channels/brownian_g1/staple_stagd3g1bdalt_istar_s0/rev_rejections_p6000_s0_y-x_lag1_env0.01_g0_it10000_stopped_newtraj_n20000_L500/committor_rev_rejections_p6000_s0_y-x_lag1_env0.01_g0_it10000_stopped.npz) that are valid seeds under the new lambda, both channels per ensemble where the data have one; real dynamics, stored in the artificial-seed slot
+placement: 13 interfaces kept of 13 planned; removed none
+run: 13 interfaces, 2000 cycles in /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_stag_staple/verify_1/run
+infretis run /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_stag_staple/verify_1/run: mode staple, infinite swap True, 13 ensembles, 1020 finished paths in /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_stag_staple/verify_1/run/infretis_data.txt
+Interfaces: [-1.6, -1.4741019479466284, -1.2245171743524845, -1.063800771774683, -0.9990526319227071, -0.9244864497668387, -0.7247532921706688, 0.18403473087641098, 1.1788736875044457, 1.577060623163058, 1.5992350247287326, 1.5997790629186666, 1.6]
+  path_w != 1 for 751 (path, ensemble) pairs, 50.9% of the occupancy; path_f and path_f / path_w differ there by a factor [2.]
+  Note (StapleTIS): path_f / path_w is the natural measure of the stored staple paths (crossing probabilities, rates). For committor pieces use path_f (--weights rejections): an LML/RMR core is stored twice, once with each turn (the extension's coin flip, w = 1/2 each), and path_f counts the core once; see docs/op_loop_report.md.
+Order parameters from /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_stag_staple/verify_1/run/load: 0 paths read
+  ensemble 001: 0 paths, 0 pieces, 0 frames, total weight 0.0, cut at M = -1.6
+  ensemble 002: 0 paths, 0 pieces, 0 frames, total weight 0.0, cut at M = -1.4741019479466284
+  ensemble 003: 0 paths, 0 pieces, 0 frames, total weight 0.0, cut at M = -1.2245171743524845
+  ensemble 004: 0 paths, 0 pieces, 0 frames, total weight 0.0, cut at M = -1.063800771774683
+  ensemble 005: 0 paths, 0 pieces, 0 frames, total weight 0.0, cut at M = -0.9990526319227071
+  ensemble 006: 0 paths, 0 pieces, 0 frames, total weight 0.0, cut at M = -0.9244864497668387
+  ensemble 007: 0 paths, 0 pieces, 0 frames, total weight 0.0, cut at M = -0.7247532921706688
+  ensemble 008: 0 paths, 0 pieces, 0 frames, total weight 0.0, cut at M = 0.18403473087641098
+  ensemble 009: 0 paths, 0 pieces, 0 frames, total weight 0.0, cut at M = 1.1788736875044457
+  ensemble 010: 0 paths, 0 pieces, 0 frames, total weight 0.0, cut at M = 1.577060623163058
+  ensemble 011: 0 paths, 0 pieces, 0 frames, total weight 0.0, cut at M = 1.5992350247287326
+  ensemble 012: 0 paths, 0 pieces, 0 frames, total weight 0.0, cut at M = 1.5997790629186666
+Loaded 0 pieces, 0 frames total
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/param_lambda/loop/staple_fit.py", line 301, in <module>
+    main()
+  File "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/param_lambda/loop/staple_fit.py", line 297, in main
+    {'fit': cmd_fit, 'production': cmd_production}[a.stage](cfg, log)
+  File "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/param_lambda/loop/staple_fit.py", line 280, in cmd_production
+    out = passes.freeze(cfg, state, pool, log)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/param_lambda/loop/passes.py", line 346, in freeze
+    cost, raw, rc = run_and_check(cfg, pool, vdir, model, last['model'], intfs, mode,
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/param_lambda/loop/passes.py", line 428, in run_and_check
+    pieces['q_exact'] = ase_systems.exact_committor(system)(pieces['cv'][:, 1:]).astype(np.float32)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/param_lambda/loop/ase_systems.py", line 208, in q
+    out[cv[:, s['state_cv']] >= s['lambda_b']] = 1
+        ^^^^^^^^^
+IndexError: index 0 is out of bounds for axis 1 with size 0

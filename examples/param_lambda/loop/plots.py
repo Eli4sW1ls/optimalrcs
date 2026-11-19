@@ -62,10 +62,12 @@ class Grid:
         from loop.ase_calcs import load_toytis_potential
         s = cfg['system_spec']
         self.s, self.w = s, w
-        xs_all = np.concatenate([pool.load(k)[0]['cv'][::20, 2] for k in pool.passes()])
         self.ys = np.linspace(s['lambda_a'] - 0.06, s['lambda_b'] + 0.06, n[0])
         xr = cfg.get('plots', {}).get('x_range')               # default: the data's range (0.2% quantiles)
-        self.xs = np.linspace(*(xr if xr else np.quantile(xs_all, [0.002, 0.998])), n[1])
+        if not xr:
+            xs_all = np.concatenate([pool.load(k)[0]['cv'][::20, 2] for k in pool.passes()])
+            xr = np.quantile(xs_all, [0.002, 0.998])
+        self.xs = np.linspace(*xr, n[1])
         Y, X = np.meshgrid(self.ys, self.xs, indexing='ij')
         if s['dim'] == 1 and s.get('velocity_cvs'):            # underdamped 1D (x, v): the energy V(x) + v^2 / 2
             sys.path.insert(0, os.path.join(env.EXAMPLES, 'figures_by_potential', '_shared', 'exact_committors'))
@@ -455,6 +457,7 @@ def fig_tis(cfg, st, pool, out):
         cp.get_default_memory_pool().free_all_blocks()
 
 PROD_RUNS = [('production', 'learned lambda', BLUE), ('production_refill3', 'learned lambda, refilled', '#0d366b'),
+             ('production_nsh2', 'learned lambda, ridge split (n_sh 2, max_ratio 4)', '#1baf7a'),
              ('production_seed', 'seed lambda', RED)]
 
 

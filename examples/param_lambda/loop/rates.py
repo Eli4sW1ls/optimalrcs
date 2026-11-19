@@ -14,6 +14,7 @@ Rates and crossing probabilities for results come only from runs with a frozen l
 """
 import contextlib
 import io
+import json
 import os
 
 import numpy as np
@@ -64,6 +65,16 @@ def reference_rate(system):
     """The reference rate of a system, or None: exact for 2D systems; `rate_ref` = another system's name (same
     committor, e.g. an uncoupled embedding) or a dict(rate, rel_err, source) from MD."""
     ref = system.get('rate_ref')
+    if isinstance(ref, dict) and 'file' in ref:              # the rate.json of a long MD run (loop/md_z_lgv.py)
+        from loop import env
+        f = os.path.join(env.REPO, ref['file'])
+        if not os.path.isfile(f):
+            return None
+        with open(f) as fh:
+            md = json.load(fh)
+        return dict(rate=md['k_ab'], rel_err=md['k_ab_se'] / md['k_ab'], steps_per_ab=md['steps_per_ab'],
+                    source=f'long MD ({md["walkers"]} walkers x {md["steps_per_walker"]} steps, {md["n_ab"]} A -> B): '
+                           f'{ref["file"]}')
     if isinstance(ref, dict):
         return dict(ref)
     if isinstance(ref, str):

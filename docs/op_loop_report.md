@@ -5,6 +5,116 @@ interfaces that pass a spacing gate, and valid initial paths to a production Sta
 infretis with the ASE engine (overdamped Langevin, the toy potentials of the toytis runs), with inftools' infinit
 as pass 0. Plan and design: [`op_loop_plan.md`](op_loop_plan.md). Code: `examples/param_lambda/loop/`.
 
+## The method
+
+![flowchart](../examples/figures_by_potential/_shared/param_lambda/op_loop/flowchart.png)
+
+**Goal.** Path sampling needs an order parameter λ(x) that tells how far a configuration has progressed from A
+to B, plus interfaces placed along it. The ideal λ is the **committor** q(x): the probability that a trajectory
+started at x reaches B before A. The loop learns an approximation of q from short sampling runs, then hands it
+to a production run.
+
+Settings are config keys of `examples/param_lambda/configs/loop_*.toml`. The values below are the defaults of
+`loop_flat1d.toml`, with Z's own value in brackets (`loop_z.toml`) where it differs.
+
+0. **Pass 0, infinit** (`[pass0]`, `loop/backends/infretis_backend.py`, `pass0_infinit.py`).
+   - inftools' infinit runs short RETIS iterations with the seed order parameter (the state CV, e.g. y), 100
+     [200] steps each, at most 8 [12] iterations. infinit settings: `pL = 0.3`, `lamres = 0.001`, `skip = 0.1`.
+   - It stops when 20 finished paths (`n_b`) have reached B.
+   - Every iteration is stored in the pool.
+1. **Path pool** (`[pool]`, `loop/pool.py`).
+   - Every path of every pass, cut at its first crossing of the interface below its ensemble, with the CVs and the
+     weight of each frame.
+   - Weight: path_f (`weighting = "rejections"`), which is the unbiased one for committor pieces (Findings).
+   - After a λ switch the first 20% of each pass's paths are dropped (`burn_in`).
+   - At most 1500 paths per ensemble.
+   - MC blocks of 10% of each pass give the validation and test splits.
+2. **Teacher, NPNEq** (`[teacher]`, `loop/teacher.py`; method: `optimalrcs-cupy/nonparametrics.py`).
+   - **Setup:** a fixed budget of 3000 [6000] iterations per pass, at most 4M frames (whole pieces dropped at
+     random beyond that, the rest reweighted), lag 1.
+   - **Each iteration:** a correction that is a polynomial of degree `ny = 6` in (current q, one CV drawn at
+     random), with ridge regularization `gamma = 0.1`. Z also offers the CVs u, v = (y ± x)/√2 (`features`).
+   - **Warm start:** stored frames keep their q from the last pass; new frames start from the current λ's
+     committor.
+   - **Provisional B:** while fewer than 20 paths reach B, q is fitted with B moved down to the highest interface
+     that at least 50 paths reached (`provisional_b`, `n_front`).
+3. **CV screening** (`[screen]`, `loop/screen.py`; on by default for systems with more than two CVs).
+   - The student is trained on all CVs and once with each CV left out, in 5-fold cross-validation over the MC
+     blocks.
+   - A CV is kept if leaving it out raises the held-out Dirichlet energy Σ w (q(x_{t+1}) − q(x_t))² by more than
+     10% (`tol`) in total and in a majority of the folds.
+   - The state CV is always kept.
+4. **Student, MLP** (`[student]`, `loop/student.py`; model `models.MLP`).
+   - **Architecture:** SiLU network with two hidden layers of 64 (`arch = [64, 64]`), warm-started from the last
+     pass.
+   - **Loss:** weighted MSE of logit q (×5 for 0.05 < q < 0.95), plus β = 10 × the MSE of the increments at lags
+     1, 2, 4, 8 frames along the pieces.
+   - **Training:** 24 epochs, batch 4096, AdamW (lr 3e-3, weight decay 1e-4). Of 8 checkpoints, the one with the
+     lowest stopped SD(Z_q) on the validation paths is kept.
+   - **Export** (`lambda_runtime.LambdaModel`):
+     - a monotone calibration of the output to q;
+     - λ = the state CV in A and B, so the states do not change;
+     - ramps near the states that keep the lowest planned level at least 3 RMS steps from A, and the highest
+       one from B;
+     - a fallback to a monotone function of the state CV on frames outside the training data (Mahalanobis
+       distance).
+5. **Interfaces** (`[interfaces]`, `loop/interfaces.py`; background in
+   [`param_lambda_interface_spacing.md`](param_lambda_interface_spacing.md)).
+   - **Plan** (`plan_natural`):
+     - 8 [10] interior levels, equally spaced in the natural coordinate u(h) = ∫ dh / √(2 D(h)). Here h is the
+       model's committor and D(h) the diffusion of h per saved frame, so each gap takes about the same
+       diffusive time to cross.
+     - The crossing-probability ratio of neighbours is capped at 10 (`max_ratio`).
+     - Levels are added two at a time while the predicted longest median path length × 1.3 exceeds
+       `length_budget` = 5000 [6000] frames.
+   - **Gate** (`check`), on the stored paths:
+     - **skip:** P(a crossing of λ_k also crosses the next interface in the same step) ≤ 1% (`eps`), both
+       directions, where λ_k has ≥ 100 crossings.
+     - **gap:** λ_{k+1} − λ_k ≥ 1 × (95% quantile of the per-step change of λ at λ_k) (`c`).
+     - **distance from the states:** the 5% quantile of (s − λ_A) on frames crossing the first interface ≥ 3
+       RMS steps of s (`n_a`); likewise for the last interface against B.
+     - **shooting region:** per ensemble, an excursion through its window must hold frames: P(empty) ≤ 1% and
+       the 5% quantile of the number of frames inside ≥ 3 (`n_sh`).
+     - **single-step turns:** ≤ 1% of the replayed staple turns.
+   - **Thin** (`place`): placement uses limits 1.25× stricter than the gate (`place_margin`), so a set that
+     passes on the stored paths also passes on the next pass's own paths.
+     - A greedy forward pass drops planned levels that fail skip, gap or distance.
+     - Then one interface per round is removed from the windows that fail the ensemble or turn checks.
+   - **Refill** (`refill`, default on): every pair of neighbours whose crossing-probability ratio still exceeds
+     10 gets the best-splitting of 40 candidates (equally spaced in logit h) that passes the same margined limits.
+     At most 10 are added.
+6. **Seed paths** (`loop/seed.py`). For each ensemble, a segment of a stored path, newest passes first, that is
+   valid under the new λ and interfaces. Staple seeds are extended to the sampler's turn rule and validated with
+   infretis' own `StaplePath`.
+7. **Sampling pass** (`[run]`, `loop/passes.py: run_and_check`).
+   - infretis StapleTIS with infinite swap, 500 [1000] cycles, 2 [4] workers, with λ as the order parameter
+     (`infretis_orderp.LearnedLambda`).
+   - The new paths go into the pool, and the gate is re-run on the pass's own paths (the "re-check").
+8. **Converged?** (`[stop]`, `loop/passes.py: stop_test`). All of these must hold:
+   - **stability:** the isosurface spread of the new λ on the old λ's committor slabs, and vice versa, ≤ 3× the
+     slab floor (0.013) at every resolved level;
+   - **prospective Z_q:** the previous λ, not refitted, scores SD(Z_q) on the newest paths within 20% of the
+     refit (`zq_tolerance`);
+   - **interfaces:** no interface moved by more than 2% of λ_B − λ_A (`interface_tol`);
+   - **re-check:** passes, with no unverified interface;
+   - **OOD:** the share of frames outside the training data is ≤ 1% and not rising.
+
+   Otherwise the loop runs another pass, up to 4 [7] passes or 5e7 [4e8] MD steps (`max_passes`,
+   `max_md_steps`), and then freezes anyway.
+9. **Freeze** (`[production]`, `loop/passes.py: freeze`). λ is fixed.
+   - If the last pass's re-check failed: up to 3 [2] verification runs of 500 [2000] cycles (`verify_rounds`,
+     `verify_cycles`). Each re-thins the interfaces on the failed run's own paths and is re-checked on its own
+     paths.
+   - If none passes, the freeze is refused (`freeze.json`).
+10. **Production** (`run.py loop <config> --production`, `loop/rates.py`). A StapleTIS run of 10 000 [20 000]
+    cycles, infinite swap, with the frozen λ, interfaces and seed paths. Crossing probability and rate come from
+    inftools' iSTAR analysis (path_f / path_w weights), with block errors.
+
+Full design and its review decisions: [`op_loop_plan.md`](op_loop_plan.md). Per-pass records:
+`<loop dir>/pass_<k>/manifest.json`.
+
+The flowchart is drawn by `python -m loop.flowchart`.
+
 ## Findings
 
 **StapleTIS weights in infretis (notes section 15): committor pieces need path_f, in every mode including infinite
@@ -202,6 +312,9 @@ channel); the embedding has the committor and rate of Z.
 | replicate of loop_zu_b (`loop_zu_b_s2`, seed 100) | seed-to-seed spread | y, x, w | 10 | 11.2M | 8.6M | **1.50x** | 0.36 | |
 | replicate of loop_zw (`loop_zw_s2`, seed 100) | seed-to-seed spread | y, x, w | 14 | 8.5M | 13.1M | **0.65x** | 0.51 | |
 | replicate of loop_zu_xy_b (`loop_zu_xy_b_s2`, seed 100) | seed-to-seed spread | y, x | 10 | 17.7M | (freeze refused) | – | – | |
+| gate, 12 passes (`loop_zw_x12`, loop_zw extended) | do more passes help | y, x, w | 14 | 13.4M | 13.0M | **0.94x** | 0.69 | |
+| gate, pass stop on accepted paths (`loop_zw_paths`) | 100 paths per ensemble per pass instead of 1000 cycles | y, x, w | 14 | 14.1M | 12.8M | **1.19x** | 0.54 | |
+| loop_zu_xy_b_s2 extended to 12 passes (`loop_zu_xy_b_s2_x12`) | do more passes help | y, x | 9 | 22.0M | 23.4M | 0.37x | 0.62 | |
 
 Seed-lambda controls (`python -m loop.experiments.seed_control setup|run <loop>`): lambda = the state CV, seeded from
 the same pool, 20 000 cycles with infinite swap; zu and zw use the 11 equally spaced y levels of the Z control (12.7M
@@ -216,7 +329,7 @@ Figures (`python -m loop.plots <loop>`; 3D systems: one slice per w well, w = -0
 ![two channels, interfaces](../examples/figures_by_potential/_shared/param_lambda/op_loop/loop_stag/figures/interfaces.png)
 ![two channels, committor maps](../examples/figures_by_potential/_shared/param_lambda/op_loop/loop_stag/figures/maps.png)
 
-Further figures in each loop's `figures/`: `maps*.png` (model and teacher against the exact committor),
+Further figures in each loop's `figures/`: `paths*.png` (the frozen lambda with a few production paths), `maps*.png` (model and teacher against the exact committor),
 `calibration.png`, `convergence.png`, `tis_pass<k>.png`, `feps_pass<k>.png`.
 
 Findings:
@@ -675,6 +788,39 @@ Frozen set (verification 2): `[0.05, 0.0517, 0.0614, 0.0831, 0.1274, 0.3968, 0.6
 Verification round 1: removed none; fails [['skip_dn', 5, 0.010312691162996006], ['region_frames', 5, 2.0], ['accepted_paths_with_empty_shooting_region', -1, 3]]; 2,467,012 MD steps.
 Verification round 2: removed [(0.2091, 'skip_dn 0.010')], refilled [0.3968]; fails [['skip_dn', 5, 0.03739316924657029]]; 2,327,226 MD steps.
 
+### loop_zu_xy_b_s2_x12
+
+Pass 0 (infinit, seed order parameter): reached B = True; 4 iterations stored. Total MD steps of the initialization: 17,344,752.
+
+| pass | interfaces | teacher RMS vs exact | SD(Z_q) new | SD(Z_q) previous model | stability max | spread vs exact | logit RMSE vs exact | longest / shortest median length [1*]+ | re-check | MD steps | fit s | pass s |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 1 | 12 | 0.284 | 20.42 | – | – | 0.2880 | 2.550 | 8328 / 74 | fails | 714,939 | 607 | 1066 |
+| 2 | 9 | 0.302 | 34.09 | 35.07 | 2.331 | 0.1401 | 2.986 | 15890 / 100 | OK | 1,118,052 | 451 | 3179 |
+| 3 | 13 | 0.347 | 14.55 | 12.42 | 0.372 | 0.1659 | 2.303 | 2728 / 350 | OK | 746,733 | 364 | 680 |
+| 4 | 14 | 0.197 | 22.69 | 30.62 | 0.311 | 0.2128 | 1.956 | 2740 / 456 | OK | 705,479 | 366 | 608 |
+| 5 | 13 | 0.262 | 24.41 | 34.66 | 0.227 | 0.2712 | 1.879 | 4456 / 475 | OK | 802,187 | 570 | 846 |
+| 6 | 13 | 0.181 | 8.32 | 10.89 | 0.194 | 0.3992 | 1.632 | 2811 / 59 | OK | 721,436 | 501 | 737 |
+| 7 | 10 | 0.141 | 12.01 | 16.02 | 0.309 | 0.1604 | 1.375 | 15468 / 194 | fails | 1,177,409 | 458 | 938 |
+| 8 | 14 | 0.149 | 4.25 | 4.78 | 0.066 | 0.0901 | 0.954 | 4346 / 438 | OK | 747,629 | 504 | 241 |
+| 9 | 14 | 0.083 | 8.52 | 11.72 | 0.171 | 0.1610 | 0.608 | 2091 / 418 | OK | 581,190 | 602 | 1493 |
+| 10 | 11 | 0.114 | 6.25 | 6.51 | 0.332 | 0.4129 | 1.093 | 3620 / 122 | fails | 915,965 | 574 | 1095 |
+| 11 | 10 | 0.079 | 9.84 | 11.22 | 0.058 | 0.3835 | 1.192 | 20498 / 235 | fails | 1,208,383 | 597 | 1554 |
+| 12 | 12 | 0.099 | 4.44 | 4.44 | 0.025 | 0.5377 | 1.228 | 6764 / 305 | fails | 987,414 | 505 | 1747 |
+
+Last interfaces: `[0.05, 0.06261, 0.08023, 0.11292, 0.23873, 0.48911, 0.75972, 0.79613, 0.80805, 0.82446, 0.84288, 0.85]`
+Re-check of the last pass on its own paths: [['accepted_paths_with_empty_shooting_region', -1, 4]].
+Accepted paths with an empty shooting region per ensemble: 1: 0/122, 2: 0/91, 3: 0/118, 4: 0/106, 5: 0/77, 6: 0/61, 7: 1/39, 8: 1/59, 9: 1/75, 10: 1/77, 11: 0/55.
+
+Frozen set (verification 2): `[0.05, 0.0626, 0.0802, 0.1129, 0.4891, 0.7597, 0.8245, 0.8429, 0.85]`.
+Verification round 1: removed [(0.7961, 'gap 1.22')]; fails [['region_frames', 7, 2.0]]; 2,080,421 MD steps.
+Verification round 2: removed [(0.2387, 'region_frames 3 (ensemble/interface 4)'), (0.8081, 'region_frames 2 (ensemble/interface 6)')]; passes; 2,529,802 MD steps.
+
+| production run | interfaces | cycles | MD steps | MD steps of the initialization | P_cross (rel. error) | rate per time unit (rel. error) | rate / exact |
+|---|---|---|---|---|---|---|---|
+| learned lambda (frozen) | 9 | 20,000 | 23,400,415 | 17,344,752 | 6.23e-07 (0.71) | 4.19e-06 (0.62) | 0.37x |
+
+Exact rate 1.13e-05 per time unit (z_br: toy2d.exact_committor_brownian (TPT on a grid, h = 0.004)).
+
 ### loop_zw
 
 Pass 0 (infinit, seed order parameter): reached B = True; 3 iterations stored. Total MD steps of the initialization: 11,100,533.
@@ -704,6 +850,31 @@ Verification round 2: removed [(0.0759, 'gap 1.22; dist_a 3.3'), (0.8369, 'last 
 
 Exact rate 2.12e-05 per time unit (loop/exact_zw.py (3DTPT on a grid, h = 0.004): examples/figures_by_potential/3d_zpot_w/exact/q_tpt_h0.004.npz).
 
+### loop_zw_paths
+
+Pass 0 (infinit, seed order parameter): reached B = True; 3 iterations stored. Total MD steps of the initialization: 12,886,105.
+
+| pass | interfaces | teacher RMS vs exact | SD(Z_q) new | SD(Z_q) previous model | stability max | spread vs exact | logit RMSE vs exact | longest / shortest median length [1*]+ | re-check | MD steps | fit s | pass s |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 1 | 14 | 0.053 | 21.11 | – | – | 0.5620 | 1.508 | 1398 / 129 | fails | 1,573,777 | 495 | 1002 |
+| 2 | 14 | 0.039 | 38.40 | 90.85 | 1.218 | 0.3071 | 1.264 | 1522 / 76 | OK | 1,390,099 | 413 | 143 |
+| 3 | 14 | 0.074 | 27.16 | 62.75 | 0.405 | 0.1310 | 0.835 | 2044 / 308 | fails | 1,757,735 | 510 | 389 |
+| 4 | 14 | 0.105 | 19.83 | 22.82 | 0.138 | 0.1224 | 0.629 | 2021 / 165 | fails | 1,971,450 | 519 | 1052 |
+| 5 | 14 | 0.053 | 14.66 | 21.42 | 0.148 | 0.1425 | 0.571 | 2109 / 322 | fails | 1,962,771 | 527 | 1049 |
+
+Last interfaces: `[0.05, 0.07631, 0.14734, 0.24154, 0.33847, 0.44606, 0.63583, 0.67486, 0.70529, 0.73596, 0.76518, 0.80276, 0.83926, 0.85]`
+Re-check of the last pass on its own paths: [['accepted_paths_with_empty_shooting_region', -1, 2]].
+Accepted paths with an empty shooting region per ensemble: 1: 0/355, 2: 0/209, 3: 1/313, 4: 1/289, 5: 0/202, 6: 0/138, 7: 0/232, 8: 0/301, 9: 0/343, 10: 0/347, 11: 0/325, 12: 0/246, 13: 0/162.
+
+Frozen set (verification 1): `[0.05, 0.0763, 0.1473, 0.2415, 0.3385, 0.4461, 0.6358, 0.6749, 0.7053, 0.736, 0.7652, 0.8028, 0.8393, 0.85]`.
+Verification round 1: removed none; passes; 1,231,065 MD steps.
+
+| production run | interfaces | cycles | MD steps | MD steps of the initialization | P_cross (rel. error) | rate per time unit (rel. error) | rate / exact |
+|---|---|---|---|---|---|---|---|
+| learned lambda (frozen) | 14 | 20,000 | 12,790,978 | 12,886,105 | 3.97e-06 (0.50) | 2.52e-05 (0.54) | 1.19x |
+
+Exact rate 2.12e-05 per time unit (loop/exact_zw.py (3DTPT on a grid, h = 0.004): examples/figures_by_potential/3d_zpot_w/exact/q_tpt_h0.004.npz).
+
 ### loop_zw_s2
 
 Pass 0 (infinit, seed order parameter): reached B = True; 3 iterations stored. Total MD steps of the initialization: 8,538,346.
@@ -727,5 +898,37 @@ Frozen set (pass 7): `[0.05, 0.0769, 0.142, 0.2318, 0.3183, 0.4105, 0.5401, 0.60
 | production run | interfaces | cycles | MD steps | MD steps of the initialization | P_cross (rel. error) | rate per time unit (rel. error) | rate / exact |
 |---|---|---|---|---|---|---|---|
 | learned lambda (frozen) | 14 | 20,000 | 13,076,644 | 8,538,346 | 2.09e-06 (0.49) | 1.37e-05 (0.51) | 0.65x |
+
+Exact rate 2.12e-05 per time unit (loop/exact_zw.py (3DTPT on a grid, h = 0.004): examples/figures_by_potential/3d_zpot_w/exact/q_tpt_h0.004.npz).
+
+### loop_zw_x12
+
+Pass 0 (infinit, seed order parameter): reached B = True; 3 iterations stored. Total MD steps of the initialization: 12,047,437.
+
+| pass | interfaces | teacher RMS vs exact | SD(Z_q) new | SD(Z_q) previous model | stability max | spread vs exact | logit RMSE vs exact | longest / shortest median length [1*]+ | re-check | MD steps | fit s | pass s |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 1 | 14 | 0.056 | 89.65 | – | – | 0.3528 | 1.745 | 1483 / 220 | OK | 538,471 | 683 | 1388 |
+| 2 | 13 | 0.130 | 47.90 | 73.38 | 0.789 | 0.5642 | 1.424 | 1930 / 322 | OK | 656,558 | 604 | 1483 |
+| 3 | 14 | 0.097 | 41.90 | 72.42 | 0.393 | 0.4062 | 1.276 | 2113 / 254 | fails | 686,002 | 560 | 1384 |
+| 4 | 14 | 0.112 | 24.31 | 36.30 | 0.525 | 0.2677 | 1.116 | 1946 / 223 | OK | 596,151 | 528 | 1114 |
+| 5 | 14 | 0.076 | 23.08 | 31.71 | 0.483 | 0.2593 | 0.976 | 2398 / 269 | fails | 702,629 | 544 | 1436 |
+| 6 | 14 | 0.096 | 31.39 | 29.27 | 0.272 | 0.2194 | 0.875 | 1844 / 335 | OK | 599,694 | 531 | 60 |
+| 7 | 14 | 0.078 | 16.03 | 18.88 | 0.160 | 0.2202 | 0.791 | 2134 / 120 | fails | 671,279 | 511 | 1190 |
+| 8 | 14 | 0.088 | 5.30 | 6.41 | 0.101 | 0.1728 | 0.737 | 2307 / 305 | OK | 635,928 | 367 | 209 |
+| 9 | 14 | 0.063 | 8.51 | 10.62 | 0.066 | 0.1408 | 0.659 | 2217 / 614 | OK | 693,962 | 508 | 923 |
+| 10 | 14 | 0.036 | 6.70 | 5.48 | 0.067 | 0.1246 | 0.529 | 2064 / 460 | OK | 647,450 | 553 | 1057 |
+| 11 | 14 | 0.106 | 6.15 | 6.22 | 0.054 | 0.1267 | 0.503 | 2430 / 219 | OK | 691,864 | 598 | 1346 |
+| 12 | 14 | 0.071 | 4.99 | 5.68 | 0.056 | 0.1233 | 0.503 | 2584 / 404 | fails | 697,176 | 504 | 1042 |
+
+Last interfaces: `[0.05, 0.06975, 0.13506, 0.22365, 0.30669, 0.41783, 0.57605, 0.64982, 0.68629, 0.71271, 0.74624, 0.7972, 0.83834, 0.85]`
+Re-check of the last pass on its own paths: [['skip_up', 6, 0.0167647471009208]].
+Accepted paths with an empty shooting region per ensemble: 1: 0/114, 2: 0/67, 3: 0/77, 4: 0/79, 5: 0/74, 6: 0/57, 7: 0/62, 8: 0/81, 9: 0/122, 10: 0/122, 11: 0/112, 12: 0/89, 13: 0/52.
+
+Frozen set (verification 1): `[0.05, 0.0697, 0.1351, 0.2236, 0.3067, 0.4178, 0.576, 0.6498, 0.6863, 0.7127, 0.7462, 0.7972, 0.8383, 0.85]`.
+Verification round 1: removed none; passes; 1,357,895 MD steps.
+
+| production run | interfaces | cycles | MD steps | MD steps of the initialization | P_cross (rel. error) | rate per time unit (rel. error) | rate / exact |
+|---|---|---|---|---|---|---|---|
+| learned lambda (frozen) | 14 | 20,000 | 12,969,348 | 12,047,437 | 2.82e-06 (0.75) | 1.99e-05 (0.69) | 0.94x |
 
 Exact rate 2.12e-05 per time unit (loop/exact_zw.py (3DTPT on a grid, h = 0.004): examples/figures_by_potential/3d_zpot_w/exact/q_tpt_h0.004.npz).

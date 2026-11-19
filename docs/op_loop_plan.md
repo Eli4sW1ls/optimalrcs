@@ -401,3 +401,46 @@ mutates `staridx`/`meta` of shared Path objects; infretis `staple_extender` over
     exists, so its presence no longer means it is complete). Seeds skip pruned paths (no traj.txt).
   - Bug found and fixed on the way: the cost of an extended pass was recorded after its first block only (passes 1-2
     corrected from restart.toml; originals *.bak_costfix).
+- **Freeze rule and interface gaps: offline checks (2026-11-19).** Scripts `loop/experiments/pass_scores.py` and
+  `loop/experiments/pair_errors.py`; output `op_loop/pass_scores.json`, `op_loop/pair_errors.json`.
+  - *Can the loop pick its best pass?* 13 loops; per pass the exact logit RMSE against the loop's own scores
+    (recheck on own paths, stability, in-sample SD(Z_q), prospective SD(Z_q) = lambda_k on its own run before the
+    refit, student SD(Z_q), OOD). Exact error of the frozen pass relative to the best pass (mean, worst):
+    last pass 1.37 (2.03); last pass whose recheck passes 1.55 (3.36); argmin of stability 1.65, in-sample Z_q 1.67,
+    prospective Z_q 1.76, OOD 1.84, student Z_q 2.58, number of failed checks 3.67. Restricted to the last 3 or 4
+    passes no score beats the last pass either (1.36-1.52), while the oracle among the last 4 would give 1.03.
+    In the second half of the loops the rank correlations of every score with the exact error scatter from -1 to
+    +1 (medians -0.5 to +0.5); late pass-to-pass changes of the exact error (median 0.11, p90 0.35) are the size of
+    the teacher's seed noise. The earlier proposal (freeze the best pass; a pass whose own checks fail must not
+    replace the previous lambda) is not supported: failed checks are slightly more frequent on the better, later
+    passes (median rho -0.54 over all passes), and the zu_xy_b_s2_x12 case (best pass 9) was an exception. Keep
+    "freeze the last pass". Lowering the late-pass noise (averaging the last lambdas, a teacher ensemble) is the
+    remaining lever.
+  - *Where the production error comes from* (14 productions; per interface pair the local crossing probability
+    p_i = P_cross(i+1)/P_cross(i) from the running estimates, its block error, its share of sum rel_i^2 and
+    n_eff = (1-p)/(p rel^2)):
+    - Ridge systems (Z, embedding, two channels): one pair across the ridge, p = 0.009-0.056, carries 30-96% of the
+      variance (loop_z 60%, loop_zu 96%, zu_b 73%, zu_xy_b 67%, stag 80%, zu_xy_b_s2_x12 two pairs 17% + 38%). Its
+      n_eff is 200-1000, so it is the small p, not poor sampling. Refill on Z (production_refill3: one interface on
+      the ridge, p 0.0087 -> 0.12 x 0.052) took the error from 0.45 to 0.36.
+    - Gate (zw): no such pair (all p >= 0.15); the error is spread over many pairs, and sqrt(sum rel_i^2) is below
+      the error of P_B in 3 of 4 runs (0.39 vs 0.71 for zw_x12): positively correlated pairs, plausibly the slow w.
+    - The model's ratio q(lambda_i+1)/q(lambda_i), which refill caps at 10, does not predict the measured gap well:
+      ratio 5.8 -> p 1/18, 10.6 -> 1/20, 23-60 -> 1/31-1/34, 90 -> 1/115.
+    - Second source: ensembles just past the ridge with p 0.6-0.9 but n_eff 5-20 (slow decorrelation): 40% in
+      Z refill3, 28% in zu_b_s2. Third: the first pair (lambda_A -> lambda_1), p 0.006-0.07, 10-32%, large n_eff.
+    - Why verification leaves the ridge gap: `region_frames` (5% quantile of the frames inside an ensemble's window
+      (lambda_{i-1}, lambda_{i+1}) >= n_sh = 3). The dynamics cross the ridge in about 10 saved frames (subcycles 1),
+      so a window that straddles it holds 2-3 frames and fails; in zu_xy_b_s2_x12 verification removed lambda 0.239
+      (region_frames 3) and 0.808 (region_frames 2), and refill found no candidate that passes.
+  - *Averaging the last lambdas* (`loop/experiments/average_lambdas.py`, `op_loop/average_lambdas.json`): every
+    lambda_k and the mean of logit q over the last m = 2-4 models, scored on one common view (the final pool) against
+    the exact committor. Final pass, average of 3 against the last lambda: better where the loop wanders late
+    (zu_xy_b_s2_x12 1.10 -> 1.02, zu_xy_b 0.53 -> 0.44, zu 1.52 -> 1.36, stag 0.58 -> 0.36, zu_b_s2 0.93 -> 0.91),
+    neutral on a plateau (zw_x12 0.50 -> 0.50, zw_s2 0.81 -> 0.80, zu_b 0.33 -> 0.31), worse where the loop still
+    improves at its last pass (Z 0.44 -> 0.59, zw_paths 0.59 -> 0.67, cc 0.31 -> 0.38). Mean over 12 loops 0.97
+    (m = 3), 0.96 (m = 4), range 0.47-1.44. Where the members scatter around a level, the average beats every member
+    (zu_xy_b pass 5: 0.17 against singles 0.26-0.38; zu_b_s2 pass 5, m = 4: 0.29 against 0.56-1.07), as the teacher
+    ensemble did on zu_b (0.27 against 0.39-0.69); where the passes still trend down, the average lags. Averaging
+    across passes mixes the two, and the loop has no internal signal for which regime it is in (pass_scores). An
+    ensemble of independent fits at the same pass removes the noise without the lag: next step (teacher ensemble).

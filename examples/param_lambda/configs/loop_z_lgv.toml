@@ -1,0 +1,17 @@
+# Underdamped Z: the learning loop of loop_z on the Z potential with ASE's Langevin at the settings of the toytis run
+# sim_istarz_2603 (ase_systems.z_lgv: gamma 2, kT 0.05, m 1, dt 0.002; A y <= 0.05, B y >= 0.85), CVs (y, x, vy, vx),
+# lambda(x, v). The states stay in y; the order parameter is velocity dependent, so infretis recomputes the orders of
+# reversed paths (as loop_well_lgv). Reference rate: long MD of the same chain (python -m loop.md_z_lgv), no exact
+# phase-space committor. Run on the workstation: docs/op_loop_z_lgv_workstation.md.
+inherit = "loop_z"
+name = "loop_z_lgv"
+system = "z_lgv"
+
+[run]
+shooting = "sh"
+
+[pass0]
+shooting = "sh"                     # not wire fencing: it reverses paths (velocity CVs), as loop_well_lgv
+
+[teacher]
+lag = 4                             # stopped lag windows with recorded v (loop_well_lgv: lag 1 stalls along energy contours)

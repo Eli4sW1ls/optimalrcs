@@ -1,0 +1,21 @@
+# Two channels from converged staple data: the student, interfaces, gated freeze and production of the loop on the
+# staggered channels (Brownian, gamma 1, kT 0.25), trained on the converged toytis staple run stagd3g1bdalt_istar_s0
+# (66000 paths, both channels) and its NPNEq fit (10000 iterations, the labels; no refit). Counterpart of loop_stag,
+# whose pass-0 data covered one channel only. `python -m loop.staple_fit loop_stag_staple fit | production`.
+inherit = "loop_stag"
+name = "loop_stag_staple"
+# the staple run's resolution: per-frame RMS step 0.032 = sqrt(2 kT dt / gamma) at dt = 0.002 (stag_br: 0.005); the
+# gate's step statistics are measured on these data, so the verification and production runs use the same dt
+system_overrides = {dt = 0.002}
+
+[staple_fit]
+npz = "examples/figures_by_potential/2d_staggered_channels/brownian_g1/staple_stagd3g1bdalt_istar_s0/rev_rejections_p6000_s0_y-x_lag1_env0.01_g0_it10000_stopped_newtraj_n20000_L500/committor_rev_rejections_p6000_s0_y-x_lag1_env0.01_g0_it10000_stopped.npz"
+seed_paths = 400                    # whole paths written as seed candidates, half per channel
+
+[pool]
+burn_in = 0.0                       # converged data, no lambda switch
+cap_paths_per_ensemble = 10000000   # no cap in practice (the npz has no ensembles; 0 would mean 0 paths to the run loader)
+max_frames = 8000000                # view budget (13.9M frames; two strata, inverse-inclusion weights)
+
+[interfaces]
+length_budget = 50000               # frames: loop_stag's 20000 at dt 0.005, x 2.5 for dt 0.002

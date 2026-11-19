@@ -1,0 +1,16 @@
+# loop_z, re-frozen with the ridge split further: the same loop directory, pool and state (name inherited), frozen
+# under another name:
+#     python -m loop.freeze_cmd loop_z_nsh2 --name production_nsh2 --from-freeze
+#     python -m loop.resume_production loop_z_nsh2 --dir production_nsh2
+# Test (2026-11-19, docs/op_loop_plan.md): in the Z productions the pair across the ridge carries 60% (production,
+# p 0.0087) and 47% (production_refill3, p 0.052) of the variance of P_cross.
+# - max_ratio 10 -> 4: refill splits pairs whose model q ratio exceeds 4 (a model ratio of ~10 measured p ~ 1/20).
+#   On the pool paths this adds lambda 0.6998 (q 0.27) between 0.5377 and 0.7994.
+# - n_sh 3 -> 2: the shooting-region frame check (5% quantile of the frames inside an ensemble's window), which
+#   removed ridge interfaces in the verification runs (windows across the ridge hold 2-3 frames). Placement keeps
+#   its 1.25 margin (>= 3 frames when placing, >= 2 at the gate).
+inherit = "loop_z"
+
+[interfaces]
+n_sh = 2
+max_ratio = 4.0

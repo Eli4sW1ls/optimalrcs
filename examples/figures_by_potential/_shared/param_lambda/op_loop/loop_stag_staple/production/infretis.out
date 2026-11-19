@@ -1,0 +1,30 @@
+🔧 Starting internalrun with input: infretis.toml
+🚀 About to call setup_config - set breakpoint here!
+📋 Configuration loaded, starting scheduler...
+[WARNING]: No available trajectory found for simple swap, using advanced resolution.
+[WARNING]: No available trajectory found for simple swap, using advanced resolution.
+[WARNING]: Path does not have valid turns, cannot load staple path.
+Traceback (most recent call last):
+  File "/home/elias/anaconda3/envs/test/bin/infretisrun", line 8, in <module>
+    sys.exit(infretisrun())
+             ^^^^^^^^^^^^^
+  File "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/APPTIS/infretis/infretis/bin.py", line 38, in infretisrun
+    internalrun(input_file)
+  File "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/APPTIS/infretis/infretis/bin.py", line 70, in internalrun
+    scheduler(config)
+  File "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/APPTIS/infretis/infretis/scheduler.py", line 30, in scheduler
+    worker_md_items = state.treat_output(future.result())
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/APPTIS/infretis/infretis/classes/repex_staple.py", line 1340, in treat_output
+    raise ValueError(f"Path does not have valid turns. {st}, {end}, {out_traj.get_orders_array()}")
+ValueError: Path does not have valid turns. (False, None, None), (True, 3, 8), [-0.65971255 -1.09321847 -1.07310752 -1.22541446 -1.35621381 -1.26074359
+ -1.31393825 -1.15024791 -0.93043589 -1.23742464]
+🔧 Starting internalrun with input: restart.toml
+🚀 About to call setup_config - set breakpoint here!
+📋 Configuration loaded, starting scheduler...
+/home/elias/anaconda3/envs/test/lib/python3.12/multiprocessing/resource_tracker.py:254: UserWarning: resource_tracker: There appear to be 6 leaked semaphore objects to clean up at shutdown
+  warnings.warn('resource_tracker: There appear to be %d '
+🔧 Starting internalrun with input: restart.toml
+🚀 About to call setup_config - set breakpoint here!
+📋 Configuration loaded, starting scheduler...
+[WARNING]: No available trajectory found for simple swap, using advanced resolution.

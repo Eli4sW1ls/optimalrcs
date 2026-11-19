@@ -26,7 +26,7 @@ from loop.backends import infretis_backend as be
 def _view(pool, cfg, need_labels=False):
     pc = cfg['pool']
     return pool.select(passes=pc.get('passes', 'all'), lineage=pc.get('lineage', 'exclude'),
-                       burn_in=float(pc.get('burn_in', 0.0)), cap=pc.get('cap_paths_per_ensemble'),
+                       burn_in=float(pc.get('burn_in', 0.0)), cap=pc.get('cap_paths_per_ensemble') or None,      # 0: no cap
                        block=float(pc.get('block', 0.1)), val_blocks=tuple(pc.get('val_blocks', [1])),
                        test_blocks=tuple(pc.get('test_blocks', [3])), need_labels=need_labels,
                        max_frames=pc.get('max_frames'))

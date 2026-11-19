@@ -77,6 +77,20 @@ SYSTEMS = {
                                file='examples/figures_by_potential/2d_staggered_channels/exact/brownian_g1_dt0.005/q_tpt_h0.01.npz'),
                     potential='potential_staggered_channels:PotentialStaggeredChannels',
                     potential_kwargs={'V_peak': 0.5 * 0.25 / 0.07, 'V_dip': 0.75}),
+    # Underdamped Z: the z_br landscape with ASE's Langevin (Vanden-Eijnden-Ciccotti) at the settings of the toytis run
+    # sim_istarz_2603 (gamma 2, kT 0.05, m 1, dt 0.002; A y <= 0.05, B y >= 0.85). CVs (y, x, vy, vx) in the toytis
+    # order: the ASE x component is toytis y (the state CV), so velocity_cvs ['x', 'y'] give (vy, vx). No exact
+    # phase-space committor; the reference rate comes from long MD of the same chain (loop/md_z_lgv.py, written to
+    # rate_ref['file']; until then reference_rate is None). A velocity-averaged reference of the toytis BBK chain is in
+    # 2d_zpot/exact/langevin_g2 (not the same integrator).
+    'z_lgv': dict(dim=2, kT=0.05, gamma=2.0, dt=0.002, lambda_a=0.05, lambda_b=0.85, cv_names=['y', 'x', 'vy', 'vx'],
+                  state_cv=0, integrator='langevin', velocity_cvs=['x', 'y'],
+                  calculator=dict(**{'class': 'ToytisPotential'}, spec='sjoelbak_angle:RectangularGridWithAngledBarrierPotential',
+                                  params={'Lx': 0.3, 'angle': 45}, dim=2),
+                  start=[0.02, 0.15, 0.0], seed_interfaces=[0.05, 0.13, 0.21, 0.29, 0.37, 0.45, 0.53, 0.61, 0.69, 0.77, 0.85],
+                  maxlength=200000,
+                  potential='sjoelbak_angle:RectangularGridWithAngledBarrierPotential', potential_kwargs={'Lx': 0.3, 'angle': 45},
+                  rate_ref=dict(file='examples/figures_by_potential/2d_zpot/langevin_md_ase/rate.json')),
     # M5, underdamped: the 1D cos well (toytis cos_well.CosWellWalls, the md_istarwell2 / sim_istarwell2rv settings
     # kT 1, gamma 1, m 1, dt 0.005; A x <= -0.35, B x >= 0.35) with ASE's Langevin (Vanden-Eijnden-Ciccotti, not
     # toytis BBK, so the exact committor is that of the ASE chain: loop/exact_well_lgv.py, exact_tools.vec_step, checked

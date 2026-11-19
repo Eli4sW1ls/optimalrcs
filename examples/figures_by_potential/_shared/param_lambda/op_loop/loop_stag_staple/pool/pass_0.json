@@ -1,0 +1,27 @@
+{
+ "source": "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/2d_staggered_channels/brownian_g1/staple_stagd3g1bdalt_istar_s0/rev_rejections_p6000_s0_y-x_lag1_env0.01_g0_it10000_stopped_newtraj_n20000_L500/committor_rev_rejections_p6000_s0_y-x_lag1_env0.01_g0_it10000_stopped.npz",
+ "lambda_version": "seed",
+ "lambda_a": -1.6,
+ "lambda_b": 1.6,
+ "cv_names": [
+  "x",
+  "y"
+ ],
+ "interfaces": [
+  -1.6,
+  -1.6,
+  -0.902,
+  1.6
+ ],
+ "mode": "staple",
+ "md_steps": 0,
+ "n_rows": 66000,
+ "workdir": "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/2d_staggered_channels/brownian_g1/staple_stagd3g1bdalt_istar_s0/rev_rejections_p6000_s0_y-x_lag1_env0.01_g0_it10000_stopped_newtraj_n20000_L500",
+ "note": "converged staple data with its NPNEq fit (staple_fit.py)",
+ "pass_index": 0,
+ "n_pieces": 131863,
+ "n_frames": 13888393,
+ "n_paths": 66000,
+ "weighting": "rejections",
+ "reversed_pieces": true
+}

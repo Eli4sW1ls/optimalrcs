@@ -1,0 +1,30 @@
+== staple_fit loop_stag_staple fit in /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_stag_staple
+pool pass 0: 131863 pieces, 66000 whole paths, 13888393 frames; run interfaces (estimated) [-1.6, -1.6, -0.902, 1.6]
+   student epoch   3: sdzqs    1.417 spread 0.0666
+   student epoch   6: sdzqs    1.238 spread 0.0452
+   student epoch   9: sdzqs    1.199 spread 0.0650
+   student epoch  12: sdzqs    1.193 spread 0.0710
+   student epoch  15: sdzqs    1.069 spread 0.0642
+   student epoch  18: sdzqs    1.200 spread 0.0630
+   student epoch  21: sdzqs    0.988 spread 0.0678
+   student epoch  24: sdzqs    1.163 spread 0.0641
+export: sigma_s 0.03181, kappa_A 3.36, kappa_B 0.249, maha thr 20.5
+plan: 10 interior levels (natural coordinate, ratio <= 10); predicted longest median 1136 frames (budget 50000); levels q = [0.0003, 0.0012, 0.0022, 0.0027, 0.0033, 0.0056, 0.0461, 0.4022, 0.8959, 0.9624]
+placement: 10 interfaces kept of 12 planned; removed 1.5823 (skip_up 0.144; skip_dn 0.011; gap 0.50), 1.5492 (last interface too close to B)
+placement refill (placement limits): added 1.5771 (q 0.952; ratio 4088 -> 330.8), 1.5992 (q 0.998; ratio 331 -> 29.3), 1.5998 (q 1; ratio 11 -> 3.5)
+fit: 13 interfaces [-1.6, -1.4741, -1.2245, -1.0638, -0.9991, -0.9245, -0.7248, 0.184, 1.1789, 1.5771, 1.5992, 1.5998, 1.6]; removed [(1.5822829215919345, 'skip_up 0.144; skip_dn 0.011; gap 0.50'), (1.549156783879786, 'last interface too close to B')]; refilled [{'lam': 1.577060623163058, 'q': 0.9516322941870115, 'between': (1.1788736875044457, 1.6), 'ratio_before': 4087.5830716937544, 'ratio_after': 330.750295523474}, {'lam': 1.5992350247287326, 'q': 0.998348142084382, 'between': (1.577060623163058, 1.6), 'ratio_before': 330.7502955234687, 'ratio_after': 29.280790651351953}, {'lam': 1.5997790629186666, 'q': 0.9995226368237061, 'between': (1.5992350247287326, 1.6), 'ratio_before': 11.295811628231634, 'ratio_after': 3.4603798484038673}]; placement check ok: True; exact: spread 0.0223, logit RMSE 0.488
+interfaces.png
+maps.png
+None
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/param_lambda/loop/plots.py", line 619, in <module>
+    main()
+  File "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/param_lambda/loop/plots.py", line 611, in main
+    fig_calibration(cfg, st, pool, out); print('calibration.png')
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/param_lambda/loop/plots.py", line 353, in fig_calibration
+    z, _ = pool.load(rec['pool_pass'])
+                     ~~~^^^^^^^^^^^^^
+KeyError: 'pool_pass'
