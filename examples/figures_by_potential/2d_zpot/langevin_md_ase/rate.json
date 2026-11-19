@@ -1,0 +1,28 @@
+{
+ "system": "z_lgv",
+ "integrator": "ase Langevin (exact_tools.vec_step, per component)",
+ "dt": 0.002,
+ "gamma": 2.0,
+ "kT": 0.05,
+ "A": 0.05,
+ "B": 0.85,
+ "start": [
+  0.02,
+  0.15
+ ],
+ "walkers": 16384,
+ "steps_per_walker": 4000000,
+ "burn_in": 20000,
+ "seed": 0,
+ "walker_steps": 65536000000,
+ "n_ab": 1203,
+ "n_ba": 1173,
+ "fraction_last_in_a": 0.9977005455474853,
+ "k_ab": 9.199315026992653e-06,
+ "k_ab_se": 2.7417460805502947e-07,
+ "k_ba": 0.0038919143518452624,
+ "k_ba_se": 0.00012791107531854253,
+ "steps_per_ab": 54351872.77888612,
+ "seconds": 5069.560569047928,
+ "note": "k = transitions / time with h (last state visited) = A, per reduced time unit"
+}

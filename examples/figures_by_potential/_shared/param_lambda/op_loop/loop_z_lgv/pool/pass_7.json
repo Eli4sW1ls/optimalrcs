@@ -1,0 +1,42 @@
+{
+ "kind": "infinit",
+ "lambda_version": "seed",
+ "lambda_model": null,
+ "interfaces": [
+  0.05,
+  0.067,
+  0.175,
+  0.298,
+  0.387,
+  0.464,
+  0.513,
+  0.529,
+  0.54,
+  0.544,
+  0.85
+ ],
+ "mode": "retis",
+ "lambda_a": 0.05,
+ "lambda_b": 0.85,
+ "cv_names": [
+  "y",
+  "x",
+  "vy",
+  "vx"
+ ],
+ "state_cv": 0,
+ "n_rows": 199,
+ "workdir": "/local/data/data-fbsskr/Students/elias/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_z_lgv/pass_0",
+ "data_file": "/local/data/data-fbsskr/Students/elias/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_z_lgv/pass_0/infretis_data_8.txt",
+ "toml": "/local/data/data-fbsskr/Students/elias/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_z_lgv/pass_0/infretis_8.toml",
+ "md_steps": 781292,
+ "wall_seconds": 584.6502606868744,
+ "cycles": 200,
+ "excluded_paths": 0,
+ "pass_index": 7,
+ "n_pieces": 449,
+ "n_frames": 600650,
+ "n_paths": 199,
+ "weighting": "staple",
+ "reversed_pieces": false
+}
