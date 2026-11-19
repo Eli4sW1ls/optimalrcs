@@ -103,7 +103,7 @@
   "name": "loop_well_lgv",
   "freeze": {
    "pass_index": 7,
-   "model": "/local/data/data-fbsskr/Students/elias/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_well_lgv/models/lambda_7.npz",
+   "model": "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_well_lgv/models/lambda_7.npz",
    "interfaces": [
     -0.35,
     -0.2104975248558338,
@@ -128,7 +128,14 @@
    "md_steps": 1674252,
    "cycles": 20000
   },
-  "seed": null,
+  "seed": {
+   "rate": 0.3380356838307,
+   "rel_err": 0.015913543789948907,
+   "exact": 0.33703,
+   "ratio": 1.0029839593825476,
+   "md_steps": 11712530,
+   "cycles": 100000
+  },
   "seed_interfaces": [
    -0.35,
    -0.25,
