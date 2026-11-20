@@ -444,3 +444,58 @@ mutates `staridx`/`meta` of shared Path objects; infretis `staple_extender` over
     ensemble did on zu_b (0.27 against 0.39-0.69); where the passes still trend down, the average lags. Averaging
     across passes mixes the two, and the loop has no internal signal for which regime it is in (pass_scores). An
     ensemble of independent fits at the same pass removes the noise without the lag: next step (teacher ensemble).
+- **Reference start of the placement, per-pass figures, confirmation (2026-11-20).**
+  - `[interfaces] start = "reference"`, `reference_passes = N` (0 = every pass): pass k starts from the set that was
+    just sampled, carried over to the new lambda at the same committor levels, then thin + refill as usual; the
+    natural plan only if the thinned set still fails the gate. Pass 1 carries infinit's last set: the level of seed
+    interface y_i is the mean committor of the new model at the first crossings of y_i by the A-started excursions
+    of the pass-0 paths (= P(B | crossed y_i); infinit's own WHAM P_cross cannot be used: its P_B is ~1000x too low on
+    Z). Pass k > 1 carries pass k-1's levels h = h_{k-1}(lambda_i).
+  - Offline (loop_zu_b, loop_zu, loop_zw data): the carried set never passes the gate as it is (infinit crowds its
+    first interfaces at A: skip / gap / dist_a; zu_b also on the ridge), so it is thinned rather than required to
+    pass. Pass 1: 14 -> 10 (zu_b), 14 -> 11 (zu), 12 -> 12 (zw); natural plan 12, 13, 14. Pass 2 from pass 1's set:
+    10 (zu_b; the plan gave 7), 11 (zu; 11), 13 (zw; 13, the carried set passes the gate outright).
+  - `[run] pass_figures` (default true): pass_<k>/interfaces_paths[_w..].png after every pass and for pass 0 (the set,
+    the previous set dotted, exact isocommittors, two reactive paths + staples spread over the interfaces).
+    `[run] confirm_passes = true`: the loop waits after each of them for `python -m loop.confirm <config>
+    continue|stop` (stop = end the passes and freeze as usual; `status` lists what waits).
+  - Test loop `loop_zu_b_ref` (reference_passes 2, confirm on), pass 0 of loop_zu_b; not started.
+  - Figures for systems without an analytic potential or a known w (2026-11-20, loop/plots.py `Grid`, `_grids`):
+    panels are (state CV, second CV, `[plots] x_cv`); the first further CV is sliced at `[plots] slices`, else at
+    -w0, +w0 for the known w systems, else at the 25% / 75% weighted pool quantiles of that CV (zw without its spec:
+    -0.091, +0.096, the wells are at -0.1, +0.1); further CVs at their pool medians. Background: the analytic
+    potential when available, else -ln of the smoothed weighted density of the pooled frames nearest the slice (the
+    ridge shows as a low-density band). Exact isocommittors only where an exact committor exists. Paths are shown on
+    the slice nearest their median of the sliced CV. Before: the w0 default 0.1 was used silently, and a system
+    without a toytis potential made the figure fail.
+  - loop_zu_b_ref pass 1 (run 2026-11-20): the reference start collapsed the set to 6 interfaces (last at q 0.02, one
+    ensemble from there to B; reactive paths of ~68k frames). Infinit's 7 interfaces crowded near the barrier
+    (y 0.42-0.61) were carried to q 0.02-0.4, which this lambda_1 puts on the ridge (skip rates 0.43-0.78); thinning
+    removed them all and refill found no candidate. The thinned set passes the gate, so "fall back only if it fails"
+    let it through. Rule since: both the reference and the natural plan are thinned + refilled, and the reference is
+    kept unless it fails the gate or its worst neighbour ratio (`interfaces.worst_ratio`, forward measure 1/h at a
+    state end the stored paths do not cross) exceeds max_ratio while the plan's is smaller. Offline on pass 1:
+    zu_b_ref reference 6 / ratio 51 vs plan 9 / 42 -> plan; zu_b 10 / 8.5 vs 12 / 11.7 -> reference; zu 11 / 10.4 vs
+    13 / 6.3 -> plan; zw 12 / 15.1 vs 14 / 16.2 -> reference. Per-pass figure layout: legend below the panel.
+- **Interface placement by dynamic programming (2026-11-20, `[interfaces] method = "dp"`).** `interfaces.place_dp`:
+  all interfaces at once over ~110 committor levels; hard limits = the gate's frame checks with the placement
+  margin (skip, gap, distance to the states per pair; empty / too few shooting-region frames per window, solved
+  again with the failing window or [0+] pair excluded); objective sum (ln(p / target_p))^2, target_p 0.3, p the
+  model's committor ratio of neighbours. Then `refill_long`: split ensembles whose predicted staple length
+  (`natural.predict_lengths`; ranks the measured lengths with log corr 0.75-0.93, values ~2-2.5x low) exceeds
+  2 x the median. infinit's set is only reported. A first objective n_pairs x sum (1-p)/p (fixed cost per ensemble)
+  gave 6-8 interfaces at p ~0.2: wrong for staples, where narrower windows give shorter paths; a window-length
+  proxy from frames per boundary crossing did not rank the measured lengths (corr -0.48 to 0.93) and was dropped.
+  Offline (sets / longest predicted length): zu_b p1 14 / 2657 (actual 12 / 1518), zw p1 16 / 720 (14 / 605),
+  Z p1 12 / 2460 (12 / 24297, measured 17283), zu_b p2 13 / 5928 (7 / 390), zu_b_ref p1 13 / 2946 (12 / 2994).
+  The remaining long ensembles straddle the ridge, where no interface passes the frame limits. Test loop
+  `loop_zu_b_dp` (pass 0 of loop_zu_b, confirmation on); not started.
+  - Conclusion of the placement tests (2026-11-20): the natural plan (levels equally spaced in the natural coordinate
+    of the committor increments) already gives even shooting regions (median frames inside (lambda_{i-1},
+    lambda_{i+1}) per ensemble: max/median 1.1-1.8x on zw, zu_b), except windows that straddle a ridge or touch a
+    state. Spacing for p ~0.3 by the model's committor (`method = "dp"`) made them uneven (12-47x); a ratio cap of
+    3.3 instead of 10 only adds interfaces near A (worst gap unchanged). Every rule ends at the ridge, which the
+    dynamics cross in ~10 frames, so no interface passes the frame checks there; the n_sh = 2 test (loop_z_nsh2)
+    targets that limit. Kept: natural plan by default; `method = "dp"` / `even_regions` optional. New per pass:
+    `region_frames` of the own run in the pass record, log and figure title (loop_zu_b_ref pass 1: [102, 151, 219,
+    364, 303, 83, 2275, 880, 469, 193], 8.7x, the 2275 window from q 0.0072 to 0.28 straddles the ridge).

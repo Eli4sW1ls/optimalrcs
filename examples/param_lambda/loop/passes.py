@@ -86,6 +86,44 @@ def learn(cfg, pool, k, prev_params, log, specs=None, view=None, front_s=None):
     return path, params, info, view
 
 
+def _pass_figure(cfg, pool, k, model_path, interfaces, note, prev, log):
+    """pass_<k>/interfaces_paths[_w..].png: the pass's interfaces over the (state CV, second CV) plane (3D systems:
+    one slice per w well), the previous set, the exact isocommittors where known and a few of the pass's paths
+    (loop.plots.fig_pass). Never stops the loop: a failure is logged."""
+    if not cfg['run'].get('pass_figures', True):
+        return []
+    try:
+        from loop import plots
+        figs = plots.fig_pass(cfg, pool, k, model_path, interfaces, note, prev)
+        common.say(f'pass {k}: figure {", ".join(figs)}', log=log)
+        return figs
+    except Exception as e:                                   # noqa: BLE001
+        common.say(f'WARNING: pass {k} figure failed: {type(e).__name__}: {e}', log=log)
+        return []
+
+
+def _confirm(cfg, k, figs, log, poll=20):
+    """With [run] confirm_passes = true: wait after pass k until `python -m loop.confirm <config> continue|stop`
+    writes pass_<k>/CONTINUE or STOP (stop = end the passes and freeze as usual). Returns 'continue' or 'stop'."""
+    if not cfg['run'].get('confirm_passes', False):
+        return 'continue'
+    d = os.path.join(cfg['loop_dir'], f'pass_{k}')
+    os.makedirs(d, exist_ok=True)
+    flags = {name: os.path.join(d, name) for name in ('CONTINUE', 'STOP', 'WAITING')}
+    if not (os.path.isfile(flags['CONTINUE']) or os.path.isfile(flags['STOP'])):
+        with open(flags['WAITING'], 'w') as f:
+            f.write('\n'.join(figs) + '\n')
+        common.say(f'pass {k}: waiting for confirmation (figures: {", ".join(figs) or "none"}); '
+                   f'python -m loop.confirm <config> continue|stop', log=log)
+    while not (os.path.isfile(flags['CONTINUE']) or os.path.isfile(flags['STOP'])):
+        time.sleep(poll)
+    decision = 'stop' if os.path.isfile(flags['STOP']) else 'continue'
+    if os.path.isfile(flags['WAITING']):
+        os.remove(flags['WAITING'])
+    common.say(f'pass {k}: confirmed, {decision}', log=log)
+    return decision
+
+
 def run_passes(cfg, state, pool, log=None, max_passes=None):
     sc = cfg['stop']
     run = cfg['run']
@@ -99,7 +137,17 @@ def run_passes(cfg, state, pool, log=None, max_passes=None):
         prev_params = dict(np.load(last['model'].replace('.npz', '_score.npz')))
     n_done = 0
     k = k0
-    while True:
+    # per-pass figure and optional confirmation ([run] pass_figures, confirm_passes): pass 0 before pass 1, and a
+    # pass whose confirmation was still pending when the loop stopped
+    if k0 == 1:
+        figs = _pass_figure(cfg, pool, 0, None, seed_interfaces(cfg), 'infinit, seed lambda', None, log)
+        if _confirm(cfg, 0, figs, log) == 'stop':
+            return
+    elif os.path.isfile(os.path.join(cfg['loop_dir'], f'pass_{k0 - 1}', 'WAITING')):
+        if _confirm(cfg, k0 - 1, [], log) == 'stop':
+            state.data['done'] = True
+            state.save()
+    while not state.data.get('done'):
         if k - 1 >= int(sc.get('max_passes', 5)) or state.data['md_steps'] >= float(sc.get('max_md_steps', np.inf)):
             common.say(f'stop: pass or MD-step budget reached ({k - 1} passes, {state.data["md_steps"]} MD steps)', log=log)
             break
@@ -111,12 +159,28 @@ def run_passes(cfg, state, pool, log=None, max_passes=None):
         cvs = cfg.get('screen', {}).get('cvs')
         if cvs is None and state.data['passes'] and cfg.get('screen', {}).get('teacher', 'all') == 'kept':
             cvs = state.data['passes'][-1].get('cvs_kept')
-        rec = one_pass(cfg, pool, k, prev_model, prev_params, mode, log, cvs=cvs)
+        prev_rec = state.data['passes'][-1] if state.data['passes'] else None
+        rec = one_pass(cfg, pool, k, prev_model, prev_params, mode, log, cvs=cvs,
+                       prev_interfaces=prev_rec['interfaces'] if prev_rec else None)
         state.data['passes'].append(rec)
         state.data['md_steps'] += rec['cost']['md_steps']
         state.save()
         prev_model, prev_params = LambdaModel(rec['model']), dict(np.load(rec['model'].replace('.npz', '_score.npz')))
         n_done += 1
+        rc = rec['recheck']
+        note = (f'start {rec["plan"].get("start", "plan")}; '
+                + ('all checks pass on its own paths' if rc['ok'] else f'own paths fail {[f[:2] for f in rc["fails"]][:4]}'))
+        rf = rec.get('region_frames') or {}
+        if rf.get('median'):
+            note += (f'; shooting-region frames per ensemble (median, own run) '
+                     f'{[None if v is None else int(v) for v in rf["median"]]}, max/median {rf["spread"]:.1f}x')
+        prev = (dict(model=prev_rec['model'], interfaces=prev_rec['interfaces'], label=f'pass {k - 1}') if prev_rec
+                else dict(model=None, interfaces=seed_interfaces(cfg), label='infinit (pass 0)'))
+        figs = _pass_figure(cfg, pool, k, rec['model'], rec['interfaces'], note, prev, log)
+        if _confirm(cfg, k, figs, log) == 'stop':
+            state.data['done'] = True
+            state.save()
+            break
         if stop_test(cfg, state, log):
             state.data['done'] = True
             state.save()
@@ -126,7 +190,90 @@ def run_passes(cfg, state, pool, log=None, max_passes=None):
         freeze(cfg, state, pool, log)
 
 
-def one_pass(cfg, pool, k, prev_model, prev_params, mode, log, cvs=None):
+def _use_reference(ic, k):
+    """[interfaces] start = "reference": passes 1..reference_passes (0 = every pass) start from the carried set."""
+    if ic.get('start', 'plan') != 'reference':
+        return False
+    n = int(ic.get('reference_passes', 0))
+    return n == 0 or k <= n
+
+
+def seed_interfaces(cfg):
+    """The interface set of infinit's last iteration (seed lambda), the one its stored paths sampled."""
+    with open(os.path.join(cfg['loop_dir'], 'pass_0', 'pass0.json')) as f:
+        return [float(v) for v in json.load(f)['iterations'][-1]['interfaces']]
+
+
+def _reference(cfg, pool, model, k, prev_model, prev_interfaces, paths, mode, log):
+    """The just-sampled interface set carried over to the new lambda at the same committor levels (interfaces.py,
+    reference start), and its gate on the stored paths. None if no level could be carried over."""
+    system, ic = cfg['system_spec'], cfg['interfaces']
+    if prev_model is None:                                   # pass 1: infinit's set, seed lambda
+        src = seed_interfaces(cfg)
+        p0 = [q for q in pool.passes() if pool.meta(q).get('kind') == 'infinit']
+        lv = itf.seed_reference_levels(pool, model, src, p0, system['state_cv'], system['lambda_a'],
+                                       min_cross=int(ic.get('reference_min_crossings', 20)))
+        h, source, n_cross = lv['h'], 'infinit (seed lambda)', lv['n_cross']
+    else:
+        src = list(prev_interfaces)
+        h, source, n_cross = prev_model.h_of_lambda(np.asarray(src[1:-1], float)).tolist(), f'pass {k - 1}', None
+    if not len(h):
+        common.say(f'reference start: no level of the {source} set could be carried over; natural plan', log=log)
+        return None
+    lam = itf.reference_set(model, h, [model.lambda_a, model.lambda_b])
+    gate = itf.check(paths, lam, ic, mode)
+    common.say(f'reference start: the {source} set ({len(src)} interfaces) carried over at q = '
+               f'{[float(f"{x:.2g}") for x in h]}: {len(lam)} interfaces, gate on the stored paths '
+               + ('passes' if gate['ok'] else f'fails {len(gate["fails"])} checks (thinned next)'), log=log)
+    return dict(source=source, source_interfaces=src, h=[float(x) for x in h], n_cross=n_cross, lam=lam,
+                gate_ok=bool(gate['ok']), gate_fails=gate['fails'][:20])
+
+
+def _place_dp(cfg, pool, model, view, paths, k, mode, log):
+    """[interfaces] method = "dp": interfaces at crossing probability ~target_p by dynamic programming, then
+    even shooting-region lengths (interfaces.place_dp, even_regions). Pass 1 reports infinit's
+    set at its committor levels under the new lambda (not used). None (natural plan instead) if no feasible set or
+    the result fails the gate."""
+    ic, system = cfg['interfaces'], cfg['system_spec']
+    if k == 1:
+        try:
+            src = seed_interfaces(cfg)
+            p0 = [q for q in pool.passes() if pool.meta(q).get('kind') == 'infinit']
+            lv = itf.seed_reference_levels(pool, model, src, p0, system['state_cv'], system['lambda_a'])
+            common.say(f'infinit set (reported, not used): {len(src)} interfaces at q = '
+                       f'{[float(f"{x:.2g}") for x in lv["h"]]} under lambda_1', log=log)
+        except Exception as e:                               # noqa: BLE001
+            common.say(f'infinit set: not reported ({type(e).__name__}: {e})', log=log)
+    placed = itf.place_dp(model, paths, ic, mode, log=log)
+    if placed is None:
+        common.say('placement (dp): no feasible set; natural plan instead', log=log)
+        return None
+    placed = itf.even_regions(model, paths, placed, ic, mode, log=log)
+    if not placed['check']['ok']:
+        common.say(f'placement (dp): fails {placed["check"]["fails"]} on the stored paths; natural plan instead', log=log)
+        return None
+    return placed
+
+
+def _region_report(raw, intfs, state_cv, label, log):
+    """Shooting-region length per staple ensemble on the run's own accepted paths (interfaces.region_frames:
+    weighted median frames of the runs inside (lambda_{i-1}, lambda_{i+1}) crossing lambda_i), for ensembles 2..n-1,
+    and its spread (max / median). The natural plan keeps these about even except where a window straddles a
+    ridge; a large spread points at a window the sampler crosses badly."""
+    try:
+        rf = itf.region_frames(own_paths(raw, state_cv), intfs)
+        med = [None if not np.isfinite(v[0]) else float(v[0]) for _, v in sorted(rf.items())]
+        vals = [v for v in med if v]
+        spread = float(max(vals) / np.median(vals)) if vals else float('nan')
+        common.say(f'{label}: shooting-region frames per ensemble 2..{len(intfs) - 1} (median, own paths) '
+                   f'{[None if v is None else int(v) for v in med]}; max / median {spread:.1f}x', log=log)
+        return dict(median=med, n=[int(v[1]) for _, v in sorted(rf.items())], spread=spread)
+    except Exception as e:                                   # noqa: BLE001
+        common.say(f'WARNING: {label} shooting-region frames failed: {type(e).__name__}: {e}', log=log)
+        return None
+
+
+def one_pass(cfg, pool, k, prev_model, prev_params, mode, log, cvs=None, prev_interfaces=None):
     t_pass = time.time()
     pdir = os.path.join(cfg['loop_dir'], f'pass_{k}')
     os.makedirs(pdir, exist_ok=True)
@@ -180,7 +327,36 @@ def one_pass(cfg, pool, k, prev_model, prev_params, mode, log, cvs=None):
         # 4. interfaces: plan + gate on all stored paths under the new lambda
         plan = itf.plan_natural(model, view, ic, log=log)
         paths = itf.path_arrays(pool, model, state_cv=system['state_cv'], lineage='include')
-        placed = itf.place(model, paths, plan['lam'], ic, mode, log=log)
+        plan['start'] = 'plan'
+        start_lam = plan['lam']
+        dp = None
+        if ic.get('method', 'plan') == 'dp':
+            dp = _place_dp(cfg, pool, model, view, paths, k, mode, log)
+            if dp is not None:
+                plan['start'] = 'dp'
+                plan['dp'] = {key: v for key, v in dp.items() if key not in ('check', 'interfaces')}
+        if dp is None and _use_reference(ic, k):
+            ref = _reference(cfg, pool, model, k, prev_model, prev_interfaces, paths, mode, log)
+            plan['reference'] = ref
+            if ref is not None:
+                start_lam, plan['start'] = ref['lam'], 'reference'
+        placed = dp if dp is not None else itf.place(model, paths, start_lam, ic, mode, log=log)
+        if plan['start'] == 'reference':
+            # the natural plan, thinned and refilled the same way, as the alternative: the reference result is kept
+            # unless it fails the gate, or leaves a gap over max_ratio that the plan's result closes better
+            alt = itf.place(model, paths, plan['lam'], ic, mode, log=log)
+            R = float(ic.get('max_ratio', 10.0))
+            r_ref, pair_ref = itf.worst_ratio(model, paths, placed['interfaces'])
+            r_plan, _ = itf.worst_ratio(model, paths, alt['interfaces'])
+            plan['reference'].update(placed=placed['interfaces'], worst_ratio=r_ref, plan_placed=alt['interfaces'],
+                                     plan_worst_ratio=r_plan)
+            use_plan = (not placed['check']['ok'] and alt['check']['ok']) or (r_ref > R and r_plan < r_ref)
+            common.say(f'reference start: reference -> {len(placed["interfaces"])} interfaces, worst neighbour ratio '
+                       f'{r_ref:.1f} (between {pair_ref[0]:.4f} and {pair_ref[1]:.4f}); natural plan -> '
+                       f'{len(alt["interfaces"])} interfaces, worst ratio {r_plan:.1f}; using the '
+                       + ('natural plan' if use_plan else 'reference'), log=log)
+            if use_plan:
+                placed, plan['start'] = alt, 'plan (reference left a gap)'
         intfs = placed['interfaces']
         if not placed['check']['ok']:
             common.say(f'WARNING: the placed set still fails {placed["check"]["fails"]} on the stored paths', log=log)
@@ -194,13 +370,14 @@ def one_pass(cfg, pool, k, prev_model, prev_params, mode, log, cvs=None):
                                        int(run.get('cycles_per_pass', 1000)), int(cfg.get('seed', 0)) + k,
                                        f'pass {k}', 'pass', log)
     lengths = _path_lengths(raw, len(intfs))
+    region = _region_report(raw, intfs, system['state_cv'], f'pass {k}', log)
     rec = dict(k=k, model=model_path, model_md5=manifest.md5(model_path), interfaces=intfs,
                interfaces_md5=manifest.md5_of(intfs), plan=plan, removed=placed['removed'], refilled=placed.get('refilled', []),
                placement_check=_slim(placed['check']), recheck=_slim(recheck), teacher=tinfo,
                student={key: v for key, v in sinfo.items() if key != 'checkpoints'}, diagnostics=diag,
                screen=scr, cvs_kept=specs,
                cost=dict(cost, fit_seconds=fit_seconds, gpu_wait_seconds=gpu_wait, pass_seconds=time.time() - t_pass),
-               lengths=lengths,
+               lengths=lengths, region_frames=region,
                pool_pass=pool.passes()[-1], data_md5=manifest.md5(pool.path(pool.passes()[-1])), seed=int(cfg.get('seed', 0)) + k)
     manifest.write(os.path.join(pdir, 'manifest.json'), config={key: v for key, v in cfg.items() if key != 'system_spec'},
                    system=cfg['system_spec'], **rec)
@@ -297,6 +474,20 @@ def stop_test(cfg, state, log):
     return not why
 
 
+def _freeze_place(model, paths, intfs, ic, mode, log):
+    """Placement of a freeze / verification round: [interfaces] method = "dp" places afresh on the given paths
+    (place_dp + even_regions; the natural thinning of `intfs` if it finds no set passing the gate), otherwise thins
+    and refills `intfs` (interfaces.place)."""
+    if ic.get('method', 'plan') == 'dp':
+        dp = itf.place_dp(model, paths, ic, mode, log=log)
+        if dp is not None:
+            dp = itf.even_regions(model, paths, dp, ic, mode, log=log)
+            if dp['check']['ok']:
+                return dp
+        common.say('placement (dp): no set passes the gate on these paths; thinning the given set instead', log=log)
+    return itf.place(model, paths, intfs, ic, mode, log=log)
+
+
 def freeze(cfg, state, pool, log, name='production', start=None, start_paths=None):
     """The production configuration: the last lambda, interfaces and seed paths, as an infretis run directory that
     is not started (`run.py loop <config> --production` runs it).
@@ -339,7 +530,7 @@ def freeze(cfg, state, pool, log, name='production', start=None, start_paths=Non
             paths = own                                          # thin on the failed run's own paths
         else:
             paths = itf.path_arrays(pool, model, state_cv=system['state_cv'], lineage='include')
-        placed = itf.place(model, paths, intfs, ic, mode, log=log)
+        placed = _freeze_place(model, paths, intfs, ic, mode, log)
         intfs = placed['interfaces']
         vdir = os.path.join(cfg['loop_dir'], f'{pre}verify_{r + 1}')
         os.makedirs(vdir, exist_ok=True)

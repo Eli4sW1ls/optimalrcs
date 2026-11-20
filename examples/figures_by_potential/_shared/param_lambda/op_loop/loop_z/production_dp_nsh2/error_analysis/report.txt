@@ -1,0 +1,60 @@
+================================================================================
+RUNNING ESTIMATE + RECURSIVE BLOCK ERROR ANALYSIS (infretis STAPLE)
+================================================================================
+Simulation      : /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_z/production_dp_nsh2
+Data file       : /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_z/production_dp_nsh2/infretis_data.txt
+TOML file       : /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_z/production_dp_nsh2/infretis.toml
+Output dir      : /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_z/production_dp_nsh2/error_analysis
+Interval        : 50 paths
+Skip from start : 1115
+Order params    : /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_z/production_dp_nsh2/load
+Time per frame  : 0.02036101134231345 x 1 subcycles x 1.0 = 0.020361
+
+Interfaces      : 13  [0.05, 0.06205917293753333, 0.08670708319011874, 0.14476383202545867, 0.2545316126542889, 0.39322397724276753, 0.5773796428676754, 0.7244480096385364, 0.8108865014907477, 0.8180763496137351, 0.8246323298470265, 0.8436443195498472, 0.85]
+lm1             : None
+Paths available : 10039 (after skip)
+Path lengths    : 10039/10039 paths (0 from cache, 10039 read from order.txt)
+Running estimates: 200 steps, 50 -> 10039 (step 50)
+
+Running estimates completed in 5s.
+
+Using 200 valid snapshots for error analysis (skipping first 0 for stability)
+Using 199 snapshots with finite rates for the rate error analysis
+
+    Block Error Summary:
+    ---------------------------------------------------
+    Data points analyzed          : 199
+    Max block length              : 39
+    
+    Final P_cross                 : 2.22253e-06
+    P_cross Rel. Error (Plateau)  : 0.2961 (29.61%)
+    P_cross Stat. Inefficiency    : 0.7
+    
+    Q Matrix Average Rel Error    : 0.2466
+    P Matrix Average Rel Error    : 0.4649
+    
+    
+    Rates (time in engine time units; _nb = tau2 only, not balanced):
+    ---------------------------------------------------
+    Flux        :  6.858694e-01  +- 4.175e-02  (6.09%)
+    Flux_nb     :  6.875981e-01  +- 4.196e-02  (6.10%)
+    MFPT_AB     :  6.560108e+05  +- 2.022e+05  (30.83%)
+    MFPT_nb_AB  :  6.543616e+05  +- 2.018e+05  (30.84%)
+    Rate        :  1.524365e-06  +- 4.841e-07  (31.76%)
+    Rate_nb     :  1.528207e-06  +- 4.850e-07  (31.74%)
+    1/MFPT_AB    :  1.524365e-06  (should match Rate)
+
+Written to /mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_z/production_dp_nsh2/error_analysis:
+  pcross_runav.txt
+  qmat_runav.txt
+  pmat_runav.txt
+  rate_runav.txt
+  pcross_block_errors_50.txt / .png
+  qmat_block_errors_50.txt / .png
+  pmat_block_errors_50.txt / .png
+  rate_block_errors_50.txt / .png
+
+Read the relative error against block length and take the plateau: short
+blocks are still correlated and underestimate the error, while very long
+blocks leave too few of them for the standard error to be meaningful.
+================================================================================

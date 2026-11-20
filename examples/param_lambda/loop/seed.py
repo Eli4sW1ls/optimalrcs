@@ -160,6 +160,59 @@ def validate_staple(op, interfaces, e):
 # ---------------------------------------------------------------------------------------------------
 # seed sets from the pool
 # ---------------------------------------------------------------------------------------------------
+_FILE_INDEX = {}
+
+
+def _file_index(workdir):
+    """{frame file name: path} of every frame file still present in <workdir>/load/*/accepted/ (cached)."""
+    if workdir not in _FILE_INDEX:
+        idx = {}
+        load = os.path.join(workdir, 'load')
+        if os.path.isdir(load):
+            for d in os.listdir(load):
+                acc = os.path.join(load, d, 'accepted')
+                if os.path.isdir(acc):
+                    for fn in os.listdir(acc):
+                        idx.setdefault(fn, os.path.join(acc, fn))
+        _FILE_INDEX[workdir] = idx
+    return _FILE_INDEX[workdir]
+
+
+def path_source(workdir, pnr):
+    """Where the frames of stored path pnr of a run are: dict(rows=[(file, index, vel)], files={file: path}), or
+    None. From load/<pnr>/traj.txt if the path directory exists; for a pruned run (loop/archive_runs.py keeps only
+    the active paths) from the traj.txt rows in <workdir>/archive.h5, usable if every frame file it names is still
+    present somewhere in the run's load/ (infretis hard-links frame files between paths, so the kept paths can hold
+    them). The archive holds no coordinates, so a path whose frame files are all gone cannot seed."""
+    d = os.path.join(workdir, 'load', str(pnr))
+    if os.path.isfile(os.path.join(d, 'traj.txt')):
+        rows = []
+        with open(os.path.join(d, 'traj.txt')) as f:
+            for line in f:
+                if line.startswith('#') or not line.strip():
+                    continue
+                parts = line.split()
+                rows.append((parts[1], int(parts[2]), int(parts[3])))
+        acc = os.path.join(os.path.realpath(d), 'accepted')
+        return dict(rows=rows, files={fn: os.path.join(acc, fn) for fn in {r[0] for r in rows}})
+    h5 = os.path.join(workdir, 'archive.h5')
+    if not os.path.isfile(h5):
+        return None
+    import h5py
+    with h5py.File(h5, 'r') as h:
+        g = h.get(str(int(pnr)))
+        if g is None or 'traj.txt' not in g:
+            return None
+        t = g['traj.txt'][()]
+    rows = [(r['trajfile'].decode() if isinstance(r['trajfile'], bytes) else str(r['trajfile']), int(r['index']),
+             int(r['vel'])) for r in t]
+    idx = _file_index(workdir)
+    names = {r[0] for r in rows}
+    if not names <= idx.keys():
+        return None
+    return dict(rows=rows, files={fn: idx[fn] for fn in names})
+
+
 def _stored_paths(pool, passes):
     """Stored whole paths, most recent pass first, untainted first within a pass (CVs only; lambda is evaluated
     lazily)."""
@@ -181,7 +234,16 @@ def build_seeds(pool, model, interfaces, mode, out_dir, passes=None, max_paths=3
     Paths are scanned in preference order (most recent pass, untainted, not yet used) and the first valid candidate
     per ensemble is taken, so lambda and the validity checks run only on the paths actually inspected."""
     passes = pool.passes() if passes is None else passes
-    paths = _stored_paths(pool, passes)[:max_paths]
+    # only paths whose frames can be found (path_source: the load directory, or for a pruned run the archive's
+    # traj.txt with frame files still present) can seed; dropped before the cap, or the newest pruned runs fill it
+    # (loop_z, 2026-11-20: [0-] found no candidate)
+    paths = []
+    for p in _stored_paths(pool, passes):
+        p['src'] = path_source(p['workdir'], p['pnr'])
+        if p['src'] is not None:
+            paths.append(p)
+        if len(paths) >= max_paths:
+            break
     # last resort: artificial A -> B paths (loop/artificial_paths.py), all tainted, after every stored path
     from loop import artificial_paths
     paths += artificial_paths.load(os.path.dirname(pool.dir))
@@ -220,8 +282,8 @@ def build_seeds(pool, model, interfaces, mode, out_dir, passes=None, max_paths=3
                 key = (p['pass_index'], p['pnr'])
                 if prefer_unused and key in used:
                     continue
-                if not os.path.isfile(os.path.join(p['workdir'], 'load', str(p['pnr']), 'traj.txt')):
-                    continue                          # the source run's directory was cleaned up: not a usable seed
+                if p.get('src', True) is None:
+                    continue                          # no frames left for this path (pruned run)
                 c = candidates(e, p)
                 if c:
                     found = (p, c[0])
@@ -243,7 +305,7 @@ def build_seeds(pool, model, interfaces, mode, out_dir, passes=None, max_paths=3
     for e in range(n):
         p, s, t = chosen[e]
         dst = os.path.join(out_dir, str(e))
-        write_seed(dst, os.path.join(p['workdir'], 'load', str(p['pnr'])), s, t, p['lam'][s:t + 1], p['cv'][s:t + 1, 1:],
+        write_seed(dst, p.get('src') or os.path.join(p['workdir'], 'load', str(p['pnr'])), s, t, p['lam'][s:t + 1], p['cv'][s:t + 1, 1:],
                    note=f'seed from pass {p["pass_index"]} path {p["pnr"]} frames {s}-{t}')
         dirs.append(dst)
         if p['tainted']:
@@ -252,20 +314,27 @@ def build_seeds(pool, model, interfaces, mode, out_dir, passes=None, max_paths=3
 
 
 def write_seed(dst, src_dir, start, end, lam, cvs, note=''):
-    """Write one load path directory from frames [start, end] of the stored path in src_dir."""
-    rows = []
-    with open(os.path.join(src_dir, 'traj.txt')) as f:
-        for line in f:
-            if line.startswith('#') or not line.strip():
-                continue
-            parts = line.split()
-            rows.append((parts[1], int(parts[2]), int(parts[3])))
+    """Write one load path directory from frames [start, end] of a stored path: src_dir is its load directory or a
+    `path_source` dict (traj.txt rows and frame-file locations, e.g. from a pruned run's archive)."""
+    if isinstance(src_dir, dict):
+        rows, where = src_dir['rows'], src_dir['files']
+    else:
+        rows = []
+        with open(os.path.join(src_dir, 'traj.txt')) as f:
+            for line in f:
+                if line.startswith('#') or not line.strip():
+                    continue
+                parts = line.split()
+                rows.append((parts[1], int(parts[2]), int(parts[3])))
+        acc = os.path.join(os.path.realpath(src_dir), 'accepted')
+        where = {fn: os.path.join(acc, fn) for fn in {r[0] for r in rows}}
     if end >= len(rows):
-        raise ValueError(f'{src_dir}: traj.txt has {len(rows)} rows, order.txt frames up to {end}')
+        raise ValueError(f'{src_dir if not isinstance(src_dir, dict) else "source"}: traj.txt has {len(rows)} rows, '
+                         f'order.txt frames up to {end}')
     os.makedirs(os.path.join(dst, 'accepted'))
     files = sorted({r[0] for r in rows[start:end + 1]})
     for fn in files:
-        src = os.path.join(os.path.realpath(src_dir), 'accepted', fn)
+        src = where[fn]
         try:
             os.link(src, os.path.join(dst, 'accepted', fn))
         except OSError:

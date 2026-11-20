@@ -1,0 +1,14 @@
+# loop_z re-frozen with the dp placement and the relaxed shooting-region check (2026-11-20), next to loop_z_nsh2
+# (natural thinning + refill cap 4, n_sh 2). Same loop directory, pool and state (name inherited):
+#     python -m loop.freeze_cmd loop_z_dp_nsh2 --name production_dp_nsh2 --from-freeze
+#     python -m loop.resume_production loop_z_dp_nsh2 --dir production_dp_nsh2
+# Offline on all stored paths (frozen lambda): dp 14 interfaces, worst neighbour ratio 5.1, shooting-region frames
+# max/median 12.4x, ridge levels q 0.018, 0.092, 0.33; natural + refill cap 10: 13, 9.7, 23.1x. n_sh only binds in
+# the verification runs (own paths); on the stored paths 3 and 2 give the same sets.
+inherit = "loop_z"
+
+[interfaces]
+method = "dp"
+target_p = 0.3
+long_ratio = 2.0
+n_sh = 2

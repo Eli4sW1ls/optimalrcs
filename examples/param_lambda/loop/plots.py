@@ -53,45 +53,139 @@ def _logit(q):
     return np.log(q) - np.log1p(-q)
 
 
-class Grid:
-    """(state CV, second CV) grid; for 3D systems a slice at a fixed third CV `w` (the potential and the exact
-    committor of that slice; the model is evaluated at (y, x, w))."""
+_FRAMES = {}
 
-    def __init__(self, cfg, pool, n=(240, 140), w=None):
-        import toy2d
-        from loop.ase_calcs import load_toytis_potential
+
+def _pool_frames(pool, step=5):
+    """(cv, w) of the pooled frames (every `step`-th; cv without the recorded lambda column, in the system's CV
+    order; w the piece weight), cached per pool directory."""
+    key = (pool.dir, step)
+    if key not in _FRAMES:
+        cvs, ws = [], []
+        for k in pool.passes():
+            z, _ = pool.load(k)
+            cvs.append(np.asarray(z['cv'][::step, 1:], float))
+            ws.append(np.asarray(z['piece_w'], float)[z['piece'][::step]])
+        _FRAMES.clear()
+        _FRAMES[key] = (np.concatenate(cvs), np.concatenate(ws))
+    return _FRAMES[key]
+
+
+def _wquantile(x, w, q):
+    o = np.argsort(x)
+    c = np.cumsum(w[o]) / np.sum(w)
+    return np.interp(q, c, x[o])
+
+
+def _axes(cfg):
+    """Indices (state CV, second plotted CV, the CVs held fixed) in the system's CV order. The second CV is
+    [plots] x_cv (a CV name) or the first CV after the state CV."""
+    s = cfg['system_spec']
+    names, a = list(s['cv_names']), int(s.get('state_cv', 0))
+    xc = cfg.get('plots', {}).get('x_cv')
+    b = names.index(xc) if xc else next(i for i in range(len(names)) if i != a)
+    return a, b, [i for i in range(len(names)) if i not in (a, b)]
+
+
+class Grid:
+    """(state CV, second CV) grid. With more CVs, a slice: the first further CV at `w` (one grid per slice value,
+    `_grids`), any others at their weighted medians in the pool. Background: the analytic potential where the system
+    has one (toytis potentials, the known 3D systems), otherwise -ln of the weighted density of the pooled frames
+    that lie nearest this slice (`slice_values`: all slice values of the figure). The model is evaluated on the
+    full CV vector."""
+
+    def __init__(self, cfg, pool, n=(240, 140), w=None, slice_values=None):
         s = cfg['system_spec']
+        names = list(s['cv_names'])
         self.s, self.w = s, w
-        self.ys = np.linspace(s['lambda_a'] - 0.06, s['lambda_b'] + 0.06, n[0])
-        xr = cfg.get('plots', {}).get('x_range')               # default: the data's range (0.2% quantiles)
+        self.ia, self.ib, self.rest = _axes(cfg)
+        self.names = names
+        self.slice_name = names[self.rest[0]] if self.rest else None
+        self.slice_values = list(slice_values) if slice_values is not None else ([w] if w is not None else [])
+        pc = cfg.get('plots', {})
+        pad = 0.075 * (s['lambda_b'] - s['lambda_a'])
+        self.ys = np.linspace(s['lambda_a'] - pad, s['lambda_b'] + pad, n[0])
+        xr = pc.get('x_range')                                 # default: the data's range (0.2% quantiles)
+        cvp, wp = _pool_frames(pool)
         if not xr:
-            xs_all = np.concatenate([pool.load(k)[0]['cv'][::20, 2] for k in pool.passes()])
-            xr = np.quantile(xs_all, [0.002, 0.998])
+            xr = np.quantile(cvp[:, self.ib], [0.002, 0.998])
         self.xs = np.linspace(*xr, n[1])
         Y, X = np.meshgrid(self.ys, self.xs, indexing='ij')
+        self.fixed = {}
+        if self.rest:
+            self.fixed[self.rest[0]] = float(w) if w is not None else float(_wquantile(cvp[:, self.rest[0]], wp, 0.5))
+            for r in self.rest[1:]:
+                self.fixed[r] = float(_wquantile(cvp[:, r], wp, 0.5))
+            if w is None:
+                self.w = self.fixed[self.rest[0]]
+        self.cv = np.zeros((Y.size, len(names)))
+        self.cv[:, self.ia], self.cv[:, self.ib] = Y.ravel(), X.ravel()
+        for r, v in self.fixed.items():
+            self.cv[:, r] = v
+        self.shape = Y.shape
+        V = None
+        try:
+            V = self._analytic(s, Y, X)
+        except Exception:                                      # noqa: BLE001  no analytic potential: from the data
+            V = None
+        if V is not None:
+            V = V / s['kT']
+            self.bg_note = 'potential, 1 kT contours'
+        else:
+            V = self._density(cvp, wp, n)
+            self.bg_note = ('-ln sampled density of the pooled frames' + (f' nearest this {self.slice_name} slice'
+                            if self.rest else '') + ', unit contours')
+        self.V = V - np.nanmin(V)
+        self.mask = ~np.isfinite(self.V) | (self.V > float(pc.get('vmax_kT', 12)))
+        self.V = np.where(np.isfinite(self.V), self.V, 99.0)
+        qx = ase_systems.exact_committor(s)
+        try:
+            self.q_exact = qx(self.cv).reshape(self.shape) if qx is not None else None     # None: no exact reference
+        except Exception:                                      # noqa: BLE001
+            self.q_exact = None
+
+    def _analytic(self, s, Y, X):
+        """The potential on the grid for the known toy systems, or None."""
+        import toy2d
+        from loop.ase_calcs import load_toytis_potential
         if s['dim'] == 1 and s.get('velocity_cvs'):            # underdamped 1D (x, v): the energy V(x) + v^2 / 2
             sys.path.insert(0, os.path.join(env.EXAMPLES, 'figures_by_potential', '_shared', 'exact_committors'))
             import exact_tools
-            V = exact_tools.coswell_potential(Y) + 0.5 * X ** 2
-            self.cv = np.c_[Y.ravel(), X.ravel()]
-        elif w is None:
-            pot = load_toytis_potential(s['potential'], s['potential_kwargs'])
-            V = toy2d.potential_grid(pot, self.ys, self.xs)
-            self.cv = np.c_[Y.ravel(), X.ravel()]
-        else:
-            c = s['calculator']
+            return exact_tools.coswell_potential(Y) + 0.5 * X ** 2
+        if (self.ia, self.ib) != (0, 1):
+            return None
+        if not self.rest and s.get('potential'):
+            return toy2d.potential_grid(load_toytis_potential(s['potential'], s['potential_kwargs']), self.ys, self.xs)
+        c = s.get('calculator') or {}
+        if len(self.rest) == 1 and self.rest[0] == 2 and c.get('spec') and c.get('params') is not None:
             if c.get('base_dim', s['dim']) < s['dim']:          # uncoupled w: the 2D potential (+ a constant)
-                V = toy2d.potential_grid(load_toytis_potential(c['spec'], c['params']), self.ys, self.xs)
-            else:                                              # coupled (zpot_w): the effective potential at w
-                pot = load_toytis_potential(c['spec'], c['params'])
-                V = np.array([pot.effective_potential((np.array([a, b, w]), np.zeros(3)))
-                              for a, b in zip(Y.ravel(), X.ravel())]).reshape(Y.shape)
-            self.cv = np.c_[Y.ravel(), X.ravel(), np.full(Y.size, w)]
-        V = V / s['kT']
-        self.V = V - np.nanmin(V)
-        self.shape = Y.shape
-        self.mask = self.V > float(cfg.get('plots', {}).get('vmax_kT', 12))
-        self.q_exact = ase_systems.exact_committor(s)(self.cv).reshape(self.shape)
+                return toy2d.potential_grid(load_toytis_potential(c['spec'], c['params']), self.ys, self.xs)
+            pot = load_toytis_potential(c['spec'], c['params'])  # coupled (zpot_w): the effective potential at w
+            return np.array([pot.effective_potential((np.array([a, b, self.w]), np.zeros(3)))
+                             for a, b in zip(Y.ravel(), X.ravel())]).reshape(Y.shape)
+        return None
+
+    def _density(self, cvp, wp, n, nb=(60, 40), empty=1e-5):
+        """-ln of the weighted 2D histogram of the pooled frames on (state CV, second CV), smoothed by one bin and
+        interpolated onto the grid; with slices, only the frames whose fixed CV lies nearest this slice's value.
+        Where the smoothed density is below `empty` x its maximum: inf (shown as not visited)."""
+        from scipy.interpolate import RegularGridInterpolator
+        from scipy.ndimage import gaussian_filter
+        sel = np.ones(len(cvp), bool)
+        if self.rest and len(self.slice_values) > 1:
+            r0 = self.rest[0]
+            vals = np.asarray(self.slice_values, float)
+            near = vals[np.argmin(np.abs(cvp[:, r0][:, None] - vals[None, :]), axis=1)]
+            sel = near == self.w
+        ey = np.linspace(self.ys[0], self.ys[-1], nb[0] + 1)
+        ex = np.linspace(self.xs[0], self.xs[-1], nb[1] + 1)
+        H, _, _ = np.histogram2d(cvp[sel, self.ia], cvp[sel, self.ib], bins=(ey, ex), weights=wp[sel])
+        H = gaussian_filter(H / max(H.sum(), 1e-300), 1.0, mode='nearest')
+        cy, cx = 0.5 * (ey[1:] + ey[:-1]), 0.5 * (ex[1:] + ex[:-1])
+        Y, X = np.meshgrid(np.clip(self.ys, cy[0], cy[-1]), np.clip(self.xs, cx[0], cx[-1]), indexing='ij')
+        Hg = RegularGridInterpolator((cy, cx), H)(np.c_[Y.ravel(), X.ravel()]).reshape(Y.shape)
+        with np.errstate(divide='ignore'):
+            return np.where(Hg > empty * H.max(), -np.log(np.maximum(Hg, 1e-300)), np.inf)
 
     def field(self, values):
         return np.ma.array(np.asarray(values, float).reshape(self.shape), mask=self.mask)
@@ -112,11 +206,14 @@ def _mark_unvisited(ax, grid):
 
 
 def _sfx(grid):
-    return '' if grid.w is None else f'_w{grid.w:+g}'
+    return '' if not grid.rest else f'_{grid.slice_name}{grid.w:+.3g}'
 
 
 def _slice_note(grid):
-    return '' if grid.w is None else f' (slice w = {grid.w:+g})'
+    if not grid.rest:
+        return ''
+    more = ', ' + ', '.join(f'{grid.names[r]} = {grid.fixed[r]:.3g}' for r in grid.rest[1:]) + ' (medians)' if len(grid.rest) > 1 else ''
+    return f' (slice {grid.slice_name} = {grid.w:+.3g}{more})'
 
 
 def _passes(cfg):
@@ -154,10 +251,11 @@ def fig_interfaces(cfg, st, grid, out):
         inner = rec['interfaces'][1:-1]
         ax.contour(grid.ys, grid.xs, L.T, levels=inner, colors=BLUE, linewidths=1.2)
         h = m.h_of_lambda(np.array(inner))
-        ax.contour(grid.ys, grid.xs, grid.q_exact.T, levels=np.sort(np.unique(np.clip(h, 1e-6, 1 - 1e-6))),
-                   colors=RED, linewidths=0.8, linestyles='--')
+        if grid.q_exact is not None:
+            ax.contour(grid.ys, grid.xs, grid.q_exact.T, levels=np.sort(np.unique(np.clip(h, 1e-6, 1 - 1e-6))),
+                       colors=RED, linewidths=0.8, linestyles='--')
         _mark_unvisited(ax, grid)
-        rc = 'all checks pass' if rec['recheck']['ok'] else 'checks fail'
+        rc ='all checks pass' if rec['recheck']['ok'] else 'checks fail'
         ax.set_title(f'{"pass " if isinstance(rec["k"], int) else ""}{rec["k"]}: {len(rec["interfaces"])} interfaces, {rc} on its own paths\n'
                      f'q = {", ".join(f"{v:.2g}" for v in h)}', loc='left')
     for ax in axes.flat[n:]:
@@ -177,18 +275,19 @@ def fig_interfaces(cfg, st, grid, out):
 PATH_COLS = ['#eb6834', '#1baf7a', '#e87ba4', '#c98500']     # categorical slots 2, 3, 5, 4 (blue / red taken)
 
 
-def _pick_paths(cfg, sub, w_sign=None, n_reactive=2, n_staple=2):
-    """A few accepted paths of a production run: the shortest reactive ones (a frame in A and one in B) among the
-    newest, and the
-    shortest crossing staple (LMR) at a low and at a high interface. 3D: only paths whose median w has the sign of
-    the slice. Returns [(label, cv array (frames x n_cv))]; needs the paths' load dirs."""
+def _pick_paths(cfg, sub, near=None, n_reactive=2, n_total=4, data_file='infretis_data.txt', max_rows=4000):
+    """A few accepted paths of a run (newest rows first, at most `max_rows` read): the shortest reactive ones (a
+    frame in A and one in B) among the newest, then crossing staples (LMR, the shortest per interface) spread over
+    the interfaces up to `n_total` paths. `near` = (CV index, slice values, this value): only paths whose median of
+    that CV is nearest this slice. Returns
+    [(label, cv array (frames x n_cv))]; needs the paths' load dirs."""
     s = cfg['system_spec']
     run = os.path.join(cfg['loop_dir'], sub)
-    rows = [ln.split() for ln in open(os.path.join(run, 'infretis_data.txt')) if ln.strip() and not ln.startswith('#')]
+    rows = [ln.split() for ln in open(os.path.join(run, data_file)) if ln.strip() and not ln.startswith('#')]
     reactive, staples = [], {}
-    for r in rows[::-1]:
+    for r in rows[::-1][:max_rows]:
         d = os.path.join(run, 'load', r[0], 'order.txt')
-        if not os.path.isfile(d):
+        if len(r) < 5 or not os.path.isfile(d):
             continue
         ptype, n = r[4], int(r[1])
         lmr = 'LMR' in ptype
@@ -199,20 +298,82 @@ def _pick_paths(cfg, sub, w_sign=None, n_reactive=2, n_staple=2):
             if k in staples and staples[k][2] <= n:
                 continue
         cv = np.loadtxt(d, comments='#', ndmin=2)[:, 2:]
-        if w_sign is not None and cv.shape[1] > 2 and np.sign(np.median(cv[:, 2])) != w_sign:
+        if cv.shape[1] < 2:
             continue
-        hit_a, hit_b = cv[:, 0].min() <= s['lambda_a'], cv[:, 0].max() >= s['lambda_b']
+        if near is not None:
+            col, vals, v = near
+            if cv.shape[1] <= col or vals[int(np.argmin(np.abs(np.asarray(vals) - np.median(cv[:, col]))))] != v:
+                continue
+        sc = cv[:, int(s.get('state_cv', 0))]
+        hit_a, hit_b = sc.min() <= s['lambda_a'], sc.max() >= s['lambda_b']
         if hit_a and hit_b and len(reactive) < 4 * n_reactive:
-            reactive.append((f'path {r[0]}: {"A -> B" if cv[0, 0] < cv[-1, 0] else "B -> A"}, {len(cv)} frames', cv))
+            reactive.append((f'path {r[0]}: {"A -> B" if sc[0] < sc[-1] else "B -> A"}, {len(cv)} frames', cv))
         elif lmr and not hit_b:
             a, b = ptype.split('LMR')
             k = int(a)
             if k not in staples or len(cv) < staples[k][2]:
                 staples[k] = (f'path {r[0]}: staple LMR, turns at interfaces {a} and {b}, {len(cv)} frames', cv, len(cv))
-    ks = sorted(staples)
-    pick = list(dict.fromkeys([ks[len(ks) // 4], ks[(3 * len(ks)) // 4]])) if ks else []
     reactive = sorted(reactive, key=lambda t: len(t[1]))[:n_reactive]      # the shortest of the newest 4 n
-    return reactive + [staples[k][:2] for k in pick][:n_staple]
+    n_st = max(n_total - len(reactive), 0)
+    ks = sorted(staples)
+    pick = list(dict.fromkeys(ks[int(i)] for i in np.linspace(0, len(ks) - 1, min(n_st, len(ks))).round())) if ks and n_st else []
+    return reactive + [staples[k][:2] for k in pick]
+
+
+def fig_interface_paths(cfg, grid, out, sub, model_path, interfaces, title, fname, prev=None, data_file='infretis_data.txt'):
+    """One panel: an interface set (blue; lambda isosurfaces, or vertical lines for the seed lambda when
+    model_path is None), optionally a previous set (grey dotted) and the exact isocommittors at the same q levels
+    (red dashed, where the system has an exact committor), and a few accepted paths of the run in <loop>/<sub>
+    (`_pick_paths`), projected on (state CV, second CV)."""
+    run = os.path.join(cfg['loop_dir'], sub)
+    near = (grid.rest[0], grid.slice_values, grid.w) if grid.rest and len(grid.slice_values) > 1 else None
+    paths = _pick_paths(cfg, sub, near, data_file=data_file) \
+        if os.path.isfile(os.path.join(run, data_file)) and os.path.isdir(os.path.join(run, 'load')) else []
+    fig, ax = plt.subplots(figsize=(9.0, 5.4))
+    grid.background(ax)
+    inner = [float(v) for v in interfaces[1:-1]]
+
+    def draw(mp, lv, **kw):
+        if mp is None:
+            for v in lv:
+                ax.axvline(v, **kw)
+        else:
+            L = LambdaModel(mp)(grid.cv).reshape(grid.shape)
+            ax.contour(grid.ys, grid.xs, L.T, levels=lv, colors=kw['color'], linewidths=kw['lw'],
+                       linestyles=kw.get('ls', 'solid'))
+    if prev is not None and len(prev['interfaces']) > 2:
+        draw(prev['model'], [float(v) for v in prev['interfaces'][1:-1]], color='0.45', lw=0.8, ls=':')
+        ax.plot([], [], color='0.45', lw=0.8, ls=':', label=f'previous set: {prev["label"]} ({len(prev["interfaces"])} interfaces)')
+    draw(model_path, inner, color=BLUE, lw=1.1)
+    ax.plot([], [], color=BLUE, lw=1.1, label=f'this set: {len(interfaces)} interfaces')
+    h = None
+    if model_path is not None:
+        h = LambdaModel(model_path).h_of_lambda(np.array(inner))
+        if grid.q_exact is not None:
+            ax.contour(grid.ys, grid.xs, grid.q_exact.T, levels=np.sort(np.unique(np.clip(h, 1e-6, 1 - 1e-6))),
+                       colors=RED, linewidths=0.7, linestyles='--')
+            ax.plot([], [], color=RED, lw=0.7, ls='--', label='exact isocommittors, same q levels')
+    _mark_unvisited(ax, grid)
+    for (lab, cv), col in zip(paths, PATH_COLS):
+        ax.plot(cv[:, grid.ia], cv[:, grid.ib], color=col, lw=0.8, alpha=0.9, label=lab)
+        ax.plot(cv[0, grid.ia], cv[0, grid.ib], 'o', ms=5, color=col, mec='#fcfcfb', mew=1.0)
+    if not paths:
+        ax.plot([], [], ' ', label='(no paths of the run found)')
+    ax.plot([], [], ' ', label=f'grey: {grid.bg_note}')
+    ax.legend(fontsize=7, loc='upper center', bbox_to_anchor=(0.5, -0.11), ncol=2, handlelength=1.8, columnspacing=1.5)
+    ax.set_xlabel(f'{grid.names[grid.ia]} (A left of the first black line, B right of the second)')
+    ax.set_ylabel(grid.names[grid.ib])
+    note = ('' if not grid.rest else f'; paths whose median {grid.slice_name} is nearest this slice, projected on '
+            f'({grid.names[grid.ia]}, {grid.names[grid.ib]})')
+    qs = '' if h is None else 'q = ' + ', '.join(f'{v:.2g}' for v in h)
+    import textwrap
+    head = textwrap.fill(f'{cfg["name"]}{_slice_note(grid)}: {title} (dot = first frame){note}', 120)
+    ax.set_title(head + '\n' + textwrap.fill(qs, 120, subsequent_indent='    ') if qs else head, loc='left', fontsize=8)
+    fig.tight_layout()
+    path = os.path.join(out, f'{fname}{_sfx(grid)}.png')
+    fig.savefig(path, dpi=140, bbox_inches='tight')
+    plt.close(fig)
+    return path
 
 
 def fig_paths(cfg, grid, out, sub='production'):
@@ -223,35 +384,22 @@ def fig_paths(cfg, grid, out, sub='production'):
         return None
     with open(fz) as f:
         fr = json.load(f)
-    paths = _pick_paths(cfg, sub, None if grid.w is None else np.sign(grid.w))
-    if not paths:
-        return None
-    fig, ax = plt.subplots(figsize=(8.5, 4.6))
-    grid.background(ax)
-    m = LambdaModel(fr['model'])
-    L = m(grid.cv).reshape(grid.shape)
-    inner = fr['interfaces'][1:-1]
-    ax.contour(grid.ys, grid.xs, L.T, levels=inner, colors=BLUE, linewidths=1.0)
-    h = m.h_of_lambda(np.array(inner))
-    ax.contour(grid.ys, grid.xs, grid.q_exact.T, levels=np.sort(np.unique(np.clip(h, 1e-6, 1 - 1e-6))),
-               colors=RED, linewidths=0.7, linestyles='--')
-    _mark_unvisited(ax, grid)
-    for (lab, cv), col in zip(paths, PATH_COLS):
-        ax.plot(cv[:, 0], cv[:, 1], color=col, lw=0.8, alpha=0.9, label=lab)
-        ax.plot(cv[0, 0], cv[0, 1], 'o', ms=5, color=col, mec='#fcfcfb', mew=1.0)
-    ax.plot([], [], color=BLUE, lw=1.0, label=f'lambda isosurfaces (pass {fr["pass_index"]}, {len(fr["interfaces"])} interfaces)')
-    ax.plot([], [], color=RED, lw=0.7, ls='--', label='exact isocommittors, same q levels')
-    ax.legend(fontsize=7, loc='upper left', bbox_to_anchor=(1.01, 1.0))
-    names = cfg['system_spec']['cv_names']
-    ax.set_xlabel(f'{names[0]} (A left of the first black line, B right of the second)')
-    ax.set_ylabel(names[1])
-    note = '' if grid.w is None else f'; paths with median w {"<" if grid.w < 0 else ">"} 0, projected on (y, x)'
-    ax.set_title(f'{cfg["name"]}{_slice_note(grid)}: production paths (dot = first frame){note}', loc='left')
-    fig.tight_layout()
-    path = os.path.join(out, f'paths{_sfx(grid)}.png')
-    fig.savefig(path, dpi=140, bbox_inches='tight')
-    plt.close(fig)
-    return path
+    return fig_interface_paths(cfg, grid, out, sub, fr['model'], fr['interfaces'],
+                               f'production paths, lambda of pass {fr["pass_index"]}', 'paths')
+
+
+def fig_pass(cfg, pool, k, model_path, interfaces, note, prev=None):
+    """pass_<k>/interfaces_paths[_w<value>].png after pass k (pass 0: infinit's set, seed lambda): the set, the
+    previous one, the exact isocommittors and a few paths of the pass's own run. Written by the loop after every
+    pass ([run] pass_figures, default true)."""
+    out = os.path.join(cfg['loop_dir'], f'pass_{k}')
+    sub, data_file = f'pass_{k}/run', 'infretis_data.txt'
+    if k == 0:                         # infinit: one data file per iteration, the last one sampled these interfaces
+        sub = 'pass_0'
+        with open(os.path.join(cfg['loop_dir'], 'pass_0', 'pass0.json')) as f:
+            data_file = os.path.basename(json.load(f)['iterations'][-1]['data_file'])
+    return [fig_interface_paths(cfg, grid, out, sub, model_path, interfaces, f'pass {k}: {note}', 'interfaces_paths',
+                                prev, data_file=data_file) for grid in _grids(cfg, pool)]
 
 
 def _teacher_frames(cfg, pool, k):
@@ -458,6 +606,7 @@ def fig_tis(cfg, st, pool, out):
 
 PROD_RUNS = [('production', 'learned lambda', BLUE), ('production_refill3', 'learned lambda, refilled', '#0d366b'),
              ('production_nsh2', 'learned lambda, ridge split (n_sh 2, max_ratio 4)', '#1baf7a'),
+             ('production_dp_nsh2', 'learned lambda, dp placement (n_sh 2)', '#e87ba4'),
              ('production_seed', 'seed lambda', RED)]
 
 
@@ -576,11 +725,31 @@ def _init_md(cfg, sub):
         return json.load(f).get('md_steps', 0)
 
 
+def _slice_values(cfg, pool):
+    """Values of the first CV beyond the two plotted ones, one figure panel each: [plots] slices if given; for the
+    known w systems the two well centres -w0, +w0; otherwise the 25% and 75% weighted quantiles of that CV over
+    the pooled frames (for a double well about the well centres; one value, the median, if they coincide)."""
+    s, pc = cfg['system_spec'], cfg.get('plots', {})
+    _, _, rest = _axes(cfg)
+    if not rest:
+        return []
+    if pc.get('slices'):
+        return [float(v) for v in pc['slices']]
+    c = s.get('calculator') or {}
+    w0 = ((c.get('w_well') or {}).get('w0') or (c.get('params') or {}).get('w0'))
+    if w0 and s['cv_names'][rest[0]] == 'w':
+        return [-float(w0), float(w0)]
+    cvp, wp = _pool_frames(pool)
+    lo, mid, hi = _wquantile(cvp[:, rest[0]], wp, np.array([0.25, 0.5, 0.75]))
+    spread = np.subtract(*np.quantile(cvp[:, rest[0]], [0.99, 0.01]))
+    return [float(mid)] if hi - lo < 1e-3 * max(spread, 1e-12) else [float(f'{lo:.3g}'), float(f'{hi:.3g}')]
+
+
 def _grids(cfg, pool):
-    if cfg['system_spec']['dim'] <= 2:                     # 2D, or underdamped 1D: the (x, v) plane
+    vals = _slice_values(cfg, pool)
+    if not vals:                                           # 2D, or underdamped 1D: the (x, v) plane
         return [Grid(cfg, pool)]
-    w0 = float(cfg['system_spec']['calculator'].get('w_well', cfg['system_spec']['calculator']['params']).get('w0', 0.1))
-    return [Grid(cfg, pool, w=-w0), Grid(cfg, pool, w=w0)]
+    return [Grid(cfg, pool, w=v, slice_values=vals) for v in vals]
 
 
 def main():
