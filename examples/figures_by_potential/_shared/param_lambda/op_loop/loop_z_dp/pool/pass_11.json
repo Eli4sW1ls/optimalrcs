@@ -1,0 +1,39 @@
+{
+ "kind": "pass",
+ "lambda_version": "b43239b71b979b177da10ca7150044c7",
+ "lambda_model": "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_z_dp/models/lambda_7.npz",
+ "interfaces": [
+  0.05,
+  0.06497642739694587,
+  0.08901371848614201,
+  0.13927516711817006,
+  0.17874544530104375,
+  0.2014910568237299,
+  0.34933753172118986,
+  0.5154923064299343,
+  0.722357756043154,
+  0.782305073574528,
+  0.8317659696000697,
+  0.8447505318443234,
+  0.85
+ ],
+ "mode": "staple",
+ "lambda_a": 0.05,
+ "lambda_b": 0.85,
+ "cv_names": [
+  "y",
+  "x"
+ ],
+ "state_cv": 0,
+ "n_rows": 592,
+ "workdir": "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_z_dp/pass_7/run",
+ "md_steps": 975377,
+ "wall_seconds": 420.3314468860626,
+ "cycles": 1000,
+ "pass_index": 11,
+ "n_pieces": 1699,
+ "n_frames": 1540729,
+ "n_paths": 592,
+ "weighting": "rejections",
+ "reversed_pieces": true
+}

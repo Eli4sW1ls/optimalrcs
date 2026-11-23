@@ -1,0 +1,66 @@
+[
+ {
+  "estimate": "r_yx (w hidden)",
+  "features": "current (y,x,u,v)",
+  "lag": 50,
+  "r2_heldout": -0.017352520557323534,
+  "se": 0.0030957526928425093,
+  "z": -5.605267047798482
+ },
+ {
+  "estimate": "r_yx (w hidden)",
+  "features": "+ history of (y,x)",
+  "lag": 50,
+  "r2_heldout": -0.029571066158325388,
+  "se": 0.006500581444744825,
+  "z": -4.548987872804996
+ },
+ {
+  "estimate": "r_yx (w hidden)",
+  "features": "+ w (oracle)",
+  "lag": 50,
+  "r2_heldout": -0.030085940094533987,
+  "se": 0.004859469681152939,
+  "z": -6.191198231202034
+ },
+ {
+  "estimate": "r_yx (w hidden)",
+  "features": "+ history + w",
+  "lag": 50,
+  "r2_heldout": -0.025766252488096202,
+  "se": 0.005207742715996322,
+  "z": -4.9476815375213326
+ },
+ {
+  "estimate": "r_yxw (control)",
+  "features": "current (y,x,u,v)",
+  "lag": 50,
+  "r2_heldout": -0.011207858576724197,
+  "se": 0.0026556986965317053,
+  "z": -4.220305033609972
+ },
+ {
+  "estimate": "r_yxw (control)",
+  "features": "+ history of (y,x)",
+  "lag": 50,
+  "r2_heldout": -0.016594701213447548,
+  "se": 0.003645439138499814,
+  "z": -4.552181666726898
+ },
+ {
+  "estimate": "r_yxw (control)",
+  "features": "+ w (oracle)",
+  "lag": 50,
+  "r2_heldout": -0.03783730713839308,
+  "se": 0.004844920191782412,
+  "z": -7.809686360276866
+ },
+ {
+  "estimate": "r_yxw (control)",
+  "features": "+ history + w",
+  "lag": 50,
+  "r2_heldout": -0.020497084192693606,
+  "se": 0.0036868767620644774,
+  "z": -5.559470933120152
+ }
+]

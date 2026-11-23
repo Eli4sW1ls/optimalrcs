@@ -14,3 +14,6 @@ target_p = 0.3
 long_ratio = 2.0
 split_gain = 0.3
 n_sh = 2
+balance = true                      # after the dp and the evening step: move interfaces to even out the shooting-region frames
+p_max = 0.9                         # balance: no move makes a pair crossed with p above this (unless it already was)
+balance_p_weight = 0.3              # balance objective: sum (ln frames - mean)^2 + this x sum (ln(p / target_p))^2 over all pairs

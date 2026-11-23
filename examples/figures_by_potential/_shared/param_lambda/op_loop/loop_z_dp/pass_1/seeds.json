@@ -1,0 +1,98 @@
+{
+ "report": {
+  "0": {
+   "pass_index": 4,
+   "pnr": 875,
+   "frames": [
+    0,
+    97
+   ],
+   "tainted": false
+  },
+  "1": {
+   "pass_index": 4,
+   "pnr": 882,
+   "frames": [
+    0,
+    4820
+   ],
+   "tainted": false,
+   "pptype": "LMR",
+   "sh_region": [
+    1,
+    36
+   ]
+  },
+  "2": {
+   "pass_index": 4,
+   "pnr": 877,
+   "frames": [
+    0,
+    254
+   ],
+   "tainted": false,
+   "pptype": "LML",
+   "sh_region": [
+    1,
+    253
+   ]
+  },
+  "3": {
+   "pass_index": 4,
+   "pnr": 883,
+   "frames": [
+    0,
+    1587
+   ],
+   "tainted": false,
+   "pptype": "LMR",
+   "sh_region": [
+    108,
+    1094
+   ]
+  },
+  "4": {
+   "pass_index": 4,
+   "pnr": 888,
+   "frames": [
+    0,
+    934
+   ],
+   "tainted": false,
+   "pptype": "LMR",
+   "sh_region": [
+    302,
+    921
+   ]
+  },
+  "5": {
+   "pass_index": 4,
+   "pnr": 903,
+   "frames": [
+    0,
+    3093
+   ],
+   "tainted": false,
+   "pptype": "LMR",
+   "sh_region": [
+    2655,
+    3090
+   ]
+  },
+  "6": {
+   "pass_index": 4,
+   "pnr": 886,
+   "frames": [
+    947,
+    109689
+   ],
+   "tainted": false,
+   "pptype": "LMR",
+   "sh_region": [
+    2,
+    108741
+   ]
+  }
+ },
+ "written": "2026-11-23 18:37:34"
+}
