@@ -1,0 +1,16 @@
+# Full loop on the Brownian Z with the dp placement (crossing probability ~target_p per pair, then even shooting
+# regions, n_sh = 2) in every pass and the freeze; pauses after every pass (and pass 0) for the interface figure:
+#     python -m loop.confirm loop_z_dp continue|stop|status
+inherit = "loop_z"
+name = "loop_z_dp"
+
+[run]
+confirm_passes = true
+pass_figures = true
+
+[interfaces]
+method = "dp"
+target_p = 0.3
+long_ratio = 2.0
+split_gain = 0.3
+n_sh = 2
