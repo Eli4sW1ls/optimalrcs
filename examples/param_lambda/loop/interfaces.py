@@ -9,7 +9,8 @@ weight: (lam, w) pairs from `path_arrays`. Checks (defaults eps = 1%, c = 1, n_A
 
 - skip, both directions: P(a step crossing lambda_k also crosses the next interface) <= eps, where lambda_k has
   at least 100 crossings in that direction;
-- gap: lambda_{k+1} - lambda_k >= c delta(lambda_k), delta = 95% quantile of |d lambda| over the steps crossing
+- gap (waived where the skip rate is measured, >= 100 crossings; `gap_if_unmeasured = false` keeps it everywhere):
+  lambda_{k+1} - lambda_k >= c delta(lambda_k), delta = 95% quantile of |d lambda| over the steps crossing
   lambda_k (the only test where crossings are rare; delta borrowed from the nearest sampled level, and the
   interface marked unverified, where a level has no crossings);
 - distance from the states: the 5% quantile of s - lambda_A on frames crossing the first interface >= n_A RMS
@@ -177,6 +178,7 @@ def check(paths, interfaces, cfg, mode, verified=None):
     """Every spacing check of an interface set on the sampled paths. Returns a dict with per-interface rows,
     per-ensemble rows, the failures and `ok`."""
     eps, c, n_a, n_sh = float(cfg.get('eps', 0.01)), float(cfg.get('c', 1.0)), float(cfg.get('n_a', 3)), float(cfg.get('n_sh', 3))
+    gap_waived = bool(cfg.get('gap_if_unmeasured', True))      # the gap rule is the proxy for the skip rate: waived where measured
     lv = [float(v) for v in interfaces]
     steps = _steps(paths)
     sigma_s = rms_step_s(paths)
@@ -199,7 +201,7 @@ def check(paths, interfaces, cfg, mode, verified=None):
             fails.append(('skip_up', k, st['skip_up']))
         if st['n_dn'] >= 100 and np.isfinite(st['skip_dn']) and st['skip_dn'] > eps:
             fails.append(('skip_dn', k, st['skip_dn']))
-        if np.isfinite(row['gap_up']) and row['gap_up'] < c:
+        if np.isfinite(row['gap_up']) and row['gap_up'] < c and not (gap_waived and st['n_up'] >= 100):
             fails.append(('gap', k, row['gap_up']))
         if k == 1:
             d = st['first_frames_s'] - lv[0]
@@ -373,6 +375,7 @@ def place(model, paths, plan_lam, cfg, mode, log=None, max_rounds=50):
     cfg = dict(cfg, eps=float(cfg.get('eps', 0.01)) / margin, c=float(cfg.get('c', 1.0)) * margin,
                n_a=float(cfg.get('n_a', 3)) * margin, n_sh=float(cfg.get('n_sh', 3)) * margin)
     eps, c, n_a = cfg['eps'], cfg['c'], cfg['n_a']
+    gap_waived = bool(cfg.get('gap_if_unmeasured', True))
     la, lb = float(plan_lam[0]), float(plan_lam[-1])
     inner = [float(v) for v in plan_lam[1:-1]]
     steps = _steps(paths)
@@ -389,7 +392,8 @@ def place(model, paths, plan_lam, cfg, mode, log=None, max_rounds=50):
         if st['n_dn'] >= 100 and np.isfinite(st['skip_dn']) and st['skip_dn'] > eps:
             reasons.append(f'skip_dn {st["skip_dn"]:.3f}')
         delta = st_prev['delta'] if placed[-1] > la else st['delta']
-        if np.isfinite(delta) and lv - placed[-1] < c * delta:
+        measured = gap_waived and placed[-1] > la and st_prev['n_up'] >= 100
+        if np.isfinite(delta) and lv - placed[-1] < c * delta and not measured:
             reasons.append(f'gap {(lv - placed[-1]) / delta:.2f}')
         if len(placed) == 1:
             d = st['first_frames_s'] - la
@@ -405,7 +409,8 @@ def place(model, paths, plan_lam, cfg, mode, log=None, max_rounds=50):
         a, b, sb, w = steps
         dn = (a >= placed[-1]) & (b < placed[-1])
         d = lb - sb[dn]
-        bad = (np.isfinite(st['delta']) and lb - placed[-1] < c * st['delta']) or \
+        bad = (np.isfinite(st['delta']) and lb - placed[-1] < c * st['delta']
+               and not (gap_waived and st['n_up'] >= 100)) or \
               (st['n_up'] >= 100 and np.isfinite(st['skip_up']) and st['skip_up'] > eps) or \
               (dn.sum() >= 20 and np.quantile(d, 0.05) / sigma_s < n_a)
         if not bad:
@@ -474,6 +479,7 @@ def _local_check(paths, steps, lv, k, gate, mode):
     """The gate restricted to what inserting interface k changes: skip/gap of k - 1, k, k + 1 and the
     shooting-region tests of the ensembles whose middle interface is one of them (turns: see `refill`)."""
     eps, c, n_sh = gate['eps'], gate['c'], gate['n_sh']
+    gap_waived = bool(gate.get('gap_if_unmeasured', True))
     for j in (k - 1, k, k + 1):
         if j <= 0 or j >= len(lv) - 1:
             continue
@@ -482,10 +488,21 @@ def _local_check(paths, steps, lv, k, gate, mode):
             return False, f'skip_up at {lv[j]:.4f}'
         if st['n_dn'] >= 100 and np.isfinite(st['skip_dn']) and st['skip_dn'] > eps:
             return False, f'skip_dn at {lv[j]:.4f}'
-        if np.isfinite(st['delta']) and (lv[j + 1] - lv[j] < c * st['delta'] or lv[j] - lv[j - 1] < c * st['delta']):
+        gap_bad = ((lv[j + 1] - lv[j] < c * st['delta'] and not (gap_waived and st['n_up'] >= 100))
+                   or (lv[j] - lv[j - 1] < c * st['delta'] and not (gap_waived and st['n_dn'] >= 100)))
+        if np.isfinite(st['delta']) and gap_bad:
             return False, f'gap at {lv[j]:.4f}'
         if not np.isfinite(st['delta']):
             return False, f'no crossings of {lv[j]:.4f}'           # refill only where the paths verify the level
+        if gate.get('end_dist') and (j == 1 or j == len(lv) - 2):   # first / last interface against the states
+            n_a, sig = gate.get('n_a', 3), gate.get('sigma_s') or rms_step_s(paths)
+            if j == 1 and len(st['first_frames_s']) and np.quantile(st['first_frames_s'] - lv[0], 0.05) / sig < n_a:
+                return False, f'dist_a at {lv[j]:.4f}'
+            if j == len(lv) - 2:
+                a_, b_, sb_, w_ = steps
+                dn_ = (a_ >= lv[j]) & (b_ < lv[j])
+                if dn_.any() and np.quantile(lv[-1] - sb_[dn_], 0.05) / sig < n_a:
+                    return False, f'dist_b at {lv[j]:.4f}'
     mids = {lv[j] for j in (k - 1, k, k + 1) if 0 < j < len(lv) - 1}
     for e, L, M, R in ensembles_of(lv, mode):
         if M not in mids:
@@ -541,6 +558,7 @@ def place_dp(model, paths, cfg, mode, n_grid=120, max_rounds=25, log=None):
     eps, c = float(cfg.get('eps', 0.01)) / margin, float(cfg.get('c', 1.0)) * margin
     n_a = float(cfg.get('n_a', 3)) * margin
     gate = dict(cfg, eps=eps, c=c, n_a=n_a, n_sh=float(cfg.get('n_sh', 3)) * margin)
+    gap_waived = bool(cfg.get('gap_if_unmeasured', True))
     p_star = float(cfg.get('target_p', 0.3))
     steps = _steps(paths)
     a, b, sb, w = steps
@@ -586,7 +604,7 @@ def place_dp(model, paths, cfg, mode, n_grid=120, max_rounds=25, log=None):
                 continue
             if j == N - 1 and i > 0 and not ok_last[i]:
                 continue
-            if 0 < i and np.isfinite(delta[i]) and lam[j] - lam[i] < c * delta[i]:
+            if 0 < i and np.isfinite(delta[i]) and lam[j] - lam[i] < c * delta[i] and not (gap_waived and up_n[i] >= 100):
                 continue
             if 0 < i and up_n[i] >= 100 and skip_up[i, j] > eps:
                 continue
@@ -656,28 +674,107 @@ def place_dp(model, paths, cfg, mode, n_grid=120, max_rounds=25, log=None):
     return out
 
 
+def window_frames(paths, L, M, R):
+    """(weighted median frames, number of runs) of the shooting region of one window (L, M, R), measured on the
+    stored paths: the runs inside (L, R) whose excursion crosses M (seed.window_cores)."""
+    from loop import seed as seed_mod
+    n_in, wts = [], []
+    for lam, _, wt in paths:
+        for a_, b_ in seed_mod.window_cores(lam, L, M, R):
+            n_in.append(b_ - a_ + 1)
+            wts.append(wt)
+    if not n_in:
+        return (np.nan, 0)
+    o = np.argsort(n_in)
+    c = np.cumsum(np.asarray(wts, float)[o]) / np.sum(wts)
+    return (float(np.asarray(n_in)[o][np.searchsorted(c, 0.5)]), len(n_in))
+
+
 def region_frames(paths, interfaces):
     """Shooting-region length per staple ensemble of an interface set, measured on the stored paths: the weighted
     median number of frames of the runs inside the window (lambda_{i-1}, lambda_{i+1}) that cross lambda_i
     (seed.window_cores, the runs the region-frames check counts). Returns {e: (median, n)} for infretis ensembles
     e = 2 .. n-1."""
-    from loop import seed as seed_mod
     lv = [float(v) for v in interfaces]
-    out = {}
-    for e in range(2, len(lv)):
-        L, M, R = lv[e - 2], lv[e - 1], lv[e]
-        n_in, wts = [], []
-        for lam, _, wt in paths:
-            for a_, b_ in seed_mod.window_cores(lam, L, M, R):
-                n_in.append(b_ - a_ + 1)
-                wts.append(wt)
-        if n_in:
-            o = np.argsort(n_in)
-            c = np.cumsum(np.asarray(wts, float)[o]) / np.sum(wts)
-            out[e] = (float(np.asarray(n_in)[o][np.searchsorted(c, 0.5)]), len(n_in))
-        else:
-            out[e] = (np.nan, 0)
-    return out
+    return {e: window_frames(paths, lv[e - 2], lv[e - 1], lv[e]) for e in range(2, len(lv))}
+
+
+def balance_regions(model, paths, placed, cfg, mode, log=None, sweeps=3, n_cand=14, min_gain=0.01):
+    """Make the shooting-region lengths uniform: move interior interfaces, one at a time, to the position between
+    their neighbours that minimises the squared spread of ln(median frames) over the ensembles (`region_frames`) plus
+    `balance_p_weight` (default 0.3) x the sum of (ln(p / target_p))^2 over all pairs, the end pairs included, keeping
+    only moves that pass the local gate (skip rates to the neighbours above all: a path that crosses an interface
+    must not reach the next one in one step) and leave both adjacent pairs with a crossing probability of at least
+    target_p / 3 and at most p_max (default 0.9, unless the pair was already above it). Sweeps over the interfaces until no move improves the spread by `min_gain` (relative)."""
+    p_floor = float(cfg.get('target_p', 0.3)) / 3
+    p_max = float(cfg.get('p_max', 0.9))
+    margin = float(cfg.get('place_margin', 1.25))
+    gate = dict(cfg, eps=float(cfg.get('eps', 0.01)) / margin, c=float(cfg.get('c', 1.0)) * margin,
+                n_a=float(cfg.get('n_a', 3)) * margin, n_sh=float(cfg.get('n_sh', 3)) * margin, end_dist=True,
+                sigma_s=rms_step_s(paths))
+    steps = _steps(paths)
+    lv = [float(v) for v in placed['interfaces']]
+    cache = {}
+    target_p, w_p = float(cfg.get('target_p', 0.3)), float(cfg.get('balance_p_weight', 0.3))
+    h_a, h_b = state_levels(model, steps, lv[0], lv[-1])
+    h_a_known, h_b_known = h_a > 1e-8, h_b < 1 - 1e-8
+
+    def win(L, M, R):
+        key = (round(L, 9), round(M, 9), round(R, 9))
+        if key not in cache:
+            cache[key] = window_frames(paths, L, M, R)[0]
+        return cache[key]
+
+    def spread(v):
+        f = np.array([win(v[e - 2], v[e - 1], v[e]) for e in range(2, len(v))])
+        if not np.all(np.isfinite(f)) or np.any(f <= 0):
+            return np.inf
+        return float(np.sum((np.log(f) - np.mean(np.log(f))) ** 2)) + w_p * p_dev(v)
+
+    def p_dev(v):
+        # sum of (ln(p / target_p))^2 over all pairs, the end pairs too (levels of the states as in place_dp)
+        h = np.r_[0.0, np.clip(model.h_of_lambda(np.asarray(v[1:-1])), 1e-9, 1 - 1e-9), 1.0]
+        n = len(v)
+        ps = [_pair_p(h[j], h[j + 1], j == 0, j + 1 == n - 1, h_a_known, h_b_known) if j > 0 or j + 1 < n - 1
+              else 1.0 for j in range(n - 1)]
+        return float(np.sum([np.log(max(x, 1e-12) / target_p) ** 2 for x in ps]))
+
+    def pair_p(v, k):
+        h = np.r_[0.0, np.clip(model.h_of_lambda(np.asarray(v[1:-1])), 1e-9, 1 - 1e-9), 1.0]
+        return [1.0 / q_ratio(h[j], h[j + 1]) if 0 < j and j + 1 < len(v) - 1 else np.nan for j in (k - 1, k)]
+
+    def p_ok(v, k, p_before):
+        # both adjacent pairs keep p >= p_floor, and none is pushed above p_max (a pair crossed almost surely adds an
+        # ensemble and no information) unless it already was that high before the move
+        cap = max(p_max, np.nanmax(p_before) if np.any(np.isfinite(p_before)) else 0.0)
+        return all(np.isnan(x) or p_floor <= x <= cap for x in pair_p(v, k))
+
+    J = spread(lv)
+    start, moves = J, []
+    for _ in range(sweeps):
+        moved = False
+        for k in range(1, len(lv) - 1):
+            best, best_J = None, J
+            p_before = pair_p(lv, k)
+            for lc in np.linspace(lv[k - 1], lv[k + 1], n_cand + 2)[1:-1]:
+                if abs(lc - lv[k]) < 1e-9:
+                    continue
+                trial = lv[:k] + [float(lc)] + lv[k + 1:]
+                Jt = spread(trial)
+                if Jt < best_J * (1 - min_gain) and p_ok(trial, k, p_before) and \
+                        _local_check(paths, steps, trial, k, gate, mode)[0]:
+                    best, best_J = trial, Jt
+            if best is not None:
+                moves.append((lv[k], best[k]))
+                lv, J, moved = best, best_J, True
+        if not moved:
+            break
+    rf = region_frames(paths, lv)
+    if log:
+        common.say(f'placement (balance): {len(moves)} moves, objective {start:.2f} -> {J:.2f}; '
+                   f'median frames per window {[int(v[0]) if np.isfinite(v[0]) else None for v in rf.values()]}', log=log)
+    return dict(placed, interfaces=lv, check=check(paths, lv, cfg, mode), balanced=moves,
+                region_frames={int(e): v[0] for e, v in rf.items()})
 
 
 def even_regions(model, paths, placed, cfg, mode, log=None, max_moves=12, n_cand=20, min_gain=None):
@@ -690,6 +787,7 @@ def even_regions(model, paths, placed, cfg, mode, log=None, max_moves=12, n_cand
     if R <= 0:
         return placed
     min_gain = float(cfg.get('split_gain', 0.3)) if min_gain is None else min_gain
+    p_max = float(cfg.get('p_max', 0.9))
     p_floor = float(cfg.get('target_p', 0.3)) / 3
     margin = float(cfg.get('place_margin', 1.25))
     gate = dict(cfg, eps=float(cfg.get('eps', 0.01)) / margin, c=float(cfg.get('c', 1.0)) * margin,
@@ -714,16 +812,25 @@ def even_regions(model, paths, placed, cfg, mode, log=None, max_moves=12, n_cand
         for e in long_[:1]:
             tried.add(('split', lv[e - 1]))
             k = e - 1                                              # middle interface of ensemble e
-            pairs = sorted([(abs(lgt(cl(hs[j + 1])) - lgt(cl(hs[j]))), j) for j in (k - 1, k)], reverse=True)
+            cw = lambda q: min(max(float(q), 1e-4), 1 - 1e-4)                # width ranking: a state end is not infinitely wide
+            pairs = sorted([(abs(lgt(cw(hs[j + 1])) - lgt(cw(hs[j]))), j) for j in (k - 1, k)], reverse=True)
             for _, j in pairs:
                 ha, hb = max(hs[j], 1e-7), min(hs[j + 1], 1 - 1e-7)
                 mid = 0.5 * (lgt(ha) + lgt(hb))
                 cand = 1 / (1 + np.exp(-np.linspace(lgt(ha), lgt(hb), n_cand + 2)[1:-1]))
-                for x in cand[np.argsort(np.abs(lgt(cand) - mid))]:
-                    lc = float(model.scale(np.array([x]))[0])
+                lcs = [float(v) for v in model.scale(cand[np.argsort(np.abs(lgt(cand) - mid))])]
+                if j == 0 or j + 1 == len(lv) - 1:                  # a pair touching a state: its logit midpoint sits
+                    mid_l = 0.5 * (lv[j] + lv[j + 1])               # next to the state, so try lambda midpoints
+                    lcs = sorted(np.linspace(lv[j], lv[j + 1], n_cand + 2)[1:-1], key=lambda v: abs(v - mid_l))
+                for lc in lcs:
+                    x = float(np.clip(model.h_of_lambda(np.array([lc]))[0], 0, 1))
                     if not lv[j] < lc < lv[j + 1]:
                         continue
                     trial = lv[:j + 1] + [lc] + lv[j + 1:]
+                    ht = np.r_[0.0, np.clip(model.h_of_lambda(np.asarray(trial[1:-1])), 1e-9, 1 - 1e-9), 1.0]
+                    if any(0 < i_ and i_ + 1 < len(trial) - 1 and 1.0 / q_ratio(ht[i_], ht[i_ + 1]) > p_max
+                           for i_ in (j, j + 1)):
+                        continue                                    # a split must not make a pair crossed almost surely
                     good, _ = _local_check(paths, steps, trial, j + 1, gate, mode)
                     if good and check(paths, trial, gate, mode)['ok']:
                         # keep the split only if it shortens the longest of the new windows' regions clearly

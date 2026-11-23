@@ -249,6 +249,8 @@ def _place_dp(cfg, pool, model, view, paths, k, mode, log):
         common.say('placement (dp): no feasible set; natural plan instead', log=log)
         return None
     placed = itf.even_regions(model, paths, placed, ic, mode, log=log)
+    if ic.get('balance', True):
+        placed = itf.balance_regions(model, paths, placed, ic, mode, log=log)
     if not placed['check']['ok']:
         common.say(f'placement (dp): fails {placed["check"]["fails"]} on the stored paths; natural plan instead', log=log)
         return None
@@ -482,6 +484,8 @@ def _freeze_place(model, paths, intfs, ic, mode, log):
         dp = itf.place_dp(model, paths, ic, mode, log=log)
         if dp is not None:
             dp = itf.even_regions(model, paths, dp, ic, mode, log=log)
+            if ic.get('balance', True):
+                dp = itf.balance_regions(model, paths, dp, ic, mode, log=log)
             if dp['check']['ok']:
                 return dp
         common.say('placement (dp): no set passes the gate on these paths; thinning the given set instead', log=log)
