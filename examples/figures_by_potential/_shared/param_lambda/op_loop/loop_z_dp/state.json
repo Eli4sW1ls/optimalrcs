@@ -1,0 +1,18 @@
+{
+ "passes": [],
+ "md_steps": 8590075,
+ "done": false,
+ "pass0": {
+  "workdir": "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_z_dp/pass_0",
+  "pool_passes": [
+   0,
+   1,
+   2,
+   3,
+   4
+  ],
+  "reached_b": true,
+  "md_steps": 8590075
+ },
+ "written": "2026-11-23 17:52:13"
+}
