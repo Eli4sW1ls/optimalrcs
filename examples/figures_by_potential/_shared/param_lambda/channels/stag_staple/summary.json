@@ -1,0 +1,162 @@
+{
+ "band": [
+  0.3,
+  0.7
+ ],
+ "method": "knn",
+ "k": 10,
+ "n_band_steps": 6512,
+ "n_band_sample": 6512,
+ "n_components_raw": 2,
+ "raw_components_paths_share": [
+  [
+   333,
+   0.9864411672000125
+  ],
+  [
+   1,
+   0.013558832799987323
+  ]
+ ],
+ "r_max": 6.0,
+ "r_merge": 20.0,
+ "min_paths": 5,
+ "band_paths_per_channel": [
+  333
+ ],
+ "n_channels": 1,
+ "candidate_channels": [
+  {
+   "paths": 1,
+   "steps": 1,
+   "centre": [
+    -0.39530500769615173,
+    1.1822620034217834
+   ],
+   "extent_lo": [
+    -0.39530500769615173,
+    1.1822620034217834
+   ],
+   "extent_hi": [
+    -0.39530500769615173,
+    1.1822620034217834
+   ]
+  }
+ ],
+ "flux_share_unassigned_then_channels": [
+  0.013558832799987323,
+  0.9864411672000125
+ ],
+ "flux_share_exact": [
+  0.00016404721808610358,
+  0.999835952781914
+ ],
+ "scale": [
+  0.03433322544350581,
+  0.03284379324534824
+ ],
+ "cv_names": [
+  "x_op",
+  "y_transverse"
+ ],
+ "pieces_labelled": 666,
+ "pieces": 131863,
+ "paths_per_channel": [
+  333
+ ],
+ "path_purity_median": 1.0,
+ "unexplored_branches": [
+  {
+   "cluster": 0,
+   "frames_in_sample": 15956,
+   "weight_share": 0.0010749277768777755,
+   "q_max": 0.9999639391899109,
+   "q_median": 0.9983078241348267,
+   "centre": [
+    0.574703625897968,
+    1.2993058824187922
+   ],
+   "extent_lo": [
+    -0.24359600245952606,
+    0.8450679779052734
+   ],
+   "extent_hi": [
+    1.5992770195007324,
+    1.585644006729126
+   ],
+   "depth_A": null,
+   "depth_ratio_A": null,
+   "connected_to_A": false,
+   "depth_B": 44.666458860308175,
+   "depth_ratio_B": 1.3573702421605565,
+   "connected_to_B": true,
+   "deep_from": "B",
+   "depth_ratio": 1.3573702421605565,
+   "dead_end": 0.9659442724458205,
+   "dist_to_labelled": 39.355159465949185,
+   "exit_share": 8.324315325064513e-05,
+   "exit_share_channels": [
+    0.019839618191403757
+   ],
+   "channel_band_depth": {
+    "A": [
+     69.58129022043948
+    ],
+    "B": [
+     32.90661418156006
+    ]
+   },
+   "probe": true,
+   "fails": [],
+   "score": 0.0014590749768056948
+  },
+  {
+   "cluster": 1,
+   "frames_in_sample": 480,
+   "weight_share": 2.780141460394206e-05,
+   "q_max": 0.00016403163317590952,
+   "q_median": 0.0,
+   "centre": [
+    -1.369234793827964,
+    0.9523526360850016
+   ],
+   "extent_lo": [
+    -1.5988130569458008,
+    -0.3612009882926941
+   ],
+   "extent_hi": [
+    -0.8444259762763977,
+    1.541368007659912
+   ],
+   "depth_A": 18.53292926288401,
+   "depth_ratio_A": 0.2663493189644818,
+   "connected_to_A": true,
+   "depth_B": 190.52977004114123,
+   "depth_ratio_B": 5.790014402268975,
+   "connected_to_B": true,
+   "deep_from": "A",
+   "depth_ratio": 0.2663493189644818,
+   "dead_end": 0.4651162790697675,
+   "dist_to_labelled": 8.540127411297162,
+   "exit_share": 0.5969089042426261,
+   "exit_share_channels": [
+    0.019839618191403757
+   ],
+   "channel_band_depth": {
+    "A": [
+     69.58129022043948
+    ],
+    "B": [
+     32.90661418156006
+    ]
+   },
+   "probe": false,
+   "fails": [
+    "weight",
+    "depth"
+   ],
+   "score": 7.404887846009165e-06
+  }
+ ],
+ "source": "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/2d_staggered_channels/brownian_g1/staple_stagd3g1bdalt_istar_s0/rev_rejections_p6000_s0_y-x_lag1_env0.01_g0_it10000_stopped_newtraj_n20000_L500/committor_rev_rejections_p6000_s0_y-x_lag1_env0.01_g0_it10000_stopped.npz"
+}

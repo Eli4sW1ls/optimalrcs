@@ -325,7 +325,7 @@ def one_pass(cfg, pool, k, prev_model, prev_params, mode, log, cvs=None, prev_in
                    + (f', previous model on the newest data {diag["prospective"]["zq"]["sdzqs"]:.3f}' if prev_model else '')
                    + (f'; exact: spread {ex["spread_mean"]:.4f}, logit RMSE {ex["logit_rmse"]:.3f}' if ex else ''), log=log)
         # 4. interfaces: plan + gate on all stored paths under the new lambda
-        plan = itf.plan_natural(model, view, ic, log=log)
+        plan = itf.plan_natural(model, view, dict(ic, no_growth=True) if ic.get('method', 'plan') == 'dp' else ic, log=log)
         paths = itf.path_arrays(pool, model, state_cv=system['state_cv'], lineage='include')
         plan['start'] = 'plan'
         start_lam = plan['lam']

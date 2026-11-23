@@ -1,0 +1,49 @@
+{
+ "band": [
+  0.3,
+  0.7
+ ],
+ "method": "knn",
+ "k": 10,
+ "n_band_steps": 871091,
+ "n_band_sample": 40000,
+ "n_components_raw": 1,
+ "raw_components_paths_share": [
+  [
+   89,
+   1.0
+  ]
+ ],
+ "r_max": 6.0,
+ "r_merge": 20.0,
+ "min_paths": 5,
+ "band_paths_per_channel": [
+  89
+ ],
+ "n_channels": 1,
+ "candidate_channels": [],
+ "flux_share_unassigned_then_channels": [
+  0.0,
+  1.0
+ ],
+ "flux_share_exact": [
+  0.0,
+  1.0
+ ],
+ "scale": [
+  0.004510241743470372,
+  0.004536582451879739
+ ],
+ "cv_names": [
+  "y",
+  "x"
+ ],
+ "pieces_labelled": 199,
+ "pieces": 2657,
+ "paths_per_channel": [
+  89
+ ],
+ "path_purity_median": 1.0,
+ "unexplored_branches": [],
+ "source": "loop loop_z"
+}

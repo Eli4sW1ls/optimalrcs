@@ -1,0 +1,10 @@
+# loop_z_lgv with the dp placement (crossing probability ~target_p per pair, then even shooting regions) and
+# n_sh = 2. Same loop directory as loop_z_lgv (name inherited); fallback plan without length-budget growth.
+inherit = "loop_z_lgv"
+
+[interfaces]
+method = "dp"
+target_p = 0.3
+long_ratio = 2.0
+split_gain = 0.3
+n_sh = 2

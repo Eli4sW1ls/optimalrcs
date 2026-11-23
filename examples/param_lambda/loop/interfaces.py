@@ -253,7 +253,12 @@ def plan_natural(model, view, cfg, log=None):
         h = np.interp(u, uu, hh)
         h = _cap_ratio(h, R)
         return h
-    pred_longest = None
+    pred_longest, med = None, []
+    if cfg.get('no_growth'):                      # fallback plan only: n levels, no length prediction / budget growth
+        h = levels(n)
+        lam = model.scale(np.asarray(h, float))
+        return dict(h=list(map(float, h)), lam=[model.lambda_a] + [float(v) for v in lam] + [model.lambda_b],
+                    n_requested=n, predicted_median=[], predicted_longest=None, budget=budget)
     while True:
         h = levels(n)
         pred = natural.predict_lengths(inc, np.r_[0.0, h, 1.0], n_walk=1000)
@@ -675,7 +680,7 @@ def region_frames(paths, interfaces):
     return out
 
 
-def even_regions(model, paths, placed, cfg, mode, log=None, max_moves=12, n_cand=20):
+def even_regions(model, paths, placed, cfg, mode, log=None, max_moves=12, n_cand=20, min_gain=None):
     """Even out the shooting-region lengths of a placed set (`region_frames`): while an ensemble's median frames
     in its window exceed long_ratio x the median over the ensembles, split the wider (in logit q) of its two pairs
     at the candidate closest to the logit midpoint that passes the frame checks; while one is below 1 / long_ratio
@@ -684,6 +689,7 @@ def even_regions(model, paths, placed, cfg, mode, log=None, max_moves=12, n_cand
     R = float(cfg.get('long_ratio', 2.0))
     if R <= 0:
         return placed
+    min_gain = float(cfg.get('split_gain', 0.3)) if min_gain is None else min_gain
     p_floor = float(cfg.get('target_p', 0.3)) / 3
     margin = float(cfg.get('place_margin', 1.25))
     gate = dict(cfg, eps=float(cfg.get('eps', 0.01)) / margin, c=float(cfg.get('c', 1.0)) * margin,
@@ -720,10 +726,19 @@ def even_regions(model, paths, placed, cfg, mode, log=None, max_moves=12, n_cand
                     trial = lv[:j + 1] + [lc] + lv[j + 1:]
                     good, _ = _local_check(paths, steps, trial, j + 1, gate, mode)
                     if good and check(paths, trial, gate, mode)['ok']:
+                        # keep the split only if it shortens the longest of the new windows' regions clearly
+                        # (flat lambda: a split barely shortens it, and more levels only add ensembles)
+                        rf2 = region_frames(paths, trial)
+                        new_long = max([rf2[e2][0] for e2 in (j + 1, j + 2, j + 3) if e2 in rf2
+                                        and np.isfinite(rf2[e2][0])] or [np.inf])
+                        if new_long > (1 - min_gain) * med[e]:
+                            moves.append(dict(kind='skip', lam=lc, ensemble=e, frames=med[e], after=new_long))
+                            done = None
+                            break
                         moves.append(dict(kind='split', lam=lc, q=float(x), ensemble=e, frames=med[e], typical=typical))
                         lv, done = trial, True
                         break
-                if done:
+                if done is not False:
                     break
         if not done:
             for e in short[:1]:
@@ -737,7 +752,7 @@ def even_regions(model, paths, placed, cfg, mode, log=None, max_moves=12, n_cand
                 if p_m >= p_floor and check(paths, trial, gate, mode)['ok']:
                     moves.append(dict(kind='merge', lam=lv[k], ensemble=e, frames=med[e], typical=typical))
                     lv, done = trial, True
-        if not done:
+        if done is False:
             break
     rf = region_frames(paths, lv)
     if log:

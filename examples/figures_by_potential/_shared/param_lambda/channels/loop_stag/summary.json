@@ -1,0 +1,212 @@
+{
+ "band": [
+  0.3,
+  0.7
+ ],
+ "method": "knn",
+ "k": 10,
+ "n_band_steps": 6376,
+ "n_band_sample": 6376,
+ "n_components_raw": 7,
+ "raw_components_paths_share": [
+  [
+   179,
+   0.9952199948046201
+  ],
+  [
+   4,
+   0.0012442558804967418
+  ],
+  [
+   4,
+   0.0010161301133314647
+  ],
+  [
+   4,
+   0.0008864795675237653
+  ],
+  [
+   2,
+   0.0009737549904154154
+  ],
+  [
+   2,
+   0.000656247711937042
+  ],
+  [
+   2,
+   3.1369316756409657e-06
+  ]
+ ],
+ "r_max": 6.0,
+ "r_merge": 20.0,
+ "min_paths": 5,
+ "band_paths_per_channel": [
+  179
+ ],
+ "n_channels": 1,
+ "candidate_channels": [],
+ "flux_share_unassigned_then_channels": [
+  0.0,
+  1.0
+ ],
+ "flux_share_exact": [
+  0.0,
+  1.0
+ ],
+ "scale": [
+  0.05332609777636001,
+  0.055073563130660495
+ ],
+ "cv_names": [
+  "x",
+  "y"
+ ],
+ "pieces_labelled": 621,
+ "pieces": 12901,
+ "paths_per_channel": [
+  179
+ ],
+ "path_purity_median": 1.0,
+ "unexplored_branches": [
+  {
+   "cluster": 1,
+   "frames_in_sample": 139,
+   "weight_share": 0.00023389539046937384,
+   "q_max": 0.0008398788049817085,
+   "q_median": 0.0,
+   "centre": [
+    -0.541980373844586,
+    -1.2962255460146033
+   ],
+   "extent_lo": [
+    -0.989454984664917,
+    -1.5083129405975342
+   ],
+   "extent_hi": [
+    -0.09088300168514252,
+    -1.0836349725723267
+   ],
+   "depth_A": 25.742335285472507,
+   "depth_ratio_A": 1.2380634774981378,
+   "connected_to_A": true,
+   "depth_B": 135.69612024980754,
+   "depth_ratio_B": 3.0251877558537257,
+   "connected_to_B": true,
+   "deep_from": "A",
+   "depth_ratio": 1.2380634774981378,
+   "dead_end": 0.4,
+   "dist_to_labelled": 35.34053762761829,
+   "exit_share": 0.0012780833422995047,
+   "exit_share_channels": [
+    0.3468198927245494
+   ],
+   "channel_band_depth": {
+    "A": [
+     20.79241957568466
+    ],
+    "B": [
+     44.85543748061128
+    ]
+   },
+   "probe": true,
+   "fails": [],
+   "score": 0.00028957734049529776
+  },
+  {
+   "cluster": 0,
+   "frames_in_sample": 68,
+   "weight_share": 8.937381576650483e-05,
+   "q_max": 0.0004480908391997218,
+   "q_median": 0.0,
+   "centre": [
+    -1.3605449454213734,
+    -1.2426059375235032
+   ],
+   "extent_lo": [
+    -1.5902149677276611,
+    -1.4161169528961182
+   ],
+   "extent_hi": [
+    -1.0300569534301758,
+    -0.9014310240745544
+   ],
+   "depth_A": 7.631383009610574,
+   "depth_ratio_A": 0.3670271745831334,
+   "connected_to_A": true,
+   "depth_B": 118.71736499307781,
+   "depth_ratio_B": 2.646666082443032,
+   "connected_to_B": true,
+   "deep_from": "A",
+   "depth_ratio": 0.3670271745831334,
+   "dead_end": 0.0,
+   "dist_to_labelled": 29.429419642771833,
+   "exit_share": 0.019275091969615573,
+   "exit_share_channels": [
+    0.3468198927245494
+   ],
+   "channel_band_depth": {
+    "A": [
+     20.79241957568466
+    ],
+    "B": [
+     44.85543748061128
+    ]
+   },
+   "probe": false,
+   "fails": [
+    "weight",
+    "depth"
+   ],
+   "score": 3.280261908249377e-05
+  },
+  {
+   "cluster": 2,
+   "frames_in_sample": 37,
+   "weight_share": 2.6980278195059246e-05,
+   "q_max": 0.00017849556752480567,
+   "q_median": 3.120182554994244e-06,
+   "centre": [
+    -1.5660210948808069,
+    -0.06907006461930264
+   ],
+   "extent_lo": [
+    -1.5971089601516724,
+    -0.47193199396133423
+   ],
+   "extent_hi": [
+    -1.5140049457550049,
+    0.2591339945793152
+   ],
+   "depth_A": 0.0,
+   "depth_ratio_A": 0.0,
+   "connected_to_A": true,
+   "depth_B": 94.06151915928646,
+   "depth_ratio_B": 2.0969925708548596,
+   "connected_to_B": true,
+   "deep_from": "A",
+   "depth_ratio": 0.0,
+   "dead_end": 1.0,
+   "dist_to_labelled": 8.375767792152287,
+   "exit_share": 0.09763255806303242,
+   "exit_share_channels": [
+    0.3468198927245494
+   ],
+   "channel_band_depth": {
+    "A": [
+     20.79241957568466
+    ],
+    "B": [
+     44.85543748061128
+    ]
+   },
+   "probe": false,
+   "fails": [
+    "weight",
+    "depth"
+   ],
+   "score": 0.0
+  }
+ ],
+ "source": "loop loop_stag"
+}

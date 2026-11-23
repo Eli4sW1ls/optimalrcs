@@ -1,0 +1,158 @@
+{
+ "band": [
+  0.3,
+  0.7
+ ],
+ "method": "knn",
+ "k": 10,
+ "n_band_steps": 18015,
+ "n_band_sample": 18015,
+ "n_components_raw": 2,
+ "raw_components_paths_share": [
+  [
+   221,
+   0.5312962125278031
+  ],
+  [
+   169,
+   0.468703787472197
+  ]
+ ],
+ "r_max": 6.0,
+ "r_merge": 20.0,
+ "min_paths": 5,
+ "band_paths_per_channel": [
+  221,
+  169
+ ],
+ "n_channels": 2,
+ "candidate_channels": [],
+ "flux_share_unassigned_then_channels": [
+  0.0,
+  0.5312962125278031,
+  0.468703787472197
+ ],
+ "flux_share_exact": [
+  0.0,
+  0.5312962125278031,
+  0.468703787472197
+ ],
+ "scale": [
+  0.0332913781060043,
+  0.03239918036152607
+ ],
+ "cv_names": [
+  "x",
+  "y"
+ ],
+ "pieces_labelled": 1044,
+ "pieces": 16039,
+ "paths_per_channel": [
+  221,
+  169
+ ],
+ "path_purity_median": 1.0,
+ "unexplored_branches": [
+  {
+   "cluster": 0,
+   "frames_in_sample": 23,
+   "weight_share": 1.8882044293991317e-06,
+   "q_max": 2.880109285281729e-07,
+   "q_median": 2.991811734200823e-08,
+   "centre": [
+    -1.5544620751445086,
+    0.2801708439306358
+   ],
+   "extent_lo": [
+    -1.59523,
+    0.156232
+   ],
+   "extent_hi": [
+    -1.45999,
+    0.45079
+   ],
+   "depth_A": 1.02222757420034,
+   "depth_ratio_A": 0.028507696923908143,
+   "connected_to_A": true,
+   "depth_B": 133.53008926720207,
+   "depth_ratio_B": 3.7612235320118867,
+   "connected_to_B": true,
+   "deep_from": "A",
+   "depth_ratio": 0.028507696923908143,
+   "dead_end": 0.5263157894736843,
+   "dist_to_labelled": 8.475382613356908,
+   "exit_share": 0.10021501639189317,
+   "exit_share_channels": [
+    0.02255914411412607,
+    0.20035485103005865
+   ],
+   "channel_band_depth": {
+    "A": [
+     72.10680431637641,
+     35.857950115326325
+    ],
+    "B": [
+     35.50176907347395,
+     72.87984821890359
+    ]
+   },
+   "probe": false,
+   "fails": [
+    "weight",
+    "depth"
+   ],
+   "score": 5.3828359603691356e-08
+  },
+  {
+   "cluster": 1,
+   "frames_in_sample": 16,
+   "weight_share": 1.124191076463067e-06,
+   "q_max": 1.0416840555223549e-07,
+   "q_median": 1.8115853264468936e-08,
+   "centre": [
+    -1.5431400582524277,
+    -0.2546214368932039
+   ],
+   "extent_lo": [
+    -1.591182,
+    -0.366148
+   ],
+   "extent_hi": [
+    -1.48644,
+    -0.10045
+   ],
+   "depth_A": 0.0,
+   "depth_ratio_A": 0.0,
+   "connected_to_A": true,
+   "depth_B": 136.3288467211109,
+   "depth_ratio_B": 3.8400578415956304,
+   "connected_to_B": true,
+   "deep_from": "A",
+   "depth_ratio": 0.0,
+   "dead_end": 0.7,
+   "dist_to_labelled": 19.691101761349255,
+   "exit_share": 0.06570833662811106,
+   "exit_share_channels": [
+    0.02255914411412607,
+    0.20035485103005865
+   ],
+   "channel_band_depth": {
+    "A": [
+     72.10680431637641,
+     35.857950115326325
+    ],
+    "B": [
+     35.50176907347395,
+     72.87984821890359
+    ]
+   },
+   "probe": false,
+   "fails": [
+    "weight",
+    "depth"
+   ],
+   "score": 0.0
+  }
+ ],
+ "source": "infretis ../figures_by_potential/_shared/param_lambda/op_loop/loop_stag_staple/production (exact committor of stag_br)"
+}
