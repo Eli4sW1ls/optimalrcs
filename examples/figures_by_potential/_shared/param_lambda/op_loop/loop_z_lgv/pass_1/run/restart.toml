@@ -1,0 +1,284 @@
+[runner]
+workers = 4
+files = []
+wmdrun = [
+    "not used",
+    "not used",
+    "not used",
+    "not used",
+    "not used",
+    "not used",
+    "not used",
+    "not used",
+]
+
+[simulation]
+interfaces = [
+    0.05,
+    0.09772300651020868,
+    0.17308173776789576,
+    0.2909786391547178,
+    0.42992252481364535,
+    0.5711134929484025,
+    0.7127407688381522,
+    0.85,
+]
+steps = 1000
+seed = 1
+load_dir = "load"
+shooting_moves = [
+    "sh",
+    "sh",
+    "sh",
+    "sh",
+    "sh",
+    "sh",
+    "sh",
+    "sh",
+]
+mode = "staple"
+staple_infinite_swap = true
+ensemble_engines = [
+    [
+        "engine",
+    ],
+    [
+        "engine",
+    ],
+    [
+        "engine",
+    ],
+    [
+        "engine",
+    ],
+    [
+        "engine",
+    ],
+    [
+        "engine",
+    ],
+    [
+        "engine",
+    ],
+    [
+        "engine",
+    ],
+]
+zeroswap = 0.5
+pick_scheme = 0
+
+[simulation.tis_set]
+maxlength = 200000
+allowmaxlength = false
+zero_momentum = false
+n_jumps = 4
+staple = true
+quantis = false
+lambda_minus_one = false
+accept_all = false
+
+[engine]
+class = "ase"
+engine = "ase"
+temperature = 580.2261030200505
+input_path = "."
+timestep = 0.02036101134231345
+subcycles = 1
+integrator = "langevin"
+langevin_fixcm = false
+langevin_friction = 0.19645389576928127
+
+[engine.calculator_settings]
+class = "ToytisPotential"
+spec = "sjoelbak_angle:RectangularGridWithAngledBarrierPotential"
+dim = 2
+module = "/local/data/data-fbsskr/Students/elias/optimalrcs/examples/param_lambda/loop/ase_calcs.py"
+
+[engine.calculator_settings.params]
+Lx = 0.3
+angle = 45
+
+[engine.particles]
+mass = [
+    1.0,
+]
+name = [
+    "H",
+]
+pos = [
+    [
+        0.02,
+        0.15,
+    ],
+]
+
+[engine.box]
+periodic = [
+    false,
+    false,
+]
+
+[orderparameter]
+class = "LearnedLambda"
+module = "/local/data/data-fbsskr/Students/elias/optimalrcs/examples/param_lambda/infretis_orderp.py"
+model = "/local/data/data-fbsskr/Students/elias/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_z_lgv/models/lambda_1.npz"
+
+[[orderparameter.cvs]]
+class = "Position"
+index = [
+    0,
+    0,
+]
+periodic = false
+
+[[orderparameter.cvs]]
+class = "Position"
+index = [
+    0,
+    1,
+]
+periodic = false
+
+[[orderparameter.cvs]]
+class = "Velocity"
+index = 0
+dim = "x"
+
+[[orderparameter.cvs]]
+class = "Velocity"
+index = 0
+dim = "y"
+
+[output]
+data_dir = "./"
+screen = 100
+pattern = false
+delete_old = false
+delete_old_all = false
+visual_validation = false
+data_file = "./infretis_data.txt"
+keep_maxop_trajs = false
+keep_traj_fnames = []
+keep_status = []
+
+[current]
+traj_num = 735
+cstep = 1000
+active = [
+    730,
+    731,
+    717,
+    729,
+    733,
+    734,
+    732,
+    728,
+]
+locked = []
+size = 8
+wsubcycles = [
+    491393,
+    587648,
+    461322,
+    530263,
+]
+tsubcycles = 2070626
+
+[current.frac]
+717 = [
+    "0.0",
+    "0.0",
+    "34.0",
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+]
+728 = [
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.19047619047619047619",
+    "0.38095238095238095238",
+    "0.23809523809523809525",
+    "1.0714285714285714286",
+    "10.119047619047619047",
+    "0.0",
+]
+729 = [
+    "0.0",
+    "0.0",
+    "0.0",
+    "10.333333333333333334",
+    "0.6666666666666666667",
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+]
+730 = [
+    "4.0",
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+]
+731 = [
+    "0.0",
+    "4.0",
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+]
+732 = [
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.19047619047619047619",
+    "0.38095238095238095238",
+    "0.23809523809523809525",
+    "1.0714285714285714286",
+    "1.1190476190476190477",
+    "0.0",
+]
+733 = [
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.19047619047619047619",
+    "0.38095238095238095238",
+    "0.23809523809523809525",
+    "0.5714285714285714286",
+    "0.6190476190476190476",
+    "0.0",
+]
+734 = [
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.095238095238095238094",
+    "0.19047619047619047619",
+    "0.28571428571428571428",
+    "0.28571428571428571428",
+    "0.14285714285714285714",
+    "0.0",
+]
+
+[current.rng_state]
+bit_generator = "PCG64"
+has_uint32 = 0
+uinteger = 0
+
+[current.rng_state.state]
+state = 66987509397982529570063422706175509362
+inc = 194290289479364712180083596243593368443

@@ -1,0 +1,36 @@
+{
+ "kind": "pass",
+ "lambda_version": "b200e0f60508821e00a499c51be3ec92",
+ "lambda_model": "/local/data/data-fbsskr/Students/elias/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_z_lgv/models/lambda_1.npz",
+ "interfaces": [
+  0.05,
+  0.09772300651020868,
+  0.17308173776789576,
+  0.2909786391547178,
+  0.42992252481364535,
+  0.5711134929484025,
+  0.7127407688381522,
+  0.85
+ ],
+ "mode": "staple",
+ "lambda_a": 0.05,
+ "lambda_b": 0.85,
+ "cv_names": [
+  "y",
+  "x",
+  "vy",
+  "vx"
+ ],
+ "state_cv": 0,
+ "n_rows": 727,
+ "workdir": "/local/data/data-fbsskr/Students/elias/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_z_lgv/pass_1/run",
+ "md_steps": 2070626,
+ "wall_seconds": 682.1403641700745,
+ "cycles": 1000,
+ "pass_index": 8,
+ "n_pieces": 798,
+ "n_frames": 1797863,
+ "n_paths": 727,
+ "weighting": "rejections",
+ "reversed_pieces": false
+}
