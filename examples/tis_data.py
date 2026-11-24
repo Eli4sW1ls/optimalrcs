@@ -541,6 +541,13 @@ def add_data_arguments(parser):
                              "that change sign under time reversal, e.g. 2 for a velocity recorded after the "
                              "order parameter; they are negated in the --reversed pieces. (Other engines "
                              "give this through the run's own settings.)")
+    parser.add_argument("--history-frames", type=int, default=1, metavar="K",
+                        help="infretis runs only: keep up to K frames before every piece's cut (forward pieces: "
+                             "before the first frame past M; mirrored pieces: after the last frame before M, read "
+                             "backwards) as history-only frames, so that history features y(t - d), d <= K, of the "
+                             "piece's first frames see the real past instead of a padded value. They get path weight 0 "
+                             "(not transition starts, not in the stopped metrics) and are never A or B; "
+                             "data.history marks them. Set K to the largest history lag (default 0: none)")
     parser.add_argument("--max-length", type=int, metavar="N",
                         help="limit every piece (after the cut at M) to N frames; longer pieces "
                              "are truncated or discarded, see --long-pieces (default: no limit)")
@@ -597,7 +604,7 @@ def prepare_data(args):
     the forward and reversed piece of a path are not independent, and the standard
     errors of metrics_tis treat a path as one unit), path_weights (MC weight of
     each frame's path, averaging 1 so that --gamma keeps its meaning relative to
-    the unweighted transition count), boundary0 (A) and boundary1 (B).
+    the unweighted transition count), boundary0 (A), boundary1 (B) and history (the --history-frames frames: weight 0, never A or B).
     """
     import infretis_data
     infretis_run = infretis_data.is_infretis_run(args.tis_dir)
@@ -616,6 +623,7 @@ def prepare_data(args):
     if getattr(args, "seed", None) is not None:
         print("Note: --seed is ignored; paths are thinned in a fixed pattern (--thin, --paths-per-ensemble), "
               "not drawn at random")
+    history_frames = int(getattr(args, "history_frames", 0) or 0)
     common = dict(include_zero_minus=args.include_zero_minus, cut_at_m=not args.no_cut, burn_in=args.burn_in,
                   burn_in_fraction=getattr(args, "burn_in_fraction", 0.4), thin=getattr(args, "thin", 1),
                   paths_per_ensemble=args.paths_per_ensemble, reversed_pieces=args.reversed,
@@ -625,12 +633,17 @@ def prepare_data(args):
         # infretis order.txt: time, order parameter, then any extra CVs of the order parameter class. Nothing
         # changes sign under time reversal unless --odd-columns names the columns that do (velocities).
         dim = None
-        cvs, order, time, weights, paths, settings = infretis_data.load_infretis_data(
+        cvs = infretis_data.load_infretis_data(
             args.tis_dir, weighting=args.weights, odd_columns=tuple(getattr(args, "odd_columns", ())), fd_columns=[1],
             h5_file=getattr(args, "h5", None), data_file=getattr(args, "data_file", None),
-            bb_weight_fix=getattr(args, "bb_weight_fix", "auto"), **common)
+            bb_weight_fix=getattr(args, "bb_weight_fix", "auto"), history_frames=history_frames,
+            with_info=True, **common)
+        cvs, order, time, weights, paths, settings, info = cvs
+        n_history = [i["n_history"] for i in info]
         args.weights = settings["weighting"]
     else:
+        if history_frames:
+            raise SystemExit("--history-frames is implemented for infretis runs only")
         dim, v_ord = read_run_settings(args.tis_dir)
         # order.txt columns: time, `dim` positions (order parameter first), then with
         # v_ord `dim` velocities, which change sign under time reversal.
@@ -642,10 +655,14 @@ def prepare_data(args):
         cvs, order, time, weights, paths = load_tis_data(
             args.tis_dir, interfaces, weighting=args.weights, odd_columns=odd_columns,
             fd_columns=list(range(1, 1 + dim)) if dim else [1], **common)
+        n_history = [0] * len(order)
 
+    # history-only frames (--history-frames): weight 0, never A or B
+    history = np.concatenate([np.arange(len(path)) < nh for path, nh in zip(order, n_history)])
     path_weights = np.concatenate([np.full(len(path), w, dtype=float)
                                    for path, w in zip(order, weights)])
-    path_weights /= path_weights.mean()
+    path_weights[history] = 0.0
+    path_weights /= path_weights[~history].mean()
     X_all = np.concatenate(cvs, axis=0)
     lam = np.concatenate(order, axis=0)
     t_traj = np.concatenate(time, axis=0)
@@ -664,9 +681,11 @@ def prepare_data(args):
     print(f"Using {X.shape[1]} of {X_all.shape[1]} CV(s)")
 
     # Define basin membership from the same operational-state definitions used in TIS.
-    boundary0 = lam <= args.lambda_a  # state A: q = 0
-    boundary1 = lam >= args.lambda_b  # state B: q = 1
+    boundary0 = (lam <= args.lambda_a) & ~history  # state A: q = 0
+    boundary1 = (lam >= args.lambda_b) & ~history  # state B: q = 1
     print(f"Frames in A: {boundary0.sum()}, in B: {boundary1.sum()}")
+    if history.any():
+        print(f"History-only frames (weight 0, not A/B): {history.sum()}")
 
     # Validate the prepared data before fitting.
     same_path = i_traj[1:] == i_traj[:-1]
@@ -676,7 +695,7 @@ def prepare_data(args):
     assert np.all(np.diff(t_traj)[same_path] > 0)
     return types.SimpleNamespace(X=X, X_all=X_all, lam=lam, t_traj=t_traj, i_traj=i_traj,
                                  group_traj=group_traj, path_weights=path_weights,
-                                 boundary0=boundary0, boundary1=boundary1, dim=dim)
+                                 boundary0=boundary0, boundary1=boundary1, dim=dim, history=history)
 
 
 def save_fit_figures(q, figure_dir, iteration_key):

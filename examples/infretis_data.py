@@ -316,7 +316,7 @@ def load_infretis_data(sim_dir, include_zero_minus=False, weighting=None, cut_at
                        burn_in_fraction=0.4, thin=1, paths_per_ensemble=None, reversed_pieces=False,
                        odd_columns=(), fd_velocity=False, fd_columns=(1,), max_length=None,
                        long_pieces="truncate", h5_file=None, data_file=None, load_dir=None, toml_file=None,
-                       with_info=False, bb_weight_fix="auto"):
+                       with_info=False, bb_weight_fix="auto", history_frames=1):
     """Per-piece cvs, order, time, weight and path-number lists from an infretis run (see the module doc).
 
     The options are those of `tis_data.load_tis_data`. Burn-in and thinning act per ensemble on the rows of
@@ -339,7 +339,15 @@ def load_infretis_data(sim_dir, include_zero_minus=False, weighting=None, cut_at
     should be, which pulls the committor toward B (flat 1D staple run, notes section 15.1: +0.022 -> +0.003). With
     'auto' (default) and 'on' the 'rejections' weight of these pairs is halved when such pairs are found; 'auto'
     and 'on' differ only in that 'on' also reports when none are found. 'off' keeps the stored weights. The
-    'staple' weighting is not corrected (it is biased for committor pieces anyway)."""
+    'staple' weighting is not corrected (it is biased for committor pieces anyway).
+
+    `history_frames` (K, default 0): every piece also keeps up to K frames from before its cut, in its own time
+    direction (forward piece: the K frames before its first frame past M; mirrored piece: the K frames after its
+    last frame before M, read backwards, odd columns negated). They give the history features (y(t - d), d <= K)
+    of the piece's first frames a real past instead of a padded one. They are NOT data: `info[k]['n_history']`
+    counts them at the start of piece k (`with_info`), and `tis_data.prepare_data` gives them path weight 0 (no
+    transition starts there, no stopped-metric window starts there) and never counts them as A or B. Their time
+    is negative (the piece's first real frame keeps time 0 / its frame index)."""
     from tis_data import first_frame_past_m, last_frame_before_m, limit_piece_length
     from inftools.istar.reading import OrderSource
 
@@ -413,7 +421,7 @@ def load_infretis_data(sim_dir, include_zero_minus=False, weighting=None, cut_at
 
     for e in ens_list:
         lambda_m = middle_interface(settings, e) if cut_at_m else None
-        n_pieces = n_frames = n_no_crossing = n_no_core = n_long = n_badlen = 0
+        n_pieces = n_frames = n_no_crossing = n_no_core = n_long = n_badlen = n_hist_frames = 0
         tot_w = 0.0
         for r in selected[e]:
             op = cache.get(r)
@@ -445,21 +453,28 @@ def load_infretis_data(sim_dir, include_zero_minus=False, weighting=None, cut_at
                 if t_star is None:
                     n_no_crossing += 1
                     continue
-                pieces = [block[t_star:]]
+                t_lo = max(t_star - int(history_frames), 0)
+                pieces = [block[t_lo:]]
+                n_hist = [t_star - t_lo]
                 if reversed_pieces:
                     t_last = last_frame_before_m(block[:, 1], core_start, core_end, lambda_m)
                     if t_last is not None:
-                        backwards = block[t_last::-1].copy()
+                        t_hi = min(t_last + int(history_frames), len(block) - 1)
+                        backwards = block[t_hi::-1].copy()
                         backwards[:, 0] = block[t_last, 0] - backwards[:, 0]
                         backwards[:, list(odd_columns)] *= -1
                         if fd_velocity:
-                            idx = np.arange(t_last + 1)
+                            idx = np.arange(t_hi + 1)
                             nxt = np.minimum(idx + int(fd_velocity), len(block) - 1)
                             vrev = ((block[idx][:, fd_columns] - block[nxt][:, fd_columns])
                                     / np.maximum(nxt - idx, 1)[:, None])
                             backwards[:, -len(fd_columns):] = vrev[::-1]
                         pieces.append(backwards)
-            for j, piece in enumerate(pieces):
+                        n_hist.append(t_hi - t_last)
+            else:
+                n_hist = [0]
+            for j, (piece, nh) in enumerate(zip(pieces, n_hist)):
+                head, piece = piece[:nh], piece[nh:]                # history frames, the piece proper
                 if max_length is not None and len(piece) > max_length:
                     n_long += 1
                     piece = limit_piece_length(piece, max_length, long_pieces)
@@ -467,6 +482,7 @@ def load_infretis_data(sim_dir, include_zero_minus=False, weighting=None, cut_at
                         continue
                 if len(piece) < 2:
                     continue
+                piece = np.concatenate([head, piece], 0)
                 piece = piece.copy()
                 time.append(piece[:, 0])
                 order.append(piece[:, 1])
@@ -475,14 +491,17 @@ def load_infretis_data(sim_dir, include_zero_minus=False, weighting=None, cut_at
                 paths.append(int(data["pnr"][r]))
                 info.append(dict(ens=int(e), row=int(r), pnr=int(data["pnr"][r]), mirrored=j == 1,
                                  core=(int(core_start), int(core_end)), length=len(block),
-                                 bb_fixed=(e == e_last and int(r) in bb_fixed)))
+                                 bb_fixed=(e == e_last and int(r) in bb_fixed), n_history=int(nh)))
                 n_pieces += 1
-                n_frames += len(piece)
+                n_frames += len(piece) - nh
+                n_hist_frames += nh
                 tot_w += float(W[r, e])
         msg = (f"  ensemble {e:03d}: {len(selected[e])} paths, {n_pieces} pieces, {n_frames} frames, "
                f"total weight {tot_w:.1f}")
         if lambda_m is not None:
             msg += f", cut at M = {lambda_m}"
+        if n_hist_frames:
+            msg += f" (+ {n_hist_frames} history frames before the cuts)"
         if n_no_crossing:
             msg += f" ({n_no_crossing} paths dropped: core never crosses M)"
         if n_no_core:
@@ -492,7 +511,9 @@ def load_infretis_data(sim_dir, include_zero_minus=False, weighting=None, cut_at
         if n_badlen:
             msg += f" ({n_badlen} paths whose order.txt length differs from infretis_data.txt)"
         print(msg)
-    print(f"Loaded {len(cvs)} pieces, {sum(len(p) for p in order)} frames total")
+    n_hist_all = sum(i["n_history"] for i in info)
+    print(f"Loaded {len(cvs)} pieces, {sum(len(p) for p in order) - n_hist_all} frames total"
+          + (f" (+ {n_hist_all} history frames, weight 0)" if n_hist_all else ""))
     if with_info:
         return cvs, order, time, weights, paths, settings, info
     return cvs, order, time, weights, paths, settings
