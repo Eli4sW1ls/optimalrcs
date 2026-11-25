@@ -1,4 +1,5 @@
 import cupy as cp
+import numpy as np
 
 
 def npq(r_traj, fk, i_traj=None, w_traj=None):
@@ -252,6 +253,62 @@ def npneq(r_traj, fk, i_traj=None, gamma=0, stable=False, train_mask=None,
     akj, b = _npneq_accumulate(r_traj, _as_basis(fk), itw, gamma, stable, step,
                                gamma_all_frames=gamma_all_frames, stable_negative=stable_negative)
     return _npneq_update(r_traj, fk, _npneq_solve(akj, b), step)
+
+def lag_transitions(boundary, i_traj=None, delta_t=1, stride=1):
+    """Start and end frames (t0, t1) of the lag-delta_t transitions, for `npneq_lag`.
+
+    Starts: frames outside the boundary states whose offset from the first frame of
+    their trajectory is a multiple of `stride` (stride = delta_t: the transitions of
+    the trajectory subsampled every delta_t frames). End: t1 = min(t0 + delta_t, first
+    boundary frame after t0), so a transition stops at the first entry into A or B, also
+    between subsampled frames (stopped increment; the committor is a martingale at every
+    lag). Transitions that run past the end of their trajectory without reaching a
+    boundary are dropped. Returns two sorted int64 cupy arrays.
+    """
+    b = np.asarray(cp.asnumpy(boundary), dtype=bool)
+    n = len(b)
+    it = np.zeros(n) if i_traj is None else np.asarray(cp.asnumpy(i_traj))
+    idx = np.arange(n)
+    first = np.r_[True, it[1:] != it[:-1]]
+    last = np.r_[it[1:] != it[:-1], True]
+    start = np.maximum.accumulate(np.where(first, idx, 0))                # first frame of each frame's trajectory
+    end = np.minimum.accumulate(np.where(last, idx, n)[::-1])[::-1]        # last frame of each frame's trajectory
+    nxt = np.r_[np.minimum.accumulate(np.where(b, idx, n)[::-1])[::-1], n]  # first boundary frame >= j
+    t0 = idx[((idx - start) % stride == 0) & ~b]
+    t1 = np.minimum(t0 + delta_t, nxt[t0 + 1])
+    keep = t1 <= end[t0]
+    return cp.asarray(t0[keep]), cp.asarray(t1[keep])
+
+
+def npneq_lag(r_traj, fk, t0, t1, gamma=0, w_traj=None, chunk=None):
+    """NPNEq iteration on the transitions t0 -> t1 of `lag_transitions` (lag delta_t):
+
+        akj = sum_t w_t fk(t0) (fj(t1) - (1 + gamma) fj(t0)),   b_k = -sum_t w_t fk(t0) (r(t1) - r(t0)),
+
+    the lag-1 `npneq` (default conventions) with t + 1 replaced by t1. w_traj: optional
+    weight per FRAME (e.g. the path weight), each transition gets the weight of t0.
+    fk: basis array, callable fk(s, e) or polybasis.PolyBasisRY (used as a callable); it is
+    evaluated in blocks of about `chunk` frames (default `npneq_chunk`).
+    """
+    basis = _as_basis(fk)
+    step = chunk or npneq_chunk
+    n_basis = basis(0, 1).shape[0]
+    akj = cp.zeros((n_basis, n_basis), dtype=r_traj.dtype)
+    b = cp.zeros(n_basis, dtype=r_traj.dtype)
+    t0h = cp.asnumpy(t0)
+    for lo_frame in range(0, r_traj.shape[0], step):
+        s, e = np.searchsorted(t0h, [lo_frame, lo_frame + step])
+        if e == s:
+            continue
+        i0, i1 = t0[s:e], t1[s:e]
+        lo, hi = int(t0h[s]), int(i1.max()) + 1
+        f = basis(lo, hi)
+        fa, fb = f[:, i0 - lo], f[:, i1 - lo]
+        w = 1.0 if w_traj is None else w_traj[i0]
+        akj += cp.tensordot(fa, (fb - fa * (1 + gamma)) * w, axes=[1, 1])
+        b += cp.tensordot(fa, -(r_traj[i1] - r_traj[i0]) * w, 1)
+    return _npneq_update(r_traj, fk, _npneq_solve(akj, b), step)
+
 
 def npneq_(r_traj, fk, i_traj=None, gamma=0, stable=False, train_mask=None, chunk_size=None,
            gamma_all_frames=False, stable_negative=False):

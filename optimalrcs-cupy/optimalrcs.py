@@ -166,7 +166,15 @@ class CommittorNE:
                       history_delta_t=None, history_type=None, history_shift_type=None,
                       save_min_delta_zq=True, train_mask=None, delta_r2_max_change_allowed=1e3,
                       save_min_metric='max_sd_zq', lazy_basis=False, gamma_all_frames=False,
-                      stable_negative=False):
+                      stable_negative=False, delta_t=1, delta_t_stride=1):
+        # delta_t, delta_t_stride: opt-in fit lag. With delta_t > 1 or delta_t_stride > 1
+        #   the update solves the NPNEq equations on the transitions t0 -> t1 =
+        #   min(t0 + delta_t, first boundary frame after t0), from every delta_t_stride-th
+        #   frame of each trajectory (nonparametrics.lag_transitions / npneq_lag). With
+        #   delta_t_stride = delta_t this is the fit on the trajectory subsampled every
+        #   delta_t frames, while the basis (the CVs and their histories,
+        #   history_delta_t in frames) still sees every frame. The metrics are unchanged
+        #   (all frames). Not with train_mask, stable, gamma_all_frames.
         # save_min_metric: metric (in metrics_print) whose minimum selects r_traj_min_sd_zq;
         # for segment data use 'max_z_zq_stopped'.
         #
@@ -182,6 +190,15 @@ class CommittorNE:
         #   see nonparametrics.npneq (POSSIBLE_BUG).
         self.r_traj_old = self.r_traj
         _transition_w = None if self.path_weights is None else self.path_weights[:-1]
+        lag_fit = delta_t != 1 or delta_t_stride != 1
+        if lag_fit:
+            if train_mask is not None or stable or gamma_all_frames:
+                raise NotImplementedError('delta_t/delta_t_stride: no train_mask, stable or gamma_all_frames')
+            key = (int(delta_t), int(delta_t_stride))
+            if getattr(self, '_lag_key', None) != key:
+                self._lag_key = key
+                self._lag_t0, self._lag_t1 = nonparametrics.lag_transitions(
+                    self.b_traj > 0, self.i_traj, int(delta_t), int(delta_t_stride))
         self.time_start = time.time()
         if metrics_print is None:
             metrics_print = ('iter', 'cross_entropy', 'mse', 'max_sd_zq', 'max_grad_zq', 'delta_r2', 'auc', 'delta_x', 'time_elapsed')
@@ -222,7 +239,10 @@ class CommittorNE:
                     _gamma = gamma(self.iter, max_iter)
 
                 # compute next update of the RC
-                if train_mask is not None and np.isscalar(train_mask):
+                if lag_fit:
+                    r_traj = nonparametrics.npneq_lag(self.r_traj, fk, self._lag_t0, self._lag_t1, _gamma,
+                                                      w_traj=self.path_weights)
+                elif train_mask is not None and np.isscalar(train_mask):
                     _train_mask=(cp.random.rand(self.r_traj.shape[0]-1)<train_mask).astype(cp.float32)
                     r_traj = nonparametrics.npneq(self.r_traj, fk, self.i_traj, _gamma, stable, train_mask=_train_mask,
                                                   w_traj=_transition_w, gamma_all_frames=gamma_all_frames,

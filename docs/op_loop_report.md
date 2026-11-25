@@ -59,7 +59,11 @@ Settings are config keys of `examples/param_lambda/configs/loop_*.toml`. The val
      - a fallback to a monotone function of the state CV on frames outside the training data (Mahalanobis
        distance).
 5. **Interfaces** (`[interfaces]`, `loop/interfaces.py`; background in
-   [`param_lambda_interface_spacing.md`](param_lambda_interface_spacing.md)).
+   [`param_lambda_interface_spacing.md`](param_lambda_interface_spacing.md)). Two methods:
+   - `method = "dp"` (loop_z_dp, loop_z_lgv_dp): dynamic programming towards crossing probability `target_p` per
+     pair, then the evening and balance steps for even shooting-region lengths. Every step and criterion is in
+     [`op_loop_placement.md`](op_loop_placement.md).
+   - `method = "plan"` (default, all earlier loops) is described here. It is also dp's fallback.
    - **Plan** (`plan_natural`):
      - 8 [10] interior levels, equally spaced in the natural coordinate u(h) = ∫ dh / √(2 D(h)). Here h is the
        model's committor and D(h) the diffusion of h per saved frame, so each gap takes about the same
