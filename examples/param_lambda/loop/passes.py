@@ -244,13 +244,17 @@ def _place_dp(cfg, pool, model, view, paths, k, mode, log):
                        f'{[float(f"{x:.2g}") for x in lv["h"]]} under lambda_1', log=log)
         except Exception as e:                               # noqa: BLE001
             common.say(f'infinit set: not reported ({type(e).__name__}: {e})', log=log)
-    placed = itf.place_dp(model, paths, ic, mode, log=log)
+    # [interfaces] levels = "measured": committor levels re-mapped to the crossing probabilities of the last run
+    lm = itf.level_model(model, last_run_dir(pool), ic, log=log)
+    placed = itf.place_dp(lm, paths, ic, mode, log=log)
     if placed is None:
         common.say('placement (dp): no feasible set; natural plan instead', log=log)
         return None
-    placed = itf.even_regions(model, paths, placed, ic, mode, log=log)
+    # shooting-region lengths on the last run's own paths (whole accepted paths, unweighted; interfaces.window_frames)
+    rp = itf.region_paths(pool, model, state_cv=system['state_cv'], n_passes=int(ic.get('region_passes', 1)))
+    placed = itf.even_regions(lm, paths, placed, ic, mode, log=log, rpaths=rp)
     if ic.get('balance', True):
-        placed = itf.balance_regions(model, paths, placed, ic, mode, log=log)
+        placed = itf.balance_regions(lm, paths, placed, ic, mode, log=log, rpaths=rp)
     if not placed['check']['ok']:
         common.say(f'placement (dp): fails {placed["check"]["fails"]} on the stored paths; natural plan instead', log=log)
         return None
@@ -476,16 +480,25 @@ def stop_test(cfg, state, log):
     return not why
 
 
-def _freeze_place(model, paths, intfs, ic, mode, log):
+def last_run_dir(pool):
+    """The run directory of the newest pool pass (the last learning pass or verification run), or None."""
+    try:
+        return pool.meta(pool.passes()[-1]).get('workdir')
+    except Exception:                                        # noqa: BLE001
+        return None
+
+
+def _freeze_place(model, paths, intfs, ic, mode, log, rpaths=None, run_dir=None):
     """Placement of a freeze / verification round: [interfaces] method = "dp" places afresh on the given paths
     (place_dp + even_regions; the natural thinning of `intfs` if it finds no set passing the gate), otherwise thins
     and refills `intfs` (interfaces.place)."""
     if ic.get('method', 'plan') == 'dp':
-        dp = itf.place_dp(model, paths, ic, mode, log=log)
+        lm = itf.level_model(model, run_dir, ic, log=log)            # levels = "measured": from the run in run_dir
+        dp = itf.place_dp(lm, paths, ic, mode, log=log)
         if dp is not None:
-            dp = itf.even_regions(model, paths, dp, ic, mode, log=log)
+            dp = itf.even_regions(lm, paths, dp, ic, mode, log=log, rpaths=rpaths)
             if ic.get('balance', True):
-                dp = itf.balance_regions(model, paths, dp, ic, mode, log=log)
+                dp = itf.balance_regions(lm, paths, dp, ic, mode, log=log, rpaths=rpaths)
             if dp['check']['ok']:
                 return dp
         common.say('placement (dp): no set passes the gate on these paths; thinning the given set instead', log=log)
@@ -527,6 +540,7 @@ def freeze(cfg, state, pool, log, name='production', start=None, start_paths=Non
         intfs, rc, source = list(start), dict(ok=False, fails=['re-placement forced']), 'start set'
     rounds = []
     own = start_paths
+    last_vrun = None
     for r in range(int(pc.get('verify_rounds', 3))):
         if rc['ok']:
             break
@@ -534,7 +548,14 @@ def freeze(cfg, state, pool, log, name='production', start=None, start_paths=Non
             paths = own                                          # thin on the failed run's own paths
         else:
             paths = itf.path_arrays(pool, model, state_cv=system['state_cv'], lineage='include')
-        placed = _freeze_place(model, paths, intfs, ic, mode, log)
+        # region lengths on the last run's own paths: the failed verification run's, else the newest pool pass
+        rpaths = own if own is not None else itf.region_paths(pool, model, state_cv=system['state_cv'],
+                                                              n_passes=int(ic.get('region_passes', 1)))
+        # measured levels: from the failed verification run, else [interfaces] levels_run (a run directory under the
+        # loop directory, e.g. a finished production with the same lambda), else the newest pool pass's run
+        lrun = last_vrun if own is not None and last_vrun else (
+            os.path.join(cfg['loop_dir'], ic['levels_run']) if ic.get('levels_run') else last_run_dir(pool))
+        placed = _freeze_place(model, paths, intfs, ic, mode, log, rpaths=rpaths, run_dir=lrun)
         intfs = placed['interfaces']
         vdir = os.path.join(cfg['loop_dir'], f'{pre}verify_{r + 1}')
         os.makedirs(vdir, exist_ok=True)
@@ -543,6 +564,7 @@ def freeze(cfg, state, pool, log, name='production', start=None, start_paths=Non
                                       f'verification {r + 1}', 'verify', log)
         state.data['md_steps'] += cost['md_steps']
         own = own_paths(raw, system['state_cv'])
+        last_vrun = os.path.join(vdir, 'run')
         rounds.append(dict(round=r + 1, interfaces=intfs, removed=placed['removed'], refilled=placed.get('refilled', []), ok=rc['ok'], fails=rc['fails'],
                            md_steps=cost['md_steps']))
         source = f'verification {r + 1}'
@@ -634,7 +656,11 @@ def run_and_check(cfg, pool, pdir, model, model_path, intfs, mode, cycles, seed,
     recheck = itf.check(own, intfs, ic, mode)
     recheck['empty_shooting_regions'] = itf.empty_shooting_regions(raw, intfs, mode)
     n_empty = sum(v['empty'] for v in recheck['empty_shooting_regions'].values())
-    if n_empty:
+    # strict (any accepted path without shooting points fails) unless [interfaces] max_empty allows a fraction per
+    # ensemble: infretis rejects shooting moves from such a path, so a few only cost rejected moves
+    lim = ic.get('max_empty')
+    worst = max([v['fraction'] for v in recheck['empty_shooting_regions'].values() if np.isfinite(v['fraction'])] or [0])
+    if (n_empty and lim is None) or (lim is not None and worst > float(lim)):
         recheck['ok'] = False
         recheck['fails'].append(('accepted_paths_with_empty_shooting_region', -1, n_empty))
     common.say(f'{label} re-check on its own paths: {"OK" if recheck["ok"] else recheck["fails"]}\n'

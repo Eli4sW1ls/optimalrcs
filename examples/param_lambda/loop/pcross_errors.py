@@ -19,6 +19,8 @@ if __name__ == '__main__':
     ap.add_argument('--dirs', nargs='+', default=['production', 'production_seed'])
     ap.add_argument('--interval', type=int, default=50)
     ap.add_argument('--burn-in', type=float, default=0.1)
+    ap.add_argument('--out-name', default='error_analysis', help='output folder inside each run (the convergence '
+                    'plot reads error_analysis/)')
     a = ap.parse_args()
     cfg = controller.load_loop_config(a.config)
     from inftools.analysis.rec_error_staple import error_analysis_staple
@@ -27,7 +29,7 @@ if __name__ == '__main__':
         d = os.path.join(cfg['loop_dir'], sub)
         df = os.path.join(d, 'infretis_data.txt')
         n = sum(1 for line in open(df) if line.strip() and not line.startswith('#'))
-        out = os.path.join(d, 'error_analysis')
+        out = os.path.join(d, a.out_name)
         error_analysis_staple(d, nskip=int(a.burn_in * n), interval=a.interval, pathlengths=True, h5=be.order_h5(d),
                               outdir=out, output=os.path.join(out, 'report.txt'), quiet_progress=True)
         print('done', sub)

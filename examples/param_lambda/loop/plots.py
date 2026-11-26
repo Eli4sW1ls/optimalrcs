@@ -607,6 +607,11 @@ def fig_tis(cfg, st, pool, out):
 PROD_RUNS = [('production', 'learned lambda', BLUE), ('production_refill3', 'learned lambda, refilled', '#0d366b'),
              ('production_nsh2', 'learned lambda, ridge split (n_sh 2, max_ratio 4)', '#1baf7a'),
              ('production_dp_nsh2', 'learned lambda, dp placement (n_sh 2)', '#e87ba4'),
+             ('production_refill', 'learned lambda, dp + even regions (p floor 0.2)', '#e8590c'),
+             ('production_measured', 'learned lambda, dp on measured levels (margin 1.5)', '#7048e8'),
+             ('production_measured_rep/run', 'same set, other seed', '#b197fc'),
+             ('production_balanced', 'learned lambda, refined for acceptance (19 interfaces)', '#0ca678'),
+             ('production_var', 'learned lambda, refined for pair variance (16 interfaces)', '#f59f00'),
              ('production_seed', 'seed lambda', RED)]
 
 
@@ -648,7 +653,8 @@ def _read_block(path):
 
 
 def fig_pcross_convergence(cfg, out):
-    """Running P_cross(lambda_B) and rate / exact rate of the production runs against production MD steps, with a
+    """Running P_cross(lambda_B) and rate / exact rate of the production runs against accepted paths (the legend gives
+    MD steps per accepted path), with a
     +-1 block-error band (the plateau relative error at the end, scaled by sqrt(N / n) back in time), and the
     relative block error of P_cross(lambda_B) against block length (inftools error_analysis_staple)."""
     runs = []
@@ -667,26 +673,26 @@ def fig_pcross_convergence(cfg, out):
         n_rows = sum(1 for line in open(os.path.join(cfg['loop_dir'], sub, 'infretis_data.txt'))
                      if line.strip() and not line.startswith('#'))
         n_skip = n_rows - int(pc[-1, 0]) if pc[-1, 0] <= n_rows else 0
-        to_md = lambda rows: rj['cost']['md_steps'] * (n_skip + rows) / n_rows   # rows -> production MD steps (linear)
+        to_n = lambda rows: n_skip + rows                                     # rows -> accepted paths of the production
         rate = rt[:, rh.index('Rate')] * ase_systems.TIME_FS                 # engine time (fs) -> reduced time units
-        runs.append(dict(label=label, col=col, md=to_md(pc[:, 0]), p=pc[:, -1], md_r=to_md(rt[:, 0]), rate=rate, rel=rel[-1], rrel=rrel[rh.index('Rate') - 1],
+        runs.append(dict(label=label, col=col, md=to_n(pc[:, 0]), p=pc[:, -1], md_r=to_n(rt[:, 0]), mdpp=rj['cost']['md_steps'] / n_rows, rate=rate, rel=rel[-1], rrel=rrel[rh.index('Rate') - 1],
                          blocks=blocks, init=0 if sub == 'production_seed' else _init_md(cfg, sub), flux=rj['Flux'], tpf=rj['time_per_frame'], ex=(rj.get('exact') or {}).get('rate')))
     if not runs:
         return None
-    fig, axs = plt.subplots(1, 3, figsize=(13, 3.8))
+    fig, axs = plt.subplots(1, 3, figsize=(13, 4.6))
     ex = next((r['ex'] for r in runs if r['ex']), None)
     for r in runs:
         band = r['rel'] * np.sqrt(r['md'][-1] / r['md'])
         ok = r['p'] > 0
-        axs[0].plot(r['md'][ok] / 1e6, r['p'][ok], color=r['col'], lw=1.4,
-                    label=f"{r['label']} (init. {r['init'] / 1e6:.1f}M MD steps)")
-        axs[0].fill_between(r['md'][ok] / 1e6, r['p'][ok] / (1 + band[ok]), r['p'][ok] * (1 + band[ok]), color=r['col'], alpha=0.15, lw=0)
+        axs[0].plot(r['md'][ok], r['p'][ok], color=r['col'], lw=1.4,
+                    label=f"{r['label']} ({r['mdpp']:.0f} MD steps/accepted path; init. {r['init'] / 1e6:.1f}M MD steps)")
+        axs[0].fill_between(r['md'][ok], r['p'][ok] / (1 + band[ok]), r['p'][ok] * (1 + band[ok]), color=r['col'], alpha=0.15, lw=0)
         if ex:
             okr = r['rate'] > 0
             bandr = r['rrel'] * np.sqrt(r['md_r'][-1] / r['md_r'])
             y = r['rate'][okr] / ex
-            axs[1].plot(r['md_r'][okr] / 1e6, y, color=r['col'], lw=1.4, label=r['label'])
-            axs[1].fill_between(r['md_r'][okr] / 1e6, y / (1 + bandr[okr]), y * (1 + bandr[okr]), color=r['col'], alpha=0.15, lw=0)
+            axs[1].plot(r['md_r'][okr], y, color=r['col'], lw=1.4, label=r['label'])
+            axs[1].fill_between(r['md_r'][okr], y / (1 + bandr[okr]), y * (1 + bandr[okr]), color=r['col'], alpha=0.15, lw=0)
         b = r['blocks']
         axs[2].plot(b[:, 0], b[:, -1], color=r['col'], lw=1.2, label=f"{r['label']}: plateau {r['rel']:.2f}")
         axs[2].axhline(r['rel'], color=r['col'], lw=0.8, ls=':')
@@ -697,14 +703,14 @@ def fig_pcross_convergence(cfg, out):
     pmax = max(float(np.max(r['p'])) for r in runs)
     pfin = min(float(r['p'][-1]) for r in runs)
     axs[0].set_ylim(pfin / 30, pmax * 3)
-    axs[0].set(yscale='log', xlabel='production MD steps [10^6]', ylabel='P_cross(lambda_B)', title='running P_cross, +-1 block error')
+    axs[0].set(yscale='log', xlabel='accepted paths', ylabel='P_cross(lambda_B)', title='running P_cross, +-1 block error')
     if ex:
         axs[1].axhline(1, color=INK2, lw=0.8, ls='--')
-        axs[1].set(yscale='log', xlabel='production MD steps [10^6]', ylabel='rate / exact rate',
+        axs[1].set(yscale='log', xlabel='accepted paths', ylabel='rate / exact rate',
                    title=f'running rate / exact ({ex:.3g} per time unit)')
     axs[2].set(xlabel='block length [paths]', ylabel='relative error of P_cross(lambda_B)', title='block error (inftools)')
-    for ax in axs:
-        ax.legend(fontsize=7)
+    for ax in axs:                             # legends below the panels: the run labels are long
+        ax.legend(fontsize=6.5, loc='upper center', bbox_to_anchor=(0.5, -0.17), frameon=False)
     fig.suptitle(f"{cfg['name']}: production convergence (lambda frozen)", fontsize=10)
     fig.tight_layout()
     path = os.path.join(out, 'pcross_convergence.png')

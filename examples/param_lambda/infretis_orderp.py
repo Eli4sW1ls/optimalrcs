@@ -162,6 +162,29 @@ class LearnedLambda(_Base):
         return [self.lam(v)] + v
 
 
+class ExactLambda(_Base):
+    """infretis order parameter [lambda(q_exact(y, x)), v_0, v_1, ...]: the exact grid committor of a 2D overdamped
+    system as lambda (exact_lambda.ExactLambdaModel; `grid` = its npz), the CV source values recorded after it."""
+
+    def __init__(self, grid, cvs, cv_columns=None):
+        from exact_lambda import ExactLambdaModel
+        self.model = ExactLambdaModel(grid)
+        self.cv_sources = build_cv_sources(cvs)
+        self.cv_columns = None if cv_columns is None else [int(c) for c in cv_columns]
+        super().__init__(description=f'exact committor lambda {os.path.basename(self.model.path)}', velocity=False)
+
+    def values(self, system):
+        out = []
+        for op in self.cv_sources:
+            out.extend(float(v) for v in np.ravel(op.calculate(system)))
+        return out
+
+    def calculate(self, system):
+        v = self.values(system)
+        cv = v if self.cv_columns is None else [v[c] for c in self.cv_columns]
+        return [self.model.one(np.asarray(cv[:2], float))] + v
+
+
 # ---------------------------------------------------------------------------------------------------
 # command line: interfaces, relabel load paths, check a toml
 # ---------------------------------------------------------------------------------------------------

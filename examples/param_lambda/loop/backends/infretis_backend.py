@@ -76,7 +76,7 @@ def base_config(system, run, interfaces, order_table, steps, mode, shooting='sh'
     return {
         'runner': {'workers': workers, 'files': [], 'wmdrun': ['not used'] * max(8, workers)},
         'simulation': sim,
-        'engine': ase_systems.engine_table(system, run.get('subcycles', 1)),
+        'engine': ase_systems.engine_table(system, run.get('subcycles', 1), run.get('dt_factor', 1)),
         'orderparameter': order_table,
         'output': {'data_dir': './', 'screen': int(run.get('screen', 10)), 'pattern': False, 'delete_old': False,
                    'delete_old_all': False, 'visual_validation': False},

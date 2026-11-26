@@ -40,11 +40,72 @@ def _cfg_for_models(cfg_loop):
     }
 
 
+def label_holdout(view, threshold, cell=0.005, min_cell=5):
+    """Boolean mask over the view's frames whose teacher label is noisy: |logit q - local label field| > `threshold`.
+    The local field is the path-weighted median of logit q in `cell`-wide cells of the first two CVs (bilinear
+    interpolation between cell centres, empty cells filled by the nearest cell). On loop_z_dp pass-7 data (offline
+    study, 2026-11-26) threshold 1.0 holds out 24-27% of the frames, halves the error of the bend near A
+    (RMS logit 0.31 -> 0.13) and gives the lowest overall logit RMSE (0.282 -> 0.256) against the exact committor;
+    0.5 (52% held out) damaged the basin surfaces, and weighting by the cell's frame count only hurt."""
+    from scipy import ndimage
+    from scipy.interpolate import RegularGridInterpolator
+    y, x = view.cv[:, 0].astype(float), view.cv[:, 1].astype(float)
+    ok = view.valid & view.inside & np.isfinite(view.q)
+    zq = common.logit(np.clip(view.q.astype(float), 1e-12, 1 - 1e-12))
+    w = view.w.astype(float)
+    ye = np.arange(y[ok].min(), y[ok].max() + cell, cell)
+    xe = np.arange(x[ok].min(), x[ok].max() + cell, cell)
+    iy = np.clip(np.digitize(y, ye) - 1, 0, len(ye) - 2)
+    ix = np.clip(np.digitize(x, xe) - 1, 0, len(xe) - 2)
+    cid = iy * (len(xe) - 1) + ix
+    med = np.full((len(ye) - 1) * (len(xe) - 1), np.nan)
+    o = np.flatnonzero(ok)
+    o = o[np.lexsort((zq[o], cid[o]))]
+    cs = cid[o]
+    bounds = np.r_[0, np.flatnonzero(np.diff(cs)) + 1, len(o)]
+    for a, b in zip(bounds[:-1], bounds[1:]):
+        if b - a < min_cell:
+            continue
+        cw = np.cumsum(w[o[a:b]])
+        med[cs[a]] = zq[o[a + int(np.searchsorted(cw, cw[-1] / 2))]]
+    M = med.reshape(len(ye) - 1, len(xe) - 1)
+    nan = ~np.isfinite(M)
+    if nan.any():
+        M = M[tuple(ndimage.distance_transform_edt(nan, return_distances=False, return_indices=True))]
+    field = RegularGridInterpolator((ye[:-1] + cell / 2, xe[:-1] + cell / 2), M, bounds_error=False, fill_value=None)
+    held = np.zeros(view.n, bool)
+    held[ok] = np.abs(zq[ok] - field(np.c_[y[ok], x[ok]])) > threshold
+    return held
+
+
 def train(view, cfg_loop, seed=0, init_params=None, log=None, specs=None):
     """Fit M3 on the view (training split; checkpoint selected by the validation SD(Z_q)). Returns the score
     parameters and an info dict (selected epoch, metrics per checkpoint, seconds). `specs`: the input CVs
     (default all of the view's; the screening step passes subsets). A warm start is used only when the previous
-    network had the same inputs."""
+    network had the same inputs.
+
+    `[student] holdout_resid` (default 0 = off; loop_z_dp sets 1.0): frames whose label deviates from the local label
+    field by more than this (`label_holdout`) are left out of the fit, the checkpoint selection and the calibration of
+    this call; the view is restored afterwards (the export is built on all frames)."""
+    st = cfg_loop.get('student', {})
+    thr = float(st.get('holdout_resid', 0.0))
+    if thr > 0 and view.cv.shape[1] >= 2:
+        held = label_holdout(view, thr)
+        valid0 = view.valid.copy()
+        view.valid[held] = False
+        if log:
+            common.say(f'   student: {held.mean():.1%} of the frames held out (|label residual| > {thr})', log=log)
+        try:
+            params, info = _train(view, cfg_loop, seed, init_params, log, specs)
+        finally:
+            view.valid[:] = valid0
+        info['holdout_resid'] = thr
+        info['held_frac'] = float(held.mean())
+        return params, info
+    return _train(view, cfg_loop, seed, init_params, log, specs)
+
+
+def _train(view, cfg_loop, seed=0, init_params=None, log=None, specs=None):
     st = cfg_loop.get('student', {})
     cfg = _cfg_for_models(cfg_loop)
     specs = list(view.cv_names) if specs is None else list(specs)

@@ -159,13 +159,14 @@ def cmd_loop(cfg, args):
     if not state.data.get('done') and not os.path.isdir(os.path.join(cfg['loop_dir'], 'production')):
         passes.run_passes(cfg, state, pool, log=log, max_passes=getattr(args, 'max_passes', None))
     if getattr(args, 'production', False):
-        run_production(cfg, log)
+        run_production(cfg, log, name=getattr(args, 'production_name', None) or 'production')
 
 
-def run_production(cfg, log=None):
-    """Run the frozen production directory (lambda frozen) and its rate analysis (inftools iSTAR)."""
+def run_production(cfg, log=None, name='production'):
+    """Run the frozen production directory <loop_dir>/<name> (lambda frozen; e.g. production_refill from
+    loop.freeze_cmd --name) and its rate analysis (inftools iSTAR)."""
     from loop import rates
-    out = os.path.join(cfg['loop_dir'], 'production')
+    out = os.path.join(cfg['loop_dir'], name)
     if not os.path.isfile(os.path.join(out, 'infretis.toml')):
         raise FileNotFoundError(f'{out}: no frozen production run (the loop has not finished)')
     if not os.path.isfile(os.path.join(out, 'restart.toml')):

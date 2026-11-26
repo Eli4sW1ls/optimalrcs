@@ -114,13 +114,16 @@ def get(name, overrides=None):
     return s
 
 
-def engine_table(s, subcycles=1):
+def engine_table(s, subcycles=1, dt_factor=1):
     """The [engine] table of infretis.toml (overdamped Langevin through ASE, or `integrator` = 'langevin' for the
-    underdamped systems; the engine converts the friction from 1/fs, so ASE gets gamma per ASE time unit)."""
+    underdamped systems; the engine converts the friction from 1/fs, so ASE gets gamma per ASE time unit).
+    `dt_factor` f: integration step dt / f with f times the subcycles, so the frames (and the time between them,
+    the one the interfaces see) stay as they are and only the integrator's discretisation changes."""
     calc = dict(s['calculator'], module=CALCS)
+    f = int(dt_factor)
     return {
         'class': 'ase', 'engine': 'ase', 'temperature': s['kT'] / KB, 'input_path': '.',
-        'timestep': s['dt'] * TIME_FS, 'subcycles': int(subcycles), 'integrator': s.get('integrator', 'overdamped_lgv'),
+        'timestep': s['dt'] * TIME_FS / f, 'subcycles': int(subcycles) * f, 'integrator': s.get('integrator', 'overdamped_lgv'),
         'langevin_fixcm': False, 'langevin_friction': s['gamma'] / TIME_FS,
         'calculator_settings': calc,
         'particles': {'mass': [1.0], 'name': ['H'], 'pos': [list(s['start'][:s['dim']])]},

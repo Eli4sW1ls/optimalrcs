@@ -61,6 +61,7 @@ def main():
     p.add_argument('--pass0-only', action='store_true', help='loop: run and ingest pass 0 only')
     p.add_argument('--max-passes', type=int, help='loop: stop after this many passes in this call')
     p.add_argument('--production', action='store_true', help='loop: run the frozen production run and its rate analysis')
+    p.add_argument('--production-name', help='loop --production: the production directory to run (default: production)')
     args = p.parse_args()
     commands = {'extract': cmd_extract, 'fit-qnp': cmd_fit_qnp,
                 'variants': lambda cfg, a: __import__('variants').cmd_variants(cfg, a),
