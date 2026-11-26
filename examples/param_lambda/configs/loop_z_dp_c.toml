@@ -1,0 +1,4 @@
+# Fresh loop from pass 0 with the C hold-out as student default (inherits loop_z_dp: dp placement, confirm after each pass):
+#     python run.py loop loop_z_dp_c
+inherit = "loop_z_dp"
+name = "loop_z_dp_c"
