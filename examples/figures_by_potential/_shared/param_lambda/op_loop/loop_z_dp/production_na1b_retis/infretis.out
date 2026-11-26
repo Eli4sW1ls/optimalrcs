@@ -1,0 +1,7 @@
+🔧 Starting internalrun with input: infretis.toml
+🚀 About to call setup_config - set breakpoint here!
+📋 Configuration loaded, starting scheduler...
+random #1, dims = 13
+random #2, dims = 14
+random #3, dims = 14
+random #4, dims = 13

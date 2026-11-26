@@ -1,0 +1,35 @@
+{
+ "kind": "verify",
+ "lambda_version": "b43239b71b979b177da10ca7150044c7",
+ "lambda_model": "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_z_dp/models/lambda_7.npz",
+ "interfaces": [
+  0.05,
+  0.07245432965891221,
+  0.16227164829456103,
+  0.19686452157528317,
+  0.421718197899977,
+  0.5972433546806817,
+  0.8126558031700275,
+  0.8425311606340055,
+  0.85
+ ],
+ "mode": "staple",
+ "lambda_a": 0.05,
+ "lambda_b": 0.85,
+ "cv_names": [
+  "y",
+  "x"
+ ],
+ "state_cv": 0,
+ "n_rows": 1240,
+ "workdir": "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_z_dp/verify_2/run",
+ "md_steps": 1848688,
+ "wall_seconds": 816.0829303264618,
+ "cycles": 2000,
+ "pass_index": 13,
+ "n_pieces": 2372,
+ "n_frames": 2352506,
+ "n_paths": 1240,
+ "weighting": "rejections",
+ "reversed_pieces": true
+}

@@ -1,0 +1,38 @@
+{
+ "run": "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_z_dp/offline_noswap/run",
+ "time": "2026-11-25 00:08:52",
+ "finished": "20000 cycles",
+ "archive_seconds": 71.43330669403076,
+ "archive_bytes": 821680646,
+ "check": {
+  "ok": true,
+  "n_dirs": 12292,
+  "n_data_paths": 12278,
+  "missing_dirs": [],
+  "n_missing_dirs": 0,
+  "data_paths_without_dir": 0,
+  "sample": 50,
+  "sample_mismatch": []
+ },
+ "prune": {
+  "kept": [
+   "12246",
+   "12263",
+   "12270",
+   "12273",
+   "12276",
+   "12278",
+   "12279",
+   "12283",
+   "12284",
+   "12287",
+   "12288",
+   "12289",
+   "12290",
+   "12291"
+  ],
+  "removed": 12278,
+  "missing_active": []
+ },
+ "load_pruned": true
+}

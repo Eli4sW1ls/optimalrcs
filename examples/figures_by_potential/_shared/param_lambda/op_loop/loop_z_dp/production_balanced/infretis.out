@@ -1,0 +1,7 @@
+🔧 Starting internalrun with input: infretis.toml
+🚀 About to call setup_config - set breakpoint here!
+📋 Configuration loaded, starting scheduler...
+/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/APPTIS/infretis/infretis/classes/repex_staple.py:745: RuntimeWarning: overflow encountered in multiply
+  temp_left[start:-1:2]
+/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/APPTIS/infretis/infretis/classes/repex_staple.py:749: RuntimeWarning: overflow encountered in multiply
+  probs = temp_right[start:-1:2] * temp_left[start + 1 :: 2]

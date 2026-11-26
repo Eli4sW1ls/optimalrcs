@@ -1,0 +1,289 @@
+{
+ "model": "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_z_dp/models/lambda_7.npz",
+ "interfaces": [
+  0.05,
+  0.07109559385940384,
+  0.09746508618365862,
+  0.15732214941868503,
+  0.17426409317991462,
+  0.20968558511527333,
+  0.2380227786635603,
+  0.4173792942680605,
+  0.5670757555515062,
+  0.6907019411694499,
+  0.7840525690331228,
+  0.795721397516082,
+  0.8037511046154653,
+  0.8137882384896944,
+  0.8183423075564814,
+  0.8219855628099111,
+  0.836511567278846,
+  0.8406618542699703,
+  0.85
+ ],
+ "verified_by": "production_balanced_rep: repeat of production_balanced (its interfaces and lambda), mode staple",
+ "seeds": {
+  "0": {
+   "pass_index": 17,
+   "pnr": 0,
+   "frames": [
+    0,
+    97
+   ],
+   "tainted": false
+  },
+  "1": {
+   "pass_index": 17,
+   "pnr": 21,
+   "frames": [
+    0,
+    9
+   ],
+   "tainted": false,
+   "pptype": "LML",
+   "sh_region": [
+    1,
+    8
+   ]
+  },
+  "2": {
+   "pass_index": 17,
+   "pnr": 2,
+   "frames": [
+    0,
+    300
+   ],
+   "tainted": false,
+   "pptype": "RML",
+   "sh_region": [
+    197,
+    299
+   ]
+  },
+  "3": {
+   "pass_index": 17,
+   "pnr": 4,
+   "frames": [
+    0,
+    688
+   ],
+   "tainted": false,
+   "pptype": "RML",
+   "sh_region": [
+    417,
+    554
+   ]
+  },
+  "4": {
+   "pass_index": 17,
+   "pnr": 15,
+   "frames": [
+    91,
+    587
+   ],
+   "tainted": false,
+   "pptype": "RML",
+   "sh_region": [
+    135,
+    240
+   ]
+  },
+  "5": {
+   "pass_index": 17,
+   "pnr": 16,
+   "frames": [
+    0,
+    351
+   ],
+   "tainted": false,
+   "pptype": "LMR",
+   "sh_region": [
+    299,
+    319
+   ]
+  },
+  "6": {
+   "pass_index": 17,
+   "pnr": 5,
+   "frames": [
+    0,
+    522
+   ],
+   "tainted": false,
+   "pptype": "RML",
+   "sh_region": [
+    8,
+    242
+   ]
+  },
+  "7": {
+   "pass_index": 17,
+   "pnr": 20,
+   "frames": [
+    443,
+    620
+   ],
+   "tainted": false,
+   "pptype": "LMR",
+   "sh_region": [
+    85,
+    95
+   ]
+  },
+  "8": {
+   "pass_index": 17,
+   "pnr": 8,
+   "frames": [
+    0,
+    100
+   ],
+   "tainted": false,
+   "pptype": "RML",
+   "sh_region": [
+    30,
+    53
+   ]
+  },
+  "9": {
+   "pass_index": 17,
+   "pnr": 65,
+   "frames": [
+    0,
+    1509
+   ],
+   "tainted": false,
+   "pptype": "LMR",
+   "sh_region": [
+    589,
+    600
+   ]
+  },
+  "10": {
+   "pass_index": 17,
+   "pnr": 28,
+   "frames": [
+    0,
+    1424
+   ],
+   "tainted": false,
+   "pptype": "LMR",
+   "sh_region": [
+    52,
+    102
+   ]
+  },
+  "11": {
+   "pass_index": 17,
+   "pnr": 76,
+   "frames": [
+    2698,
+    7556
+   ],
+   "tainted": false,
+   "pptype": "RML",
+   "sh_region": [
+    3341,
+    4818
+   ]
+  },
+  "12": {
+   "pass_index": 17,
+   "pnr": 9,
+   "frames": [
+    39,
+    2456
+   ],
+   "tainted": false,
+   "pptype": "RML",
+   "sh_region": [
+    730,
+    1890
+   ]
+  },
+  "13": {
+   "pass_index": 17,
+   "pnr": 40,
+   "frames": [
+    690,
+    1399
+   ],
+   "tainted": false,
+   "pptype": "LMR",
+   "sh_region": [
+    35,
+    442
+   ]
+  },
+  "14": {
+   "pass_index": 17,
+   "pnr": 10,
+   "frames": [
+    85,
+    663
+   ],
+   "tainted": false,
+   "pptype": "RML",
+   "sh_region": [
+    91,
+    478
+   ]
+  },
+  "15": {
+   "pass_index": 17,
+   "pnr": 11,
+   "frames": [
+    21,
+    623
+   ],
+   "tainted": false,
+   "pptype": "RML",
+   "sh_region": [
+    73,
+    249
+   ]
+  },
+  "16": {
+   "pass_index": 17,
+   "pnr": 12,
+   "frames": [
+    0,
+    79
+   ],
+   "tainted": false,
+   "pptype": "RML",
+   "sh_region": [
+    28,
+    59
+   ]
+  },
+  "17": {
+   "pass_index": 17,
+   "pnr": 13,
+   "frames": [
+    0,
+    59
+   ],
+   "tainted": false,
+   "pptype": "RMR",
+   "sh_region": [
+    36,
+    46
+   ]
+  },
+  "18": {
+   "pass_index": 17,
+   "pnr": 34,
+   "frames": [
+    45,
+    189
+   ],
+   "tainted": false,
+   "pptype": "LMR",
+   "sh_region": [
+    125,
+    143
+   ]
+  }
+ },
+ "written": "2026-11-26 01:16:52"
+}

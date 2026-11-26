@@ -6,5 +6,5 @@ inherit = "loop_z_lgv"
 method = "dp"
 target_p = 0.3
 long_ratio = 2.0
-split_gain = 0.3
+split_gain = 0.15
 n_sh = 2

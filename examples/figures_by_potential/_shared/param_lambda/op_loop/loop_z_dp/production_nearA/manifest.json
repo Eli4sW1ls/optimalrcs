@@ -1,0 +1,274 @@
+{
+ "model": "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_z_dp/models/lambda_7.npz",
+ "interfaces": [
+  0.05,
+  0.06549614610659911,
+  0.06992361642277028,
+  0.07988542463415543,
+  0.09746508618365862,
+  0.13099314614630142,
+  0.19804926607158704,
+  0.20968558511527333,
+  0.2301985440439437,
+  0.2558397427047816,
+  0.4173792942680605,
+  0.5670757555515062,
+  0.6907019411694499,
+  0.8015623784396495,
+  0.8037511046154653,
+  0.836511567278846,
+  0.8406618542699703,
+  0.85
+ ],
+ "verified_by": "refine_measured on ['production_var'] (gate on their own paths: ok)",
+ "seeds": {
+  "0": {
+   "pass_index": 17,
+   "pnr": 0,
+   "frames": [
+    0,
+    97
+   ],
+   "tainted": false
+  },
+  "1": {
+   "pass_index": 17,
+   "pnr": 1,
+   "frames": [
+    0,
+    453
+   ],
+   "tainted": false,
+   "pptype": "LMR",
+   "sh_region": [
+    1,
+    20
+   ]
+  },
+  "2": {
+   "pass_index": 17,
+   "pnr": 22,
+   "frames": [
+    478,
+    783
+   ],
+   "tainted": false,
+   "pptype": "RML",
+   "sh_region": [
+    294,
+    304
+   ]
+  },
+  "3": {
+   "pass_index": 17,
+   "pnr": 4,
+   "frames": [
+    558,
+    601
+   ],
+   "tainted": false,
+   "pptype": "RML",
+   "sh_region": [
+    22,
+    38
+   ]
+  },
+  "4": {
+   "pass_index": 17,
+   "pnr": 15,
+   "frames": [
+    188,
+    479
+   ],
+   "tainted": false,
+   "pptype": "RML",
+   "sh_region": [
+    165,
+    230
+   ]
+  },
+  "5": {
+   "pass_index": 17,
+   "pnr": 9,
+   "frames": [
+    748,
+    7831
+   ],
+   "tainted": false,
+   "pptype": "RML",
+   "sh_region": [
+    6961,
+    7077
+   ]
+  },
+  "6": {
+   "pass_index": 17,
+   "pnr": 72,
+   "frames": [
+    28,
+    417
+   ],
+   "tainted": false,
+   "pptype": "RML",
+   "sh_region": [
+    21,
+    356
+   ]
+  },
+  "7": {
+   "pass_index": 17,
+   "pnr": 28,
+   "frames": [
+    4,
+    41
+   ],
+   "tainted": false,
+   "pptype": "LMR",
+   "sh_region": [
+    6,
+    33
+   ]
+  },
+  "8": {
+   "pass_index": 17,
+   "pnr": 5,
+   "frames": [
+    40,
+    114
+   ],
+   "tainted": false,
+   "pptype": "RML",
+   "sh_region": [
+    23,
+    61
+   ]
+  },
+  "9": {
+   "pass_index": 17,
+   "pnr": 20,
+   "frames": [
+    515,
+    620
+   ],
+   "tainted": false,
+   "pptype": "LMR",
+   "sh_region": [
+    13,
+    17
+   ]
+  },
+  "10": {
+   "pass_index": 17,
+   "pnr": 8,
+   "frames": [
+    41,
+    64
+   ],
+   "tainted": false,
+   "pptype": "RML",
+   "sh_region": [
+    7,
+    13
+   ]
+  },
+  "11": {
+   "pass_index": 17,
+   "pnr": 6,
+   "frames": [
+    0,
+    91
+   ],
+   "tainted": false,
+   "pptype": "RML",
+   "sh_region": [
+    13,
+    19
+   ]
+  },
+  "12": {
+   "pass_index": 17,
+   "pnr": 80,
+   "frames": [
+    0,
+    111
+   ],
+   "tainted": false,
+   "pptype": "RML",
+   "sh_region": [
+    17,
+    26
+   ]
+  },
+  "13": {
+   "pass_index": 17,
+   "pnr": 76,
+   "frames": [
+    3289,
+    8248
+   ],
+   "tainted": false,
+   "pptype": "RML",
+   "sh_region": [
+    68,
+    4883
+   ]
+  },
+  "14": {
+   "pass_index": 17,
+   "pnr": 132,
+   "frames": [
+    0,
+    8255
+   ],
+   "tainted": false,
+   "pptype": "LMR",
+   "sh_region": [
+    35,
+    8021
+   ]
+  },
+  "15": {
+   "pass_index": 17,
+   "pnr": 10,
+   "frames": [
+    0,
+    774
+   ],
+   "tainted": false,
+   "pptype": "RMR",
+   "sh_region": [
+    49,
+    737
+   ]
+  },
+  "16": {
+   "pass_index": 17,
+   "pnr": 11,
+   "frames": [
+    21,
+    378
+   ],
+   "tainted": false,
+   "pptype": "RML",
+   "sh_region": [
+    7,
+    350
+   ]
+  },
+  "17": {
+   "pass_index": 17,
+   "pnr": 13,
+   "frames": [
+    0,
+    47
+   ],
+   "tainted": false,
+   "pptype": "RML",
+   "sh_region": [
+    1,
+    37
+   ]
+  }
+ },
+ "written": "2026-11-25 16:51:40"
+}

@@ -1,0 +1,199 @@
+{
+ "model": "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_z_dp/models/exact_lambda_h0.001.npz",
+ "interfaces": [
+  0.05,
+  0.35,
+  0.3991361693834273,
+  0.4495635194597549,
+  0.49927603890268374,
+  0.5491226075692495,
+  0.59888326343824,
+  0.6486637395610154,
+  0.6984399502053906,
+  0.7482180745596403,
+  0.797995085494876,
+  0.8477723605288847,
+  0.85
+ ],
+ "verified_by": "production_exactq: exact committor lambda (exact_lambda_h0.001.npz), q levels [1e-05, 3.1e-05, 9.9e-05, 0.000311, 0.00098, 0.003082, 0.009697, 0.030507, 0.09598, 0.301961, 0.95]",
+ "seeds": {
+  "0": {
+   "pass_index": 17,
+   "pnr": 0,
+   "frames": [
+    0,
+    97
+   ],
+   "tainted": false
+  },
+  "1": {
+   "pass_index": 17,
+   "pnr": 1,
+   "frames": [
+    0,
+    97
+   ],
+   "tainted": false,
+   "pptype": "LMR",
+   "sh_region": [
+    1,
+    7
+   ]
+  },
+  "2": {
+   "pass_index": 17,
+   "pnr": 21,
+   "frames": [
+    0,
+    9
+   ],
+   "tainted": false,
+   "pptype": "LML",
+   "sh_region": [
+    1,
+    8
+   ]
+  },
+  "3": {
+   "pass_index": 17,
+   "pnr": 22,
+   "frames": [
+    44,
+    783
+   ],
+   "tainted": false,
+   "pptype": "RML",
+   "sh_region": [
+    724,
+    735
+   ]
+  },
+  "4": {
+   "pass_index": 17,
+   "pnr": 33,
+   "frames": [
+    109,
+    342
+   ],
+   "tainted": false,
+   "pptype": "LMR",
+   "sh_region": [
+    19,
+    121
+   ]
+  },
+  "5": {
+   "pass_index": 17,
+   "pnr": 99,
+   "frames": [
+    0,
+    1062
+   ],
+   "tainted": false,
+   "pptype": "RML",
+   "sh_region": [
+    568,
+    1022
+   ]
+  },
+  "6": {
+   "pass_index": 17,
+   "pnr": 77,
+   "frames": [
+    26,
+    915
+   ],
+   "tainted": false,
+   "pptype": "LMR",
+   "sh_region": [
+    573,
+    880
+   ]
+  },
+  "7": {
+   "pass_index": 17,
+   "pnr": 158,
+   "frames": [
+    0,
+    687
+   ],
+   "tainted": false,
+   "pptype": "LMR",
+   "sh_region": [
+    517,
+    644
+   ]
+  },
+  "8": {
+   "pass_index": 17,
+   "pnr": 106,
+   "frames": [
+    118,
+    140
+   ],
+   "tainted": false,
+   "pptype": "LMR",
+   "sh_region": [
+    7,
+    10
+   ]
+  },
+  "9": {
+   "pass_index": 17,
+   "pnr": 149,
+   "frames": [
+    3,
+    1610
+   ],
+   "tainted": false,
+   "pptype": "LMR",
+   "sh_region": [
+    158,
+    168
+   ]
+  },
+  "10": {
+   "pass_index": 17,
+   "pnr": 20,
+   "frames": [
+    577,
+    620
+   ],
+   "tainted": false,
+   "pptype": "LMR",
+   "sh_region": [
+    7,
+    17
+   ]
+  },
+  "11": {
+   "pass_index": 17,
+   "pnr": 874,
+   "frames": [
+    0,
+    13333
+   ],
+   "tainted": false,
+   "pptype": "RML",
+   "sh_region": [
+    14,
+    13327
+   ]
+  },
+  "12": {
+   "pass_index": 17,
+   "pnr": 10,
+   "frames": [
+    0,
+    774
+   ],
+   "tainted": false,
+   "pptype": "RMR",
+   "sh_region": [
+    1,
+    773
+   ]
+  }
+ },
+ "written": "2026-11-26 01:16:56"
+}

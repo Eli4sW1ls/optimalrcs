@@ -1,0 +1,45 @@
+🔧 Starting internalrun with input: infretis.toml
+🚀 About to call setup_config - set breakpoint here!
+📋 Configuration loaded, starting scheduler...
+🔧 Starting internalrun with input: restart.toml
+🚀 About to call setup_config - set breakpoint here!
+📋 Configuration loaded, starting scheduler...
+concurrent.futures.process._RemoteTraceback: 
+"""
+Traceback (most recent call last):
+  File "/home/elias/anaconda3/envs/test/lib/python3.12/concurrent/futures/process.py", line 263, in _process_worker
+    r = call_item.fn(*call_item.args, **call_item.kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/APPTIS/infretis/infretis/core/tis.py", line 68, in run_md
+    _, trials, status = select_shoot(picked)
+                        ^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/APPTIS/infretis/infretis/core/tis.py", line 341, in select_shoot
+    accept, new_path, status = sh_moves[move](
+                               ^^^^^^^^^^^^^^^
+  File "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/APPTIS/infretis/infretis/core/tis.py", line 1856, in staple_sh
+    raise ValueError("Stored shooting region does not match calculated one!")
+ValueError: Stored shooting region does not match calculated one!
+"""
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/elias/anaconda3/envs/test/bin/infretisrun", line 8, in <module>
+    sys.exit(infretisrun())
+             ^^^^^^^^^^^^^
+  File "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/APPTIS/infretis/infretis/bin.py", line 38, in infretisrun
+    internalrun(input_file)
+  File "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/APPTIS/infretis/infretis/bin.py", line 70, in internalrun
+    scheduler(config)
+  File "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/APPTIS/infretis/infretis/scheduler.py", line 30, in scheduler
+    worker_md_items = state.treat_output(future.result())
+                                         ^^^^^^^^^^^^^^^
+  File "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/APPTIS/infretis/infretis/asyncrunner.py", line 121, in _task_wrapper
+    md_item = await loop.run_in_executor(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: Stored shooting region does not match calculated one!
+🔧 Starting internalrun with input: restart.toml
+🚀 About to call setup_config - set breakpoint here!
+📋 Configuration loaded, starting scheduler...
+/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/APPTIS/infretis/infretis/classes/repex_staple.py:749: RuntimeWarning: overflow encountered in multiply
+  probs = temp_right[start:-1:2] * temp_left[start + 1 :: 2]

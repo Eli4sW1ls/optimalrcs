@@ -1,0 +1,37 @@
+{
+ "run": "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_z_dp/verify_1/run",
+ "time": "2026-11-26 16:20:52",
+ "finished": "2000 cycles",
+ "archive_seconds": 15.02280306816101,
+ "archive_bytes": 84934697,
+ "check": {
+  "ok": true,
+  "n_dirs": 1118,
+  "n_data_paths": 1105,
+  "missing_dirs": [],
+  "n_missing_dirs": 0,
+  "data_paths_without_dir": 0,
+  "sample": 50,
+  "sample_mismatch": []
+ },
+ "prune": {
+  "kept": [
+   "1067",
+   "1086",
+   "1092",
+   "1102",
+   "1105",
+   "1108",
+   "1110",
+   "1112",
+   "1113",
+   "1114",
+   "1115",
+   "1116",
+   "1117"
+  ],
+  "removed": 1105,
+  "missing_active": []
+ },
+ "load_pruned": true
+}

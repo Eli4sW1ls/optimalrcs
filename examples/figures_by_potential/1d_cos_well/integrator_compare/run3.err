@@ -1,0 +1,46 @@
+/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/seed_runs.py:52: UserWarning: FigureCanvasAgg is non-interactive, and thus cannot be shown
+  plt.show()
+/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/seed_runs.py:44: UserWarning: Creating legend with loc="best" can be slow with large amounts of data.
+  plt.gcf().savefig(f'{folder}/{tag}_{name}.png', dpi=100)
+/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/seed_runs.py:52: UserWarning: FigureCanvasAgg is non-interactive, and thus cannot be shown
+  plt.show()
+/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/optimalrcs-cupy/optimalrcs.py:417: UserWarning: Creating legend with loc="best" can be slow with large amounts of data.
+  fig.tight_layout()
+/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/seed_runs.py:44: UserWarning: Creating legend with loc="best" can be slow with large amounts of data.
+  plt.gcf().savefig(f'{folder}/{tag}_{name}.png', dpi=100)
+/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/seed_runs.py:52: UserWarning: FigureCanvasAgg is non-interactive, and thus cannot be shown
+  plt.show()
+/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/optimalrcs-cupy/optimalrcs.py:417: UserWarning: Creating legend with loc="best" can be slow with large amounts of data.
+  fig.tight_layout()
+/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/seed_runs.py:44: UserWarning: Creating legend with loc="best" can be slow with large amounts of data.
+  plt.gcf().savefig(f'{folder}/{tag}_{name}.png', dpi=100)
+/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/seed_runs.py:52: UserWarning: FigureCanvasAgg is non-interactive, and thus cannot be shown
+  plt.show()
+/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/seed_runs.py:52: UserWarning: FigureCanvasAgg is non-interactive, and thus cannot be shown
+  plt.show()
+/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/optimalrcs-cupy/optimalrcs.py:417: UserWarning: Creating legend with loc="best" can be slow with large amounts of data.
+  fig.tight_layout()
+/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/seed_runs.py:44: UserWarning: Creating legend with loc="best" can be slow with large amounts of data.
+  plt.gcf().savefig(f'{folder}/{tag}_{name}.png', dpi=100)
+/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/seed_runs.py:52: UserWarning: FigureCanvasAgg is non-interactive, and thus cannot be shown
+  plt.show()
+/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/seed_runs.py:52: UserWarning: FigureCanvasAgg is non-interactive, and thus cannot be shown
+  plt.show()
+/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/seed_runs.py:52: UserWarning: FigureCanvasAgg is non-interactive, and thus cannot be shown
+  plt.show()
+/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/optimalrcs-cupy/optimalrcs.py:417: UserWarning: Creating legend with loc="best" can be slow with large amounts of data.
+  fig.tight_layout()
+/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/seed_runs.py:44: UserWarning: Creating legend with loc="best" can be slow with large amounts of data.
+  plt.gcf().savefig(f'{folder}/{tag}_{name}.png', dpi=100)
+/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/seed_runs.py:52: UserWarning: FigureCanvasAgg is non-interactive, and thus cannot be shown
+  plt.show()
+/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/seed_runs.py:52: UserWarning: FigureCanvasAgg is non-interactive, and thus cannot be shown
+  plt.show()
+/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/optimalrcs-cupy/optimalrcs.py:417: UserWarning: Creating legend with loc="best" can be slow with large amounts of data.
+  fig.tight_layout()
+/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/seed_runs.py:44: UserWarning: Creating legend with loc="best" can be slow with large amounts of data.
+  plt.gcf().savefig(f'{folder}/{tag}_{name}.png', dpi=100)
+/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/seed_runs.py:52: UserWarning: FigureCanvasAgg is non-interactive, and thus cannot be shown
+  plt.show()
+/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/seed_runs.py:52: UserWarning: FigureCanvasAgg is non-interactive, and thus cannot be shown
+  plt.show()
