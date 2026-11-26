@@ -1,0 +1,38 @@
+{
+ "kind": "verify",
+ "lambda_version": "332d3c862f6fefe2480056f51b7e5a66",
+ "lambda_model": "/local/data/data-fbsskr/Students/elias/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_z_dp_c/models/lambda_7.npz",
+ "interfaces": [
+  0.05,
+  0.06953242643661353,
+  0.10349609740543336,
+  0.1812236041028898,
+  0.298096839333804,
+  0.43374220390977664,
+  0.5831681232202406,
+  0.722622545646099,
+  0.8269146480134982,
+  0.8295472580955598,
+  0.8459094516191119,
+  0.85
+ ],
+ "mode": "staple",
+ "lambda_a": 0.05,
+ "lambda_b": 0.85,
+ "cv_names": [
+  "y",
+  "x"
+ ],
+ "state_cv": 0,
+ "n_rows": 1058,
+ "workdir": "/local/data/data-fbsskr/Students/elias/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_z_dp_c/verify_1/run",
+ "md_steps": 1685840,
+ "wall_seconds": 325.03114223480225,
+ "cycles": 2000,
+ "pass_index": 12,
+ "n_pieces": 2857,
+ "n_frames": 2630184,
+ "n_paths": 1058,
+ "weighting": "rejections",
+ "reversed_pieces": true
+}

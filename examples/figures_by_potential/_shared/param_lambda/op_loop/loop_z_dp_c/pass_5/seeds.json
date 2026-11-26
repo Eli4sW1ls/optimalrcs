@@ -1,0 +1,168 @@
+{
+ "report": {
+  "0": {
+   "pass_index": 8,
+   "pnr": 0,
+   "frames": [
+    0,
+    4
+   ],
+   "tainted": false
+  },
+  "1": {
+   "pass_index": 8,
+   "pnr": 4,
+   "frames": [
+    308,
+    698
+   ],
+   "tainted": false,
+   "pptype": "RML",
+   "sh_region": [
+    319,
+    389
+   ]
+  },
+  "2": {
+   "pass_index": 8,
+   "pnr": 18,
+   "frames": [
+    2183,
+    2666
+   ],
+   "tainted": false,
+   "pptype": "RML",
+   "sh_region": [
+    278,
+    482
+   ]
+  },
+  "3": {
+   "pass_index": 8,
+   "pnr": 29,
+   "frames": [
+    0,
+    245
+   ],
+   "tainted": false,
+   "pptype": "LMR",
+   "sh_region": [
+    64,
+    225
+   ]
+  },
+  "4": {
+   "pass_index": 8,
+   "pnr": 5,
+   "frames": [
+    178,
+    314
+   ],
+   "tainted": false,
+   "pptype": "LMR",
+   "sh_region": [
+    17,
+    106
+   ]
+  },
+  "5": {
+   "pass_index": 8,
+   "pnr": 16,
+   "frames": [
+    416,
+    739
+   ],
+   "tainted": false,
+   "pptype": "LMR",
+   "sh_region": [
+    149,
+    250
+   ]
+  },
+  "6": {
+   "pass_index": 8,
+   "pnr": 32,
+   "frames": [
+    758,
+    2335
+   ],
+   "tainted": false,
+   "pptype": "LMR",
+   "sh_region": [
+    69,
+    136
+   ]
+  },
+  "7": {
+   "pass_index": 8,
+   "pnr": 39,
+   "frames": [
+    2302,
+    2677
+   ],
+   "tainted": false,
+   "pptype": "LMR",
+   "sh_region": [
+    337,
+    366
+   ]
+  },
+  "8": {
+   "pass_index": 8,
+   "pnr": 218,
+   "frames": [
+    0,
+    4066
+   ],
+   "tainted": false,
+   "pptype": "RML",
+   "sh_region": [
+    2550,
+    4011
+   ]
+  },
+  "9": {
+   "pass_index": 7,
+   "pnr": 50,
+   "frames": [
+    0,
+    3564
+   ],
+   "tainted": false,
+   "pptype": "RML",
+   "sh_region": [
+    205,
+    3369
+   ]
+  },
+  "10": {
+   "pass_index": 8,
+   "pnr": 19,
+   "frames": [
+    803,
+    3082
+   ],
+   "tainted": false,
+   "pptype": "RML",
+   "sh_region": [
+    55,
+    1444
+   ]
+  },
+  "11": {
+   "pass_index": 8,
+   "pnr": 20,
+   "frames": [
+    0,
+    121
+   ],
+   "tainted": false,
+   "pptype": "RML",
+   "sh_region": [
+    1,
+    44
+   ]
+  }
+ },
+ "written": "2026-11-26 19:29:30"
+}

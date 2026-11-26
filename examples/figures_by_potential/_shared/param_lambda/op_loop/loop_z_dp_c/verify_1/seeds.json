@@ -1,0 +1,168 @@
+{
+ "report": {
+  "0": {
+   "pass_index": 11,
+   "pnr": 0,
+   "frames": [
+    0,
+    4
+   ],
+   "tainted": false
+  },
+  "1": {
+   "pass_index": 11,
+   "pnr": 20,
+   "frames": [
+    0,
+    6
+   ],
+   "tainted": false,
+   "pptype": "LML",
+   "sh_region": [
+    1,
+    5
+   ]
+  },
+  "2": {
+   "pass_index": 11,
+   "pnr": 58,
+   "frames": [
+    0,
+    218
+   ],
+   "tainted": false,
+   "pptype": "LML",
+   "sh_region": [
+    1,
+    217
+   ]
+  },
+  "3": {
+   "pass_index": 11,
+   "pnr": 141,
+   "frames": [
+    0,
+    553
+   ],
+   "tainted": false,
+   "pptype": "RML",
+   "sh_region": [
+    144,
+    503
+   ]
+  },
+  "4": {
+   "pass_index": 11,
+   "pnr": 400,
+   "frames": [
+    0,
+    267
+   ],
+   "tainted": false,
+   "pptype": "RML",
+   "sh_region": [
+    8,
+    175
+   ]
+  },
+  "5": {
+   "pass_index": 11,
+   "pnr": 564,
+   "frames": [
+    0,
+    487
+   ],
+   "tainted": false,
+   "pptype": "LMR",
+   "sh_region": [
+    357,
+    470
+   ]
+  },
+  "6": {
+   "pass_index": 11,
+   "pnr": 12,
+   "frames": [
+    0,
+    52
+   ],
+   "tainted": false,
+   "pptype": "RML",
+   "sh_region": [
+    46,
+    48
+   ]
+  },
+  "7": {
+   "pass_index": 11,
+   "pnr": 215,
+   "frames": [
+    0,
+    61
+   ],
+   "tainted": false,
+   "pptype": "LMR",
+   "sh_region": [
+    19,
+    52
+   ]
+  },
+  "8": {
+   "pass_index": 9,
+   "pnr": 363,
+   "frames": [
+    451,
+    2464
+   ],
+   "tainted": false,
+   "pptype": "LMR",
+   "sh_region": [
+    106,
+    1952
+   ]
+  },
+  "9": {
+   "pass_index": 9,
+   "pnr": 287,
+   "frames": [
+    4620,
+    15756
+   ],
+   "tainted": false,
+   "pptype": "RML",
+   "sh_region": [
+    14,
+    8128
+   ]
+  },
+  "10": {
+   "pass_index": 11,
+   "pnr": 168,
+   "frames": [
+    0,
+    179
+   ],
+   "tainted": false,
+   "pptype": "RML",
+   "sh_region": [
+    13,
+    76
+   ]
+  },
+  "11": {
+   "pass_index": 11,
+   "pnr": 15,
+   "frames": [
+    0,
+    100
+   ],
+   "tainted": false,
+   "pptype": "RMR",
+   "sh_region": [
+    1,
+    99
+   ]
+  }
+ },
+ "written": "2026-11-26 20:27:48"
+}

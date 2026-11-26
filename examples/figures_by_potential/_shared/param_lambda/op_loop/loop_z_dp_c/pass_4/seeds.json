@@ -1,0 +1,196 @@
+{
+ "report": {
+  "0": {
+   "pass_index": 7,
+   "pnr": 0,
+   "frames": [
+    0,
+    4
+   ],
+   "tainted": false
+  },
+  "1": {
+   "pass_index": 7,
+   "pnr": 4,
+   "frames": [
+    0,
+    37
+   ],
+   "tainted": false,
+   "pptype": "LMR",
+   "sh_region": [
+    1,
+    15
+   ]
+  },
+  "2": {
+   "pass_index": 7,
+   "pnr": 11,
+   "frames": [
+    553,
+    630
+   ],
+   "tainted": false,
+   "pptype": "RML",
+   "sh_region": [
+    22,
+    76
+   ]
+  },
+  "3": {
+   "pass_index": 7,
+   "pnr": 24,
+   "frames": [
+    0,
+    39
+   ],
+   "tainted": false,
+   "pptype": "LMR",
+   "sh_region": [
+    20,
+    25
+   ]
+  },
+  "4": {
+   "pass_index": 7,
+   "pnr": 19,
+   "frames": [
+    0,
+    698
+   ],
+   "tainted": false,
+   "pptype": "RML",
+   "sh_region": [
+    445,
+    679
+   ]
+  },
+  "5": {
+   "pass_index": 7,
+   "pnr": 13,
+   "frames": [
+    0,
+    743
+   ],
+   "tainted": false,
+   "pptype": "LMR",
+   "sh_region": [
+    81,
+    644
+   ]
+  },
+  "6": {
+   "pass_index": 7,
+   "pnr": 43,
+   "frames": [
+    7259,
+    8599
+   ],
+   "tainted": false,
+   "pptype": "RML",
+   "sh_region": [
+    850,
+    909
+   ]
+  },
+  "7": {
+   "pass_index": 7,
+   "pnr": 100,
+   "frames": [
+    1,
+    31
+   ],
+   "tainted": false,
+   "pptype": "RML",
+   "sh_region": [
+    6,
+    22
+   ]
+  },
+  "8": {
+   "pass_index": 7,
+   "pnr": 186,
+   "frames": [
+    15049,
+    15257
+   ],
+   "tainted": false,
+   "pptype": "RML",
+   "sh_region": [
+    182,
+    203
+   ]
+  },
+  "9": {
+   "pass_index": 7,
+   "pnr": 81,
+   "frames": [
+    1,
+    744
+   ],
+   "tainted": false,
+   "pptype": "LMR",
+   "sh_region": [
+    9,
+    91
+   ]
+  },
+  "10": {
+   "pass_index": 7,
+   "pnr": 70,
+   "frames": [
+    335,
+    634
+   ],
+   "tainted": false,
+   "pptype": "RML",
+   "sh_region": [
+    274,
+    289
+   ]
+  },
+  "11": {
+   "pass_index": 7,
+   "pnr": 12,
+   "frames": [
+    0,
+    1196
+   ],
+   "tainted": false,
+   "pptype": "RML",
+   "sh_region": [
+    186,
+    876
+   ]
+  },
+  "12": {
+   "pass_index": 7,
+   "pnr": 48,
+   "frames": [
+    0,
+    669
+   ],
+   "tainted": false,
+   "pptype": "RML",
+   "sh_region": [
+    45,
+    393
+   ]
+  },
+  "13": {
+   "pass_index": 7,
+   "pnr": 50,
+   "frames": [
+    0,
+    2937
+   ],
+   "tainted": false,
+   "pptype": "RML",
+   "sh_region": [
+    1,
+    325
+   ]
+  }
+ },
+ "written": "2026-11-26 19:21:09"
+}
