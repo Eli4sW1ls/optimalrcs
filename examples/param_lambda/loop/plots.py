@@ -388,6 +388,99 @@ def fig_paths(cfg, grid, out, sub='production'):
                                f'production paths, lambda of pass {fr["pass_index"]}', 'paths')
 
 
+def fig_pass_diag(cfg, k):
+    """pass_<k>/diagnostics.png after pass k, from state.json only (no analysis, a second or two). Six panels:
+    (a) predicted crossing probability per neighbouring pair of the placed set (dp) against target_p;
+    (b) shooting-region frames per ensemble, the dp prediction next to the median of the pass's own run (balance);
+    (c) staple path length per ensemble of the pass's own run (median, 90th percentile; log) with the path counts;
+    (d) share of the frames outside the model's training range (OOD) per ensemble, and empty shooting regions;
+    (e) history over the passes: teacher RMS and isosurface-spread diagnostics (SD of Z_q) of every model;
+    (f) history over the passes: held-out share of the labels (student hold-out), student epoch and MD steps."""
+    with open(os.path.join(cfg['loop_dir'], 'state.json')) as f:
+        st = json.load(f)
+    recs = [r for r in st['passes'] if isinstance(r.get('k'), int) and r['k'] <= k]
+    rec = next((r for r in recs if r['k'] == k), None)
+    if rec is None:
+        return None
+    out = os.path.join(cfg['loop_dir'], f'pass_{k}')
+    fig, ax = plt.subplots(2, 3, figsize=(14.5, 7.4))
+    dp = (rec.get('plan') or {}).get('dp') or {}
+    tp = float(dp.get('target_p', cfg.get('interfaces', {}).get('target_p', 0.3)))
+    # (a) predicted p per pair
+    a = ax[0, 0]
+    pp = dp.get('p')
+    if pp:
+        a.bar(np.arange(1, len(pp) + 1), pp, color=BLUE, width=0.7)
+        a.axhline(tp, color=RED, lw=1, ls='--', label=f'target_p {tp:g}')
+        a.set_ylim(0, 1.15 * max(max(pp), tp)); a.legend(loc='upper right')
+    a.set_title('(a) predicted crossing probability per pair'); a.set_xlabel('pair (interface i to i+1)'); a.set_ylabel('p')
+    # (b) region frames: predicted vs measured
+    a = ax[0, 1]
+    pred = dp.get('region_frames') or {}
+    meas = (rec.get('region_frames') or {}).get('median') or []
+    if pred:
+        ens = np.array(sorted(int(e) for e in pred)); a.bar(ens - 0.2, [pred[str(e)] for e in ens], 0.4, color=MUTED, label='dp prediction')
+    if meas:
+        m = np.array([np.nan if v is None else v for v in meas], float)
+        a.bar(np.arange(2, 2 + len(m)) + 0.2, m, 0.4, color=BLUE, label='own run (median)')
+    if pred or meas:
+        a.set_yscale('log'); a.legend()
+    a.set_title('(b) shooting-region frames per ensemble'); a.set_xlabel('ensemble'); a.set_ylabel('frames')
+    # (c) staple length per ensemble
+    a = ax[0, 2]
+    L = rec.get('lengths') or {}
+    if L:
+        e = np.array(sorted(int(x) for x in L)); med = np.array([L[str(x)]['median'] for x in e]); p90 = np.array([L[str(x)]['p90'] for x in e])
+        n = np.array([L[str(x)]['n'] for x in e])
+        a.plot(e, med, 'o-', color=BLUE, label='median'); a.plot(e, p90, 's--', color=RED, ms=4, label='90th percentile')
+        a.set_yscale('log'); a.legend(loc='upper left')
+        for x, y, c in zip(e, p90, n):
+            a.annotate(str(c), (x, y), textcoords='offset points', xytext=(0, 5), ha='center', fontsize=7, color=MUTED)
+    a.set_title('(c) path length per ensemble (labels: paths)'); a.set_xlabel('ensemble'); a.set_ylabel('frames')
+    # (d) OOD and empty regions
+    a = ax[1, 0]
+    ood = (((rec.get('diagnostics') or {}).get('new') or {}).get('ood')) or {}
+    es = sorted(int(x) for x in ood if x != 'all')
+    if es:
+        a.bar(np.array(es) - 0.2, [100 * ood[str(x)] for x in es], 0.4, color=BLUE, label='frames beyond training range (%)')
+    emp = ((rec.get('recheck') or {}).get('empty_shooting_regions')) or {}
+    ee = sorted(int(x) for x in emp)
+    if ee:
+        a.bar(np.array(ee) + 0.2, [100 * emp[str(x)]['fraction'] for x in ee], 0.4, color=RED, label='paths with empty shooting region (%)')
+    if es or ee:
+        a.legend(fontsize=8)
+    a.set_title('(d) out-of-range frames and empty shooting regions'); a.set_xlabel('ensemble'); a.set_ylabel('%')
+    # (e) history: teacher / model quality
+    a = ax[1, 1]
+    ks = [r['k'] for r in recs]
+    rms = [(r.get('teacher') or {}).get('rms_vs_exact') for r in recs]
+    if any(v is not None for v in rms):
+        a.plot(ks, [np.nan if v is None else v for v in rms], 'o-', color=BLUE, label='teacher RMS vs exact (logit q)')
+    sd = [((((r.get('diagnostics') or {}).get('new') or {}).get('zq') or {}).get('sdzqs')) for r in recs]
+    a2 = a.twinx(); a2.plot(ks, [np.nan if v is None else v for v in sd], 's--', color=RED, ms=4, label='SD(Z_q), lag 1 (model)')
+    a2.set_ylabel('SD(Z_q)', color=RED)
+    h1, l1 = a.get_legend_handles_labels(); h2, l2 = a2.get_legend_handles_labels(); a.legend(h1 + h2, l1 + l2, fontsize=8, loc='upper right')
+    a.set_title('(e) teacher and model per pass'); a.set_xlabel('pass'); a.set_xticks(ks)
+    # (f) history: hold-out, cost
+    a = ax[1, 2]
+    hf = [(r.get('student') or {}).get('held_frac') for r in recs]
+    if any(v is not None for v in hf):
+        a.plot(ks, [np.nan if v is None else 100 * v for v in hf], 'o-', color=BLUE, label='held-out labels (%)')
+    ncyc = [(r.get('cost') or {}).get('md_steps') for r in recs]
+    a2 = a.twinx(); a2.bar(ks, [np.nan if v is None else v / 1e6 for v in ncyc], 0.5, color=GRAY, edgecolor=MUTED, zorder=0, label='MD steps (M)')
+    a.set_zorder(a2.get_zorder() + 1); a.patch.set_visible(False)
+    a2.set_ylabel('MD steps of the pass (millions)')
+    h1, l1 = a.get_legend_handles_labels(); h2, l2 = a2.get_legend_handles_labels(); a.legend(h1 + h2, l1 + l2, fontsize=8, loc='upper right')
+    a.set_title('(f) student hold-out and cost per pass'); a.set_xlabel('pass'); a.set_xticks(ks); a.set_ylabel('%')
+    ok = (rec.get('recheck') or {}).get('ok')
+    fig.suptitle(f'{cfg["name"]} pass {k}: {len(rec["interfaces"])} interfaces, own-path spacing check '
+                 f'{"passed" if ok else "FAILED"}; teacher {((rec.get("teacher") or {}).get("n_frames") or 0) / 1e6:.1f}M frames', color=INK)
+    fig.tight_layout()
+    path = os.path.join(out, 'diagnostics.png')
+    fig.savefig(path, dpi=130); plt.close(fig)
+    return path
+
+
 def fig_pass(cfg, pool, k, model_path, interfaces, note, prev=None):
     """pass_<k>/interfaces_paths[_w<value>].png after pass k (pass 0: infinit's set, seed lambda): the set, the
     previous one, the exact isocommittors and a few paths of the pass's own run. Written by the loop after every

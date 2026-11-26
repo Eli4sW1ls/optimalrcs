@@ -95,6 +95,9 @@ def _pass_figure(cfg, pool, k, model_path, interfaces, note, prev, log):
     try:
         from loop import plots
         figs = plots.fig_pass(cfg, pool, k, model_path, interfaces, note, prev)
+        if k >= 1:
+            d = plots.fig_pass_diag(cfg, k)
+            figs = figs + ([d] if d else [])
         common.say(f'pass {k}: figure {", ".join(figs)}', log=log)
         return figs
     except Exception as e:                                   # noqa: BLE001
