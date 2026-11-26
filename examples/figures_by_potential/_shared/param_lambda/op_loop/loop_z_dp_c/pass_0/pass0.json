@@ -1,0 +1,147 @@
+{
+ "iterations": [
+  {
+   "cstep": 0,
+   "steps": 200,
+   "interfaces": [
+    0.05,
+    0.052139811450340884,
+    0.054279622900681765,
+    0.056419434351022646,
+    0.85
+   ],
+   "data_file": "./infretis_data_1.txt",
+   "saved_frames": 122008,
+   "saved_frames_total": 122008,
+   "n_reached_b": 0,
+   "wall_seconds": 16.55367374420166,
+   "toml": "infretis_1.toml"
+  },
+  {
+   "cstep": 1,
+   "steps": 200,
+   "interfaces": [
+    0.05,
+    0.066,
+    0.082,
+    0.145,
+    0.193,
+    0.22,
+    0.233,
+    0.245,
+    0.85
+   ],
+   "data_file": "infretis_data_2.txt",
+   "saved_frames": 879063,
+   "saved_frames_total": 1001071,
+   "n_reached_b": 0,
+   "wall_seconds": 95.17332649230957,
+   "toml": "infretis_2.toml"
+  },
+  {
+   "cstep": 2,
+   "steps": 200,
+   "interfaces": [
+    0.05,
+    0.066,
+    0.073,
+    0.146,
+    0.235,
+    0.333,
+    0.416,
+    0.499,
+    0.523,
+    0.85
+   ],
+   "data_file": "infretis_data_3.txt",
+   "saved_frames": 1161683,
+   "saved_frames_total": 2162754,
+   "n_reached_b": 0,
+   "wall_seconds": 135.36510157585144,
+   "toml": "infretis_3.toml"
+  },
+  {
+   "cstep": 3,
+   "steps": 200,
+   "interfaces": [
+    0.05,
+    0.065,
+    0.072,
+    0.156,
+    0.246,
+    0.342,
+    0.431,
+    0.489,
+    0.538,
+    0.552,
+    0.566,
+    0.587,
+    0.85
+   ],
+   "data_file": "infretis_data_4.txt",
+   "saved_frames": 2618864,
+   "saved_frames_total": 4781618,
+   "n_reached_b": 15,
+   "wall_seconds": 318.01118206977844,
+   "toml": "infretis_4.toml"
+  },
+  {
+   "cstep": 4,
+   "steps": 200,
+   "interfaces": [
+    0.05,
+    0.065,
+    0.087,
+    0.163,
+    0.259,
+    0.381,
+    0.449,
+    0.499,
+    0.541,
+    0.559,
+    0.564,
+    0.85
+   ],
+   "data_file": "infretis_data_5.txt",
+   "saved_frames": 2937688,
+   "saved_frames_total": 7719306,
+   "n_reached_b": 38,
+   "wall_seconds": 360.8554615974426,
+   "toml": "infretis_5.toml"
+  }
+ ],
+ "n_b": 20,
+ "reached_b": true,
+ "zero_paths": {
+  "max_op": 0.05855924580136353,
+  "interfaces": [
+   0.05,
+   0.052139811450340884,
+   0.054279622900681765,
+   0.056419434351022646,
+   0.85
+  ]
+ },
+ "final_interfaces": [
+  0.05,
+  0.064,
+  0.087,
+  0.163,
+  0.255,
+  0.373,
+  0.442,
+  0.494,
+  0.537,
+  0.549,
+  0.85
+ ],
+ "data_files": [
+  "./infretis_data_1.txt",
+  "infretis_data_2.txt",
+  "infretis_data_3.txt",
+  "infretis_data_4.txt",
+  "infretis_data_5.txt"
+ ],
+ "saved_frames": 7719306,
+ "wall_seconds": 927.2637202739716
+}

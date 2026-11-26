@@ -1,0 +1,227 @@
+[runner]
+workers = 4
+files = []
+wmdrun = [
+    "not used",
+    "not used",
+    "not used",
+    "not used",
+    "not used",
+    "not used",
+    "not used",
+    "not used",
+]
+
+[simulation]
+interfaces = [
+    0.05,
+    0.052139811450340884,
+    0.054279622900681765,
+    0.056419434351022646,
+    0.85,
+]
+steps = 200
+seed = 0
+load_dir = "load"
+shooting_moves = [
+    "sh",
+    "sh",
+    "wf",
+    "wf",
+    "wf",
+]
+ensemble_engines = [
+    [
+        "engine",
+    ],
+    [
+        "engine",
+    ],
+    [
+        "engine",
+    ],
+    [
+        "engine",
+    ],
+    [
+        "engine",
+    ],
+]
+zeroswap = 0.5
+pick_scheme = 0
+
+[simulation.tis_set]
+maxlength = 200000
+allowmaxlength = false
+zero_momentum = false
+n_jumps = 4
+staple = false
+quantis = false
+lambda_minus_one = false
+accept_all = false
+
+[engine]
+class = "ase"
+engine = "ase"
+temperature = 580.2261030200505
+input_path = "."
+timestep = 0.02036101134231345
+subcycles = 1
+integrator = "overdamped_lgv"
+langevin_fixcm = false
+langevin_friction = 0.9822694788464063
+
+[engine.calculator_settings]
+class = "ToytisPotential"
+spec = "sjoelbak_angle:RectangularGridWithAngledBarrierPotential"
+dim = 2
+module = "/local/data/data-fbsskr/Students/elias/optimalrcs/examples/param_lambda/loop/ase_calcs.py"
+
+[engine.calculator_settings.params]
+Lx = 0.3
+angle = 45
+
+[engine.particles]
+mass = [
+    1.0,
+]
+name = [
+    "H",
+]
+pos = [
+    [
+        0.02,
+        0.15,
+    ],
+]
+
+[engine.box]
+periodic = [
+    false,
+    false,
+]
+
+[orderparameter]
+class = "SeedLambda"
+module = "/local/data/data-fbsskr/Students/elias/optimalrcs/examples/param_lambda/infretis_orderp.py"
+state_cv = 0
+
+[[orderparameter.cvs]]
+class = "Position"
+index = [
+    0,
+    0,
+]
+periodic = false
+
+[[orderparameter.cvs]]
+class = "Position"
+index = [
+    0,
+    1,
+]
+periodic = false
+
+[output]
+data_dir = "./"
+screen = 100
+pattern = false
+delete_old = false
+delete_old_all = false
+visual_validation = false
+data_file = "./infretis_data_1.txt"
+keep_maxop_trajs = false
+keep_traj_fnames = []
+keep_status = []
+
+[infinit]
+pL = 0.3
+lamres = 0.001
+skip = 0.1
+initial_conf = "initial.traj"
+cstep = 0
+steps_per_iter = [
+    200,
+    200,
+    200,
+    200,
+    200,
+    200,
+    200,
+    200,
+    200,
+    200,
+    200,
+    200,
+]
+
+[current]
+traj_num = 228
+cstep = 200
+active = [
+    224,
+    223,
+    227,
+    226,
+    225,
+]
+locked = []
+size = 5
+wsubcycles = [
+    22939,
+    39402,
+    32913,
+    26754,
+]
+tsubcycles = 122008
+
+[current.frac]
+223 = [
+    "0.0",
+    "4.98348846934710199",
+    "0.0063484092626178876886",
+    "0.006895164960327535899",
+    "0.003267956429952586532",
+    "0.0",
+]
+224 = [
+    "4.0",
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+    "0.0",
+]
+225 = [
+    "0.0",
+    "0.0026504564190693645043",
+    "0.33092740574558388085",
+    "0.83214419015400424063",
+    "1.834277947681342514",
+    "0.0",
+]
+226 = [
+    "0.0",
+    "0.0077288386698488507897",
+    "0.33133506346735201612",
+    "0.82961952475905069746",
+    "0.8313165731037484356",
+    "0.0",
+]
+227 = [
+    "0.0",
+    "0.006132235563979794825",
+    "0.33138912152444621533",
+    "0.33134112012661752603",
+    "0.33113752278495646377",
+    "0.0",
+]
+
+[current.rng_state]
+bit_generator = "PCG64"
+has_uint32 = 0
+uinteger = 0
+
+[current.rng_state.state]
+state = 264055620571599345063044002946281631562
+inc = 87136372517582989555478159403783844777
