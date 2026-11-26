@@ -1,0 +1,41 @@
+# As loop_z_dp_c (dp placement, C hold-out, confirm after each pass), with 2000 cycles per pass, at most 5 passes, and
+# the evening step on uniformity: a split is taken whenever it lowers the spread (variance of ln region frames over
+# the ensembles), no fixed 15% gain, and several splits may follow each other while an ensemble stays > long_ratio x
+# the median.
+#     python run.py loop loop_z_dp_u
+#
+# Lessons from loop_z_dp_c (2026-11-27: every pass and both verification runs failed the own-path re-check, freeze
+# refused): the failures were skips (1-4% > eps 1%) and gap-rule fails, all at interface gaps < 1.2 x the crossing
+# step delta. Over all own-path re-checks of loop_z_dp and loop_z_dp_c, pairs at 0.6-1.2 delta skipped 1.1-1.8% of
+# crossings, pairs at >= 1.2 delta ~0.1%. The placement gate allowed those gaps because it waives the gap rule where
+# the pool measures the skip rate, and the pool rate was low.
+inherit = "loop_z_dp_c"
+name = "loop_z_dp_u"
+
+[run]
+confirm_passes = false              # runs through without waiting (loop_z_dp_c paused after every pass)
+cycles_per_pass = 2000              # more crossings per interface in the own-path re-check: fewer unmeasured (< 100) rows
+
+[teacher]
+max_iter = 10000                    # 5000 per CV x 2 (y, x); loop_z had 6000 in total
+
+[student]
+epochs = 48                         # twice the default 24 (the 8 checkpoints are now 6 epochs apart)
+
+[stop]
+max_passes = 10
+interface_tol = 0.1
+
+[interfaces]
+split_rule = "uniform"
+even_max_moves = 12
+place_gap_always = false             # placement keeps the gap rule where the pool measures the skip rate as well
+c = 0.6                             # gap rule (where < 100 crossings measure the skip rate): >= 0.6 delta. Own-path skip
+                                    # rates by gap (loop_z_dp + loop_z_dp_c): 1.3% at 0-0.6 delta, 1.1-1.8% at 0.6-1.2, far
+                                    # below skip_eps 5%. Placement keeps c x place_margin = 0.9 delta (hysteresis)
+skip_eps = 0.05                     # one interface skipped in a step: <= 5% (re-check; placement 5% / place_margin)
+skip2_eps = 0.01                    # two interfaces skipped in a step: <= 1% (re-check; placement 1% / place_margin)
+
+[production]
+verify_rounds = 3                   # loop_z_dp_c used both of its 2 rounds and stopped failing
+verify_cycles = 3000                # verification runs of the freeze (loop_z had 2000): more crossings per interface for the re-check
