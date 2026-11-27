@@ -1,0 +1,131 @@
+# /local/data/data-fbsskr/Students/elias/optimalrcs/examples/figures_by_potential/trypsin_benz/infretis_staple/infstapletis/committor.npz
+# 28478998 frames, 69764 pieces, 29155 paths, 13312 frames in A/B; weights: mean 1, max 22.3, Kish n_eff 10143067; pieces: median 64, max 54107 frames; pnr 24449..81848
+# lags [1, 64, 512, 4096, 32768]; q-bins 200 (as the plot); first 5 bins skipped for max|z|; subsample 1.0
+
+== 2. z = stopped Z_q / std. error, by variant and lag
+   cols: max|z| for q>0.85 (at q) | max|z| all q (at q) | z at q = 0.05 0.5 0.8 0.9 0.95 0.99 1
+-- path
+   lag      1:     0.4 (q 0.875) |     2.3 (q 0.045) |     0.2    -0.1     0.1    -0.1    -0.0     0.0     0.0
+   lag     64:    18.0 (q 0.975) |    18.0 (q 0.975) |     0.0     5.7     2.6     9.6    16.7    17.9    17.9
+   lag    512:    19.2 (q 0.990) |    19.2 (q 0.990) |     0.7     4.4     1.3    10.0    17.8    19.2    19.2
+   lag   4096:    11.6 (q 0.990) |    11.6 (q 0.990) |     0.7     3.5     0.6     7.2    11.0    11.6    11.6
+   lag  32768:     8.8 (q 0.990) |     8.8 (q 0.990) |     0.7     3.5     0.6     5.3     8.3     8.8     8.8
+-- piece
+   lag      1:     0.5 (q 0.875) |     2.7 (q 0.045) |     0.2    -0.1     0.1    -0.1    -0.0     0.0     0.0
+   lag     64:    18.9 (q 0.975) |    18.9 (q 0.975) |     0.0     6.1     2.8    10.0    17.4    18.7    18.7
+   lag    512:    20.6 (q 0.990) |    20.6 (q 0.990) |     0.8     5.1     1.4    10.7    19.1    20.6    20.6
+   lag   4096:    12.2 (q 0.990) |    12.2 (q 0.990) |     0.7     4.3     0.7     7.6    11.4    12.2    12.2
+   lag  32768:     9.1 (q 0.990) |    10.1 (q 0.025) |     0.7     4.3     0.7     5.5     8.6     9.1     9.1
+-- block10
+   lag      1:     0.4 (q 0.875) |     2.3 (q 0.045) |     0.2    -0.1     0.1    -0.1    -0.0     0.0     0.0
+   lag     64:    17.1 (q 0.975) |    17.1 (q 0.975) |     0.0     5.7     2.6     9.4    15.8    17.0    17.0
+   lag    512:    18.3 (q 0.990) |    18.3 (q 0.990) |     0.7     4.4     1.3     9.9    17.1    18.3    18.3
+   lag   4096:    11.4 (q 0.990) |    11.4 (q 0.990) |     0.7     3.6     0.6     7.2    10.8    11.4    11.4
+   lag  32768:     8.7 (q 0.990) |     8.7 (q 0.025) |     0.7     3.6     0.6     5.3     8.2     8.7     8.7
+-- block100
+   lag      1:     0.2 (q 0.875) |     1.6 (q 0.045) |     0.1    -0.1     0.1    -0.0    -0.0     0.0     0.0
+   lag     64:    11.5 (q 0.980) |    11.5 (q 0.980) |     0.0     4.9     2.2     7.2    10.9    11.5    11.5
+   lag    512:    12.5 (q 0.990) |    12.5 (q 0.990) |     0.6     3.9     1.2     8.0    12.0    12.5    12.5
+   lag   4096:     9.5 (q 0.990) |     9.5 (q 0.990) |     0.6     3.3     0.6     6.4     9.1     9.5     9.5
+   lag  32768:     7.8 (q 0.990) |     7.8 (q 0.990) |     0.6     3.3     0.6     5.0     7.4     7.8     7.8
+-- block1000
+   lag      1:     0.1 (q 0.875) |     0.9 (q 0.045) |     0.1    -0.0     0.0    -0.0    -0.0     0.0     0.0
+   lag     64:     5.0 (q 0.975) |     5.0 (q 0.975) |     0.0     2.9     1.5     4.2     4.9     5.0     5.0
+   lag    512:     5.1 (q 0.995) |     5.1 (q 0.995) |     0.3     2.6     1.1     4.4     5.0     5.1     5.1
+   lag   4096:     4.8 (q 0.990) |     4.8 (q 0.990) |     0.3     2.5     0.6     4.2     4.7     4.8     4.8
+   lag  32768:     4.3 (q 0.990) |     4.3 (q 0.990) |     0.3     2.5     0.6     3.4     4.2     4.3     4.3
+-- first half
+   lag      1:     8.3 (q 0.955) |    10.5 (q 0.800) |     4.8    -8.0   -10.5    -7.8    -8.2    -8.2    -8.2
+   lag     64:    11.9 (q 0.975) |    11.9 (q 0.975) |     5.5     3.3    -1.8     6.1    11.1    11.8    11.8
+   lag    512:    15.0 (q 0.990) |    15.0 (q 0.990) |     5.7     3.6     0.5     9.2    14.2    15.0    15.0
+   lag   4096:     7.9 (q 0.990) |     7.9 (q 0.990) |     5.7     3.0     0.4     5.8     7.5     7.9     7.9
+   lag  32768:     6.1 (q 0.990) |     6.4 (q 0.105) |     5.7     3.0     0.4     4.2     5.8     6.1     6.1
+-- second half
+   lag      1:    10.5 (q 0.955) |    11.3 (q 0.445) |    -6.3     9.5     8.7     9.7    10.3    10.4    10.4
+   lag     64:    13.6 (q 0.975) |    13.6 (q 0.975) |    -7.4     4.9     5.2     7.5    12.5    13.5    13.5
+   lag    512:    12.1 (q 0.985) |    12.1 (q 0.985) |    -5.1     2.8     1.3     5.1    11.0    12.1    12.1
+   lag   4096:    10.1 (q 0.990) |    11.1 (q 0.030) |    -5.1     2.4     0.5     4.4     9.4    10.1    10.1
+   lag  32768:     7.9 (q 0.990) |    11.1 (q 0.030) |    -5.1     2.4     0.5     3.6     7.3     7.9     7.9
+-- pos<=1000
+   lag      1:     5.2 (q 0.850) |     6.1 (q 0.840) |     0.2    -0.4    -1.6    -2.9    -2.0    -1.8    -1.8
+   lag     64:    15.2 (q 0.975) |    15.2 (q 0.975) |     0.0     5.5     1.9     7.1    13.8    15.1    15.0
+   lag    512:    17.9 (q 0.990) |    17.9 (q 0.990) |     0.7     4.3     1.2     8.7    16.4    17.9    17.9
+   lag   4096:    17.0 (q 0.990) |    17.0 (q 0.990) |     0.7     3.5     0.7     8.6    15.8    17.0    17.0
+   lag  32768:    17.3 (q 0.990) |    17.3 (q 0.990) |     0.7     3.5     0.7     9.0    16.1    17.3    17.3
+-- pos>1000
+   lag      1:    13.0 (q 0.915) |    13.0 (q 0.915) |    -0.8     3.5     6.6    10.8     9.9     9.0     9.0
+   lag     64:     9.2 (q 0.975) |     9.2 (q 0.975) |     0.0     2.2     3.6     7.4     9.0     9.2     9.2
+   lag    512:     8.3 (q 0.990) |     8.3 (q 0.990) |    -0.7     2.1     0.4     5.1     7.9     8.3     8.3
+   lag   4096:     6.0 (q 0.990) |     6.0 (q 0.990) |    -0.7     1.8    -0.0     4.6     5.8     6.0     6.0
+   lag  32768:     4.7 (q 0.990) |     4.7 (q 0.990) |    -0.7     1.8    -0.0     3.5     4.6     4.7     4.7
+-- drop
+   lag      1:     0.4 (q 0.875) |     2.3 (q 0.045) |     0.2    -0.1     0.1    -0.1    -0.0     0.0     0.0
+   lag     64:    24.0 (q 0.975) |    24.4 (q 0.030) |   -22.8     2.4     5.7    15.8    22.1    23.9    23.8
+   lag    512:    26.3 (q 0.995) |    26.3 (q 0.995) |   -17.7    -0.3     6.2    17.7    24.2    26.3    26.3
+   lag   4096:    13.5 (q 0.995) |    22.2 (q 0.030) |   -17.6    -8.2    -0.3     7.0    12.3    13.5    13.5
+   lag  32768:     8.2 (q 0.995) |    22.2 (q 0.030) |   -17.6    -8.2    -1.0     4.0     7.4     8.1     8.2
+-- unweighted
+   lag      1:     2.9 (q 0.850) |    15.2 (q 0.420) |     6.6     9.7    -1.1    -0.8    -0.0    -0.9    -0.9
+   lag     64:    20.9 (q 0.975) |    20.9 (q 0.975) |    -3.6     7.4    -1.6     7.0    18.3    20.5    20.5
+   lag    512:    29.7 (q 0.985) |    29.7 (q 0.985) |    -3.4     4.6    -0.6    12.7    27.1    29.7    29.7
+   lag   4096:    24.1 (q 0.985) |    24.1 (q 0.985) |    -3.4     4.4    -0.4    12.9    22.6    24.1    24.1
+   lag  32768:    20.4 (q 0.990) |    20.4 (q 0.990) |    -3.4     4.4    -0.4    10.6    19.2    20.4    20.4
+
+== 1. data support (non-boundary frames; n_eff of the path-aggregated weight in the bin)
+-- by q: bin | frames | weight % | paths | n_eff paths | turn-stop share @lag 4096 (weighted)
+      0.000-   0.020 |     97865 |   0.307 |   6853 |     1027 | 0.288
+      0.020-   0.050 |    573782 |   1.824 |   7958 |     1449 | 0.867
+      0.050-   0.100 |    312953 |   1.131 |   5346 |      863 | 0.993
+      0.100-   0.200 |     38079 |   0.134 |   2543 |      600 | 0.989
+      0.200-   0.400 |    235290 |   0.682 |   5965 |     1368 | 0.998
+      0.400-   0.600 |   2083319 |   6.152 |   8817 |     1171 | 0.999
+      0.600-   0.800 |    480694 |   1.577 |   2097 |      367 | 0.977
+      0.800-   0.850 |   2029670 |  13.901 |   1687 |      126 | 0.648
+      0.850-   0.900 |   3693975 |  15.208 |   2949 |      376 | 0.828
+      0.900-   0.950 |  17607123 |  55.329 |   7471 |     1311 | 0.816
+      0.950-   0.980 |   1185920 |   3.415 |   4865 |      635 | 0.585
+      0.980-   1.000 |    127016 |   0.340 |   2802 |      489 | 0.198
+-- by lambda: bin | frames | weight % | paths | n_eff paths | turn-stop share @lag 4096 (weighted)
+      1.181-   2.306 |    841505 |   2.786 |   9370 |     1665 | 0.859
+      2.306-   3.432 |    394866 |   1.234 |  10821 |     2636 | 0.997
+      3.432-   4.557 |   1184213 |   3.375 |   8832 |     1039 | 1.000
+      4.557-   5.682 |   1562702 |   4.800 |   4566 |      934 | 0.933
+      5.682-   6.807 |   3627480 |  12.208 |   2976 |      249 | 0.687
+      6.807-   7.933 |   2372125 |  13.470 |   2791 |      160 | 0.656
+      7.933-   9.058 |   3001520 |  11.904 |   3442 |      616 | 0.853
+      9.058-  10.183 |   4358017 |  15.385 |   4353 |      476 | 0.796
+     10.183-  11.309 |   3537653 |  11.934 |   5174 |      944 | 0.857
+     11.309-  12.434 |   3625792 |  11.097 |   6458 |      906 | 0.890
+     12.434-  13.559 |   3067323 |   9.291 |   6053 |      955 | 0.834
+     13.559-  14.684 |    835558 |   2.347 |   5107 |      439 | 0.483
+
+== 3. z against lambda (cumulative over lambda bins; lag, grouping): z at lambda = bin upper edges
+   lambda:    2.53    3.88    5.23    6.58    7.93    9.28   10.63   11.98   13.33   14.68
+   path      lag      1:    -0.1     0.1    -0.0     0.2     0.0    -0.1     0.1     0.3    -0.2     0.0 | max|z| 1.2 at lambda 1.63
+   path      lag     64:     5.7     4.6     6.8     2.9     4.5     8.6    12.4    15.1    17.1    18.0 | max|z| 18.0 at lambda 14.46
+   path      lag    512:     5.2     4.1     4.7     0.4     3.3     8.4    13.2    16.0    18.0    19.2 | max|z| 19.2 at lambda 14.68
+   path      lag   4096:     5.1     4.1     3.7    -0.6     2.3     5.5     8.4     9.9    11.0    11.6 | max|z| 11.6 at lambda 14.68
+   path      lag  32768:     5.1     4.1     3.7    -0.4     2.7     4.6     6.6     7.6     8.3     8.8 | max|z| 8.9 at lambda 1.41
+   block100  lag      1:    -0.0     0.1    -0.0     0.1     0.0    -0.1     0.0     0.2    -0.1     0.0 | max|z| 0.9 at lambda 1.63
+   block100  lag     64:     4.6     4.4     5.5     2.3     3.8     6.7     9.0    10.3    11.1    11.5 | max|z| 11.5 at lambda 14.68
+   block100  lag    512:     4.4     3.9     4.3     0.4     2.9     7.2    10.1    11.4    12.1    12.5 | max|z| 12.5 at lambda 14.68
+   block100  lag   4096:     4.4     3.9     3.5    -0.6     2.3     5.2     7.5     8.5     9.1     9.5 | max|z| 9.5 at lambda 14.68
+   block100  lag  32768:     4.4     3.9     3.5    -0.4     2.6     4.5     6.1     6.9     7.5     7.8 | max|z| 7.8 at lambda 14.68
+
+== 4. paths carrying the Z of q > 0.85 (window starts with q >= 0.85; grouping = path)
+-- lag 4096: Z(window) 39.37, sigma(path) 2.804 (z 14.0), participation ratio of the squared contributions 6.4 of 8345 paths
+   pnr 45987: contribution -1.699 (-4.3% of Z, 36.7% of the variance), 8142 window starts, mean weight 2.6, longest piece 4213 frames, lambda 4.68..7.51
+   pnr 39728: contribution 1.033 (2.6% of Z, 13.6% of the variance), 5243 window starts, mean weight 8.57, longest piece 4779 frames, lambda 7.35..14.69
+   pnr 35165: contribution 0.373 (0.9% of Z, 1.8% of the variance), 8787 window starts, mean weight 4.99, longest piece 5070 frames, lambda 7.44..14.73
+   pnr 56408: contribution -0.345 (-0.9% of Z, 1.5% of the variance), 902 window starts, mean weight 13, longest piece 1241 frames, lambda 6.80..9.60
+   pnr 27186: contribution 0.3329 (0.8% of Z, 1.4% of the variance), 8030 window starts, mean weight 2.82, longest piece 16433 frames, lambda 7.61..14.99
+   pnr 40422: contribution 0.2969 (0.8% of Z, 1.1% of the variance), 1288 window starts, mean weight 7.81, longest piece 4144 frames, lambda 7.54..14.85
+-- lag 32768: Z(window) 5.285, sigma(path) 0.3997 (z 13.2), participation ratio of the squared contributions 9.7 of 8345 paths
+   pnr 45987: contribution -0.2124 (-4.0% of Z, 28.2% of the variance), 8142 window starts, mean weight 2.6, longest piece 4213 frames, lambda 4.68..7.51
+   pnr 39728: contribution 0.1415 (2.7% of Z, 12.5% of the variance), 5243 window starts, mean weight 8.57, longest piece 4779 frames, lambda 7.35..14.69
+   pnr 41863: contribution -0.09246 (-1.7% of Z, 5.3% of the variance), 10965 window starts, mean weight 8.03, longest piece 22106 frames, lambda 7.78..11.59
+   pnr 27186: contribution 0.07984 (1.5% of Z, 4.0% of the variance), 8030 window starts, mean weight 2.82, longest piece 16433 frames, lambda 7.61..14.99
+   pnr 28398: contribution 0.06591 (1.2% of Z, 2.7% of the variance), 23348 window starts, mean weight 1.95, longest piece 11730 frames, lambda 8.47..14.92
+   pnr 37118: contribution 0.0598 (1.1% of Z, 2.2% of the variance), 2321 window starts, mean weight 6.62, longest piece 11023 frames, lambda 7.49..14.89
+
+# done in 117 s; wrote /local/data/data-fbsskr/Students/elias/optimalrcs/examples/figures_by_potential/trypsin_benz/infretis_staple/infstapletis/zq_diag.json and zq_diag.png
