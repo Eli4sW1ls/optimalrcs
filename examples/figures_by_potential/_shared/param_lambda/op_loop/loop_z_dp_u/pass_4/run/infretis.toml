@@ -1,0 +1,131 @@
+[runner]
+workers = 4
+files = []
+wmdrun = [
+    "not used",
+    "not used",
+    "not used",
+    "not used",
+    "not used",
+    "not used",
+    "not used",
+    "not used",
+]
+
+[simulation]
+interfaces = [
+    0.05,
+    0.06837267690683689,
+    0.09829263719232667,
+    0.161334121130779,
+    0.21442302082100745,
+    0.28583277132692225,
+    0.45459270294181475,
+    0.6331513570316553,
+    0.7859154430010973,
+    0.7965845194938092,
+    0.8043383041166662,
+    0.8149012208815104,
+    0.8307595220819909,
+    0.8445829130594377,
+    0.85,
+]
+steps = 2000
+seed = 4
+load_dir = "load"
+shooting_moves = [
+    "sh",
+    "sh",
+    "sh",
+    "sh",
+    "sh",
+    "sh",
+    "sh",
+    "sh",
+    "sh",
+    "sh",
+    "sh",
+    "sh",
+    "sh",
+    "sh",
+    "sh",
+]
+mode = "staple"
+staple_infinite_swap = true
+
+[simulation.tis_set]
+maxlength = 200000
+allowmaxlength = false
+zero_momentum = false
+n_jumps = 4
+staple = true
+
+[engine]
+class = "ase"
+engine = "ase"
+temperature = 580.2261030200505
+input_path = "."
+timestep = 0.02036101134231345
+subcycles = 1
+integrator = "overdamped_lgv"
+langevin_fixcm = false
+langevin_friction = 0.9822694788464063
+
+[engine.calculator_settings]
+class = "ToytisPotential"
+spec = "sjoelbak_angle:RectangularGridWithAngledBarrierPotential"
+dim = 2
+module = "/local/data/data-fbsskr/Students/elias/optimalrcs/examples/param_lambda/loop/ase_calcs.py"
+
+[engine.calculator_settings.params]
+Lx = 0.3
+angle = 45
+
+[engine.particles]
+mass = [
+    1.0,
+]
+name = [
+    "H",
+]
+pos = [
+    [
+        0.02,
+        0.15,
+    ],
+]
+
+[engine.box]
+periodic = [
+    false,
+    false,
+]
+
+[orderparameter]
+class = "LearnedLambda"
+module = "/local/data/data-fbsskr/Students/elias/optimalrcs/examples/param_lambda/infretis_orderp.py"
+model = "/local/data/data-fbsskr/Students/elias/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_z_dp_u/models/lambda_4.npz"
+
+[[orderparameter.cvs]]
+class = "Position"
+index = [
+    0,
+    0,
+]
+periodic = false
+
+[[orderparameter.cvs]]
+class = "Position"
+index = [
+    0,
+    1,
+]
+periodic = false
+
+[output]
+data_dir = "./"
+screen = 100
+pattern = false
+delete_old = false
+delete_old_all = false
+visual_validation = false

@@ -1,0 +1,25 @@
+{
+ "pass_index": 10,
+ "model": "/local/data/data-fbsskr/Students/elias/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_z_dp_u/models/lambda_10.npz",
+ "interfaces": [
+  0.05,
+  0.10723502445233873,
+  0.1562638131951177,
+  0.21948336027668247,
+  0.32586135401111926,
+  0.47233696015720544,
+  0.6469343990256133,
+  0.7405491676492755,
+  0.7886450854624277,
+  0.7953845907052888,
+  0.8004565087322163,
+  0.8067279887942799,
+  0.838460797011808,
+  0.85
+ ],
+ "ok": true,
+ "fails": [],
+ "source": "pass 10",
+ "verification": [],
+ "written": "2026-11-27 01:48:32"
+}

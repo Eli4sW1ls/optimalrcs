@@ -1,0 +1,130 @@
+{
+ "iterations": [
+  {
+   "cstep": 0,
+   "steps": 200,
+   "interfaces": [
+    0.05,
+    0.0509690532374973,
+    0.0519381064749946,
+    0.05290715971249189,
+    0.85
+   ],
+   "data_file": "./infretis_data_1.txt",
+   "saved_frames": 110696,
+   "saved_frames_total": 110696,
+   "n_reached_b": 0,
+   "wall_seconds": 14.884081602096558,
+   "toml": "infretis_1.toml"
+  },
+  {
+   "cstep": 1,
+   "steps": 200,
+   "interfaces": [
+    0.05,
+    0.055,
+    0.063,
+    0.079,
+    0.136,
+    0.184,
+    0.441,
+    0.446,
+    0.85
+   ],
+   "data_file": "infretis_data_2.txt",
+   "saved_frames": 831053,
+   "saved_frames_total": 941749,
+   "n_reached_b": 0,
+   "wall_seconds": 89.9711709022522,
+   "toml": "infretis_2.toml"
+  },
+  {
+   "cstep": 2,
+   "steps": 200,
+   "interfaces": [
+    0.05,
+    0.057,
+    0.063,
+    0.088,
+    0.156,
+    0.256,
+    0.335,
+    0.411,
+    0.443,
+    0.501,
+    0.541,
+    0.553,
+    0.561,
+    0.563,
+    0.85
+   ],
+   "data_file": "infretis_data_3.txt",
+   "saved_frames": 2814289,
+   "saved_frames_total": 3756038,
+   "n_reached_b": 18,
+   "wall_seconds": 332.10461592674255,
+   "toml": "infretis_3.toml"
+  },
+  {
+   "cstep": 3,
+   "steps": 200,
+   "interfaces": [
+    0.05,
+    0.057,
+    0.073,
+    0.09,
+    0.175,
+    0.296,
+    0.388,
+    0.488,
+    0.537,
+    0.551,
+    0.564,
+    0.578,
+    0.608,
+    0.672,
+    0.85
+   ],
+   "data_file": "infretis_data_4.txt",
+   "saved_frames": 3162559,
+   "saved_frames_total": 6918597,
+   "n_reached_b": 44,
+   "wall_seconds": 389.1904900074005,
+   "toml": "infretis_4.toml"
+  }
+ ],
+ "n_b": 20,
+ "reached_b": true,
+ "zero_paths": {
+  "max_op": 0.053876212949989184,
+  "interfaces": [
+   0.05,
+   0.0509690532374973,
+   0.0519381064749946,
+   0.05290715971249189,
+   0.85
+  ]
+ },
+ "final_interfaces": [
+  0.05,
+  0.058,
+  0.075,
+  0.094,
+  0.153,
+  0.262,
+  0.367,
+  0.472,
+  0.531,
+  0.549,
+  0.573,
+  0.85
+ ],
+ "data_files": [
+  "./infretis_data_1.txt",
+  "infretis_data_2.txt",
+  "infretis_data_3.txt",
+  "infretis_data_4.txt"
+ ],
+ "saved_frames": 6918597,
+ "wall_seconds": 827.2709858417511
+}
