@@ -179,6 +179,100 @@ def limit_piece_length(piece, max_length, long_pieces="truncate"):
     return piece[:max_length]
 
 
+def frame_cap(lengths, budget):
+    """Largest integer cap L (>= 2) with sum(min(n, L)) <= budget over the piece lengths n (water-filling: short
+    pieces stay whole, the budget left goes to the long ones). None when every piece fits in the budget."""
+    lengths = np.asarray(lengths, dtype=int)
+    if lengths.sum() <= budget:
+        return None
+    lo, hi = 2, int(lengths.max())
+    while lo < hi:
+        mid = (lo + hi + 1) // 2
+        if np.minimum(lengths, mid).sum() <= budget:
+            lo = mid
+        else:
+            hi = mid - 1
+    return lo
+
+
+def pick_paths(path_ids, n, budget):
+    """Indices of the pieces of the evenly spaced whole paths (in order of first appearance) that fill the budget:
+    the largest number of paths whose pieces together have at most `budget` frames (n[k] frames of piece k)."""
+    ids, first = np.unique(path_ids, return_index=True)
+    ids = ids[np.argsort(first)]
+    pos = {p: j for j, p in enumerate(ids)}
+    path_of = np.array([pos[p] for p in path_ids])
+    per_path = np.bincount(path_of, weights=n, minlength=len(ids))
+
+    def chosen(m):
+        return np.unique(np.round(np.linspace(0, len(ids) - 1, m)).astype(int))
+
+    lo, hi = 1, len(ids)
+    while lo < hi:
+        mid = (lo + hi + 1) // 2
+        if per_path[chosen(mid)].sum() <= budget:
+            lo = mid
+        else:
+            hi = mid - 1
+    keep_paths = np.zeros(len(ids), bool)
+    keep_paths[chosen(lo)] = True
+    return np.flatnonzero(keep_paths[path_of]), int(keep_paths.sum()), len(ids)
+
+
+def window_pieces(cvs, order, time, weights, budget, window="paths", rng=None, n_history=None, history_frames=0,
+                  weight_mode="frame", path_ids=None):
+    """The frame budget of one ensemble: keep every piece, but cut the pieces that are too long down to a window.
+
+    `budget` is the number of frames the ensemble may keep (history frames not counted). Every piece longer than
+    the cap `frame_cap` gives one window of that many consecutive frames, starting at a random frame of the piece
+    ('random') or at its first frame, right after the cut at M ('after'); shorter pieces stay whole, so all paths
+    of the ensemble stay in the data (their frames are correlated, so many short windows carry more than few long
+    ones). The budget left by the integer cap goes to randomly chosen long pieces (one more frame each).
+    A window starting inside a piece gets up to `history_frames` frames before it as history (n_history, weight 0
+    in `tis_data.prepare_data`), taken from the piece itself. `weight_mode`: 'frame' keeps the stored weight per
+    frame (as `max_length` does), 'piece' multiplies it by n / window so that the piece keeps its total weight.
+    `window` 'paths': nothing is cut; instead evenly spaced whole paths (`path_ids`: the path of every piece, a path's
+    forward and mirrored piece go together) are kept, as many as fit in the budget. Then `keep` below is the
+    index array of the pieces kept.
+    Returns (cvs, order, time, weights, n_history, windows, cap, keep); windows[k] is (start, stop, n) of a cut piece
+    (in frames of the piece proper) or None; cap is None when nothing had to be cut; keep is None unless pieces
+    were dropped ('paths'), when all the other outputs are already restricted to it."""
+    n_history = [0] * len(order) if n_history is None else list(n_history)
+    n = np.array([len(o) - h for o, h in zip(order, n_history)], dtype=int)
+    windows = [None] * len(order)
+    if window == "paths":
+        if path_ids is None:
+            raise ValueError("window 'paths' needs path_ids")
+        if n.sum() <= budget:
+            return cvs, order, time, weights, n_history, windows, None, None
+        keep, n_kept, n_all = pick_paths(path_ids, n, budget)
+        return ([cvs[k] for k in keep], [order[k] for k in keep], [time[k] for k in keep], [weights[k] for k in keep],
+                [n_history[k] for k in keep], [None] * len(keep), n_kept, keep)
+    cap = frame_cap(n, budget)
+    if cap is None:
+        return cvs, order, time, weights, n_history, windows, None, None
+    if window not in ("random", "after"):
+        raise ValueError("window is 'paths', 'random' or 'after'")
+    rng = np.random.default_rng(0) if rng is None else rng
+    caps = np.full(len(n), cap)
+    long_ = np.flatnonzero(n > cap)
+    spare = int(budget - np.minimum(n, cap).sum())
+    if spare > 0 and len(long_):
+        caps[rng.choice(long_, size=min(spare, len(long_)), replace=False)] += 1
+    cvs, order, time, weights = list(cvs), list(order), list(time), list(weights)
+    for k in np.flatnonzero(n > caps):
+        L, nh = int(caps[k]), n_history[k]
+        s = 0 if window == "after" else int(rng.integers(0, n[k] - L + 1))
+        lo = max(0, nh + s - int(history_frames))
+        hi = nh + s + L
+        cvs[k], order[k], time[k] = cvs[k][lo:hi].copy(), order[k][lo:hi].copy(), time[k][lo:hi].copy()
+        n_history[k] = nh + s - lo
+        windows[k] = (s, s + L, int(n[k]))
+        if weight_mode == "piece":
+            weights[k] = weights[k] * n[k] / L
+    return cvs, order, time, weights, n_history, windows, cap, None
+
+
 def load_order_file(order_file, path_info, lambda_m=None, burn_in=0, max_paths=None, rng=None,
                     burn_in_fraction=0.0, thin=1, reversed_pieces=False, odd_columns=(), fd_velocity=False, fd_columns=(1,),
                     max_length=None, long_pieces="truncate"):
@@ -316,7 +410,8 @@ def load_order_file(order_file, path_info, lambda_m=None, burn_in=0, max_paths=N
 def load_tis_data(tis_dir, interfaces, ensemble_glob="0[0-9][0-9]", include_zero_minus=False,
                   weighting="rejections", cut_at_m=True, burn_in=0, paths_per_ensemble=None,
                   seed=None, burn_in_fraction=0.4, thin=1, reversed_pieces=False, odd_columns=(), fd_velocity=False, fd_columns=(1,),
-                  max_length=None, long_pieces="truncate"):
+                  max_length=None, long_pieces="truncate", total_frames=None, window="paths", window_seed=0,
+                  window_weights="frame"):
     """Load per-path time/order/CV arrays and MC weights from all ensemble folders in `tis_dir`.
 
     Ensemble folders are expected at `tis_dir/<ensemble_glob>/`, each with an
@@ -330,7 +425,10 @@ def load_tis_data(tis_dir, interfaces, ensemble_glob="0[0-9][0-9]", include_zero
     (no random draw: `seed` is ignored). With `reversed_pieces` (needs `cut_at_m`), every path also
     gives its piece before the last M crossing, read backwards, with the
     `order.txt` columns in `odd_columns` (velocities) negated. With `max_length`,
-    pieces longer than that many frames are truncated or discarded (`long_pieces`).
+    pieces longer than that many frames are truncated or discarded (`long_pieces`). With `total_frames`, every
+    ensemble keeps at most total_frames / (number of ensembles read) frames (see `window_pieces`): with `window`
+    'paths' (default) as many evenly spaced whole paths as fit, with 'random' or 'after' all its paths, the
+    pieces that are too long cut down to a window of consecutive frames (`window_seed`, `window_weights`).
 
     Returns per-piece cvs, order, time, weight and path-number lists; the path
     numbers are unique over all ensembles and shared by the two pieces of a path.
@@ -347,6 +445,9 @@ def load_tis_data(tis_dir, interfaces, ensemble_glob="0[0-9][0-9]", include_zero
     folders = sorted(glob.glob(os.path.join(tis_dir, ensemble_glob)))
     n_ensembles = len(folders)
     print(f"Found {n_ensembles} ensemble folders in {tis_dir}")
+    rng = np.random.default_rng(window_seed)
+    n_used = sum(1 for f in folders if (int(os.path.basename(f)) > 0 or include_zero_minus)
+                 and os.path.isfile(os.path.join(f, "order.txt")))
     for folder in folders:
         k = int(os.path.basename(folder))
         if k == 0 and not include_zero_minus:
@@ -362,6 +463,12 @@ def load_tis_data(tis_dir, interfaces, ensemble_glob="0[0-9][0-9]", include_zero
             thin=thin, max_paths=paths_per_ensemble, reversed_pieces=reversed_pieces,
             odd_columns=odd_columns, fd_velocity=fd_velocity, fd_columns=fd_columns,
             max_length=max_length, long_pieces=long_pieces)
+        cap = None
+        if total_frames is not None:
+            c, o, t, w, _, _, cap, keep = window_pieces(c, o, t, w, total_frames // max(n_used, 1), window, rng,
+                                                        weight_mode=window_weights, path_ids=pth)
+            if keep is not None:
+                pth = [pth[k] for k in keep]
         offset = paths[-1] + 1 if paths else 0
         cvs += c
         order += o
@@ -378,6 +485,9 @@ def load_tis_data(tis_dir, interfaces, ensemble_glob="0[0-9][0-9]", include_zero
         if n_long:
             msg += (f" ({n_long} pieces longer than {max_length} frames "
                     f"{'discarded' if long_pieces == 'discard' else 'truncated'})")
+        if cap is not None:
+            msg += (f" (frame budget: {cap} whole paths kept)" if window == "paths"
+                    else f" (frame budget: pieces cut to windows of {cap} frames)")
         print(msg)
     print(f"Loaded {len(cvs)} {'pieces' if reversed_pieces else 'paths'}, "
           f"{sum(len(p) for p in order)} frames total")
@@ -569,6 +679,23 @@ def add_data_arguments(parser):
                         help="keep at most N accepted paths per ensemble, evenly spaced over "
                              "the chain after the burn-in (after --thin), with their weights "
                              "(default: all)")
+    parser.add_argument("--total-frames", type=int, metavar="N",
+                        help="frame budget: keep at most N frames in total, N / (number of ensembles) per ensemble "
+                             "(so every ensemble has the same number of frames), see --window for how. History "
+                             "frames (--history-frames) come on top (default: no budget)")
+    parser.add_argument("--window", choices=["paths", "random", "after"], default="paths",
+                        help="--total-frames: 'paths' (default) keeps as many evenly spaced whole paths per "
+                             "ensemble as fit in the budget; 'random' and 'after' keep all the paths but cut the "
+                             "pieces that are too long down to a window of consecutive frames (the same length for "
+                             "all, short pieces stay whole), starting at a random frame of the piece or right after "
+                             "the cut at M. On the 1D Langevin well, whole paths fitted better than windows at equal "
+                             "frames, and 'after' windows never reach A or B")
+    parser.add_argument("--window-seed", type=int, default=0, metavar="S",
+                        help="--total-frames: seed of the random windows (default 0)")
+    parser.add_argument("--window-weights", choices=["frame", "piece"], default="frame",
+                        help="--total-frames: 'frame' (default) keeps the path weight of every frame, 'piece' "
+                             "multiplies the weight of a cut piece by its length / window so that every piece "
+                             "keeps its total weight")
     parser.add_argument("--seed", type=int,
                         help="ignored: paths are no longer drawn at random (see --thin)")
     parser.add_argument("--n-cvs", type=int, metavar="N",
@@ -628,7 +755,9 @@ def prepare_data(args):
                   burn_in_fraction=getattr(args, "burn_in_fraction", 0.4), thin=getattr(args, "thin", 1),
                   paths_per_ensemble=args.paths_per_ensemble, reversed_pieces=args.reversed,
                   fd_velocity=args.fd_velocity, max_length=getattr(args, "max_length", None),
-                  long_pieces=getattr(args, "long_pieces", "truncate"))
+                  long_pieces=getattr(args, "long_pieces", "truncate"),
+                  total_frames=getattr(args, "total_frames", None), window=getattr(args, "window", "paths"),
+                  window_seed=getattr(args, "window_seed", 0), window_weights=getattr(args, "window_weights", "frame"))
     if infretis_run:
         # infretis order.txt: time, order parameter, then any extra CVs of the order parameter class. Nothing
         # changes sign under time reversal unless --odd-columns names the columns that do (velocities).

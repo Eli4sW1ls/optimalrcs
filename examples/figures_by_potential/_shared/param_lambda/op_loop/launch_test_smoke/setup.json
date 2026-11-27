@@ -1,0 +1,34 @@
+{
+ "source": "loop_z_dp",
+ "fit_config": "loop_z_dp_u",
+ "model": "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_z_dp/models/lambda_1.npz",
+ "interfaces": [
+  0.05,
+  0.06855493196623742,
+  0.10481584571339175,
+  0.18126423205911524,
+  0.3163794631675199,
+  0.6456639632607306,
+  0.85
+ ],
+ "infinit_passes": [
+  0,
+  1,
+  2,
+  3,
+  4
+ ],
+ "eval_passes": [
+  12,
+  13,
+  14,
+  15,
+  16,
+  17
+ ],
+ "cycles": 30,
+ "seeds": [
+  1
+ ],
+ "written": "2026-11-27 13:33:57"
+}

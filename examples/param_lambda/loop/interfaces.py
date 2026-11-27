@@ -1627,10 +1627,11 @@ def refill(model, paths, placed, gate, mode, R=10.0, n_cand=40, steps=None, max_
 
 def health_table(res, pred_median=None):
     """Markdown table of the per-interface and per-ensemble checks."""
-    lines = ['| k | lambda_k | up / down crossings | skip up | skip down | gap/delta | dist A | dist B | note |',
-             '|---|---|---|---|---|---|---|---|---|']
+    lines = ['| k | lambda_k | up / down crossings | skip up | skip down | skip2 up | skip2 down | gap/delta | dist A | dist B | note |',
+             '|---|---|---|---|---|---|---|---|---|---|---|']
     for r in res['rows']:
         lines.append(f'| {r["k"]} | {r["lam"]:.4f} | {r["n_up"]} / {r["n_dn"]} | {_f(r["skip_up"])} | {_f(r["skip_dn"])} | '
+                     f'{_f(r.get("skip2_up", np.nan))} | {_f(r.get("skip2_dn", np.nan))} | '
                      f'{_f(r["gap_up"], 2)} | {_f(r.get("dist_a", np.nan), 1)} | {_f(r.get("dist_b", np.nan), 1)} | '
                      f'{"unverified" if r["unverified"] else ""} |')
     lines += ['', '| ensemble | window (L, M, R) | excursions | P(empty region) | 5% frames inside |',

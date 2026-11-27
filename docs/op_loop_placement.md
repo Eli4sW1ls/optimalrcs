@@ -1,9 +1,12 @@
-# The loop and its interface placement, step by step (state of 2026-11-24)
+# The loop and its interface placement, step by step (state of 2026-11-27)
 
 This note lists every step of the order-parameter loop and every criterion that places, keeps or rejects an
 interface, with the exact quantity that is measured, its limit, the config key and the code that does it. It
 describes the code in `examples/param_lambda/loop/` as it is now, with the values of `configs/loop_z_dp.toml`
-(Brownian Z potential, dp placement). Overview and results of all systems: [`op_loop_report.md`](op_loop_report.md).
+(Brownian Z potential, dp placement). Changes of 2026-11-26/27 (separate skip limits for one and two skipped
+interfaces, a free gap multiple for the placement, the uniformity rule of the evening step, the reasons for refused
+splits in the log) are marked **[11-27]**; the settings that differ in `configs/loop_z_dp_u.toml` are collected in
+2.7. Where path length enters the placement, and where it does not: 2.8. Overview and results of all systems: [`op_loop_report.md`](op_loop_report.md).
 
 Notation:
 - λ: the learned order parameter. λ_A and λ_B are the state boundaries (fixed: λ equals the state CV y in the states).
@@ -30,8 +33,8 @@ Notation:
 | 7. Sampling pass | infretis StapleTIS, infinite swap, λ frozen during the pass | 1000 cycles, 4 workers | `passes.py: run_and_check` |
 | 8. Re-check | the gate of Part 2.4 on the pass's own accepted paths, plus accepted paths with an empty shooting region | | `passes.py: run_and_check` |
 | 9. Pause | figure of the pass, then wait for `python -m loop.confirm loop_z_dp continue\|stop` | `[run] confirm_passes`, `pass_figures` | `passes.py: _confirm` |
-| 10. Stop test | all of: λ stable, the previous λ predicts the new paths, interfaces moved < 2%, re-check passes, OOD ≤ 1% and not rising; otherwise another pass, at most 7 | `[stop]` | `passes.py: stop_test` |
-| 11. Freeze | λ fixed; interfaces re-placed and verified, see Part 3 | 2 rounds of 2000 cycles | `passes.py: freeze` |
+| 10. Stop test | all five criteria of 3.1 hold (from pass 2 on); otherwise another pass, at most `max_passes` | `[stop]` (loop_z_dp: 7 passes; loop_z_dp_u: 10 passes, `interface_tol` 10%) | `passes.py: stop_test` |
+| 11. Freeze | λ fixed; interfaces re-placed and verified, see Part 3 | loop_z_dp: 2 rounds of 2000 cycles; loop_z_dp_u: 3 rounds of 3000 | `passes.py: freeze` |
 | 12. Production | StapleTIS run with the frozen λ, interfaces and seeds; P_cross and rate from inftools iSTAR | 20 000 cycles | `controller.py: run_production`, `rates.py` |
 
 Steps 0–4 and 6–12 are described in more detail in [`op_loop_report.md`](op_loop_report.md), section "The method".
@@ -116,12 +119,20 @@ costs as much as one with half of it.
 
 **Hard limits on a pair (i → j).** A forbidden pair is never used. All limits use the placement margin (2.5).
 - **skip up:** of the up-crossings of λ_i, the weighted fraction whose next frame lands at or past λ_j must be
-  ≤ eps / 1.25 = 0.8%. Applied only where λ_i has ≥ 100 up-crossings.
-- **skip down:** of the down-crossings of λ_j, the fraction whose next frame lands below λ_i must be ≤ 0.8%, where
-  ≥ 100 down-crossings exist.
-- **gap:** λ_j − λ_i ≥ c × 1.25 × δ_i. δ_i is the 95% quantile of |Δλ| over the steps that cross λ_i.
+  ≤ `skip_eps` / `place_margin` (default `eps` / 1.25 = 0.8%; loop_z_dp_u: 5% / 1.5 = 3.3%). Applied only where λ_i
+  has ≥ 100 up-crossings.
+- **skip down:** of the down-crossings of λ_j, the fraction whose next frame lands below λ_i must be within the same
+  limit, where ≥ 100 down-crossings exist.
+- **[11-27] two skipped:** a window (λ_i, λ_k, λ_j) is banned when a step that crosses λ_i upward lands at or past
+  λ_j, or one that crosses λ_j downward lands below λ_i, in more than `skip2_eps` / `place_margin` of the crossings
+  (loop_z_dp_u: 1% / 1.5 = 0.67%; ≥ 100 crossings). This is the same quantity as the gate's `skip2_up` / `skip2_dn`
+  (2.5). It is applied as a window ban, so the dp must route around it.
+- **gap:** λ_j − λ_i ≥ `place_c` × δ_i if `place_c` is set, otherwise c × `place_margin` × δ_i (loop_z_dp: 1.25 × 1 =
+  1.25; loop_z_dp_u: 1.5 × 0.6 = 0.9). δ_i is the 95% quantile of |Δλ| over the steps that cross λ_i.
   - It is waived where λ_i has ≥ 100 up-crossings (`gap_if_unmeasured = true`): there the measured skip rate
     decides. The gap rule is only a proxy for the skip rate where it can't be measured.
+  - **[11-27]** `place_gap_always = true` keeps the gap rule in the placement even where the skip rate is measured.
+    The re-check (2.5) keeps its waiver either way.
 - **distance from A** (first pair, A → λ_j): the 5% quantile of (y − λ_A) at the first frames past λ_j, divided
   by σ_s, ≥ n_a × 1.25 = 3.75 RMS steps.
 - **distance from B** (last pair, λ_i → B): the 5% quantile of (λ_B − y) at the first frames below λ_i ≥ 3.75 RMS
@@ -186,6 +197,16 @@ costs as much as one with half of it.
     pair was given up if that one didn't gain enough.
   - `split_gain` is now 0.15 in loop_z_dp, was 0.3. In the intermediate basin each split shortens the region by only
     15–30%, but four of them together take it from ~12 000 to ~2 000 frames (Part 4).
+- **[11-27] `split_rule = "uniform"`** replaces the `split_gain` test. A candidate's score is the variance over all
+  ensembles of ln(region frames) after the split (windows without staple paths are left out, at least two windows
+  needed). The best-scoring candidate that passes both gates is taken if its variance is below the current one,
+  however small the gain. A split that leaves two long windows instead of one raises the variance and is refused. The
+  evening step keeps going (`even_max_moves`, default 12) while an ensemble stays above `long_ratio` × typical, so
+  several splits can follow each other. The ensembles tried, the merge rule and the candidate positions are as in
+  `"gain"`. With `split_rule = "gain"` (default) nothing changes.
+- **[11-27] Log of a skip.** Each split or skip line shows the frames before and after (and, for `"uniform"`, the
+  variance before and after). A skip also lists up to three improving candidates that the gate refused, with the check
+  that failed (e.g. `gap at 0.3123`), or "no candidate improves".
 - **Merge** the shortest ensemble if its region < typical / `long_ratio`: remove its middle interface, if
   - the merged pair keeps p ≥ `merge_p_min` (now **0.2**; the default target_p / 3 = 0.1 let three merges
     in the first freeze drop pairs to p ≈ 0.11), and
@@ -211,17 +232,19 @@ At most 3 sweeps over all interfaces; it stops early when a sweep moves nothing.
 ### 2.5 The gate (`check`, local form `_local_check`)
 
 The gate is the definition of "this interface set can be sampled". It is applied:
-- to the stored paths during placement, with stricter limits: eps / 1.25, c × 1.25, n_a × 1.25, n_sh × 1.25,
-  max_empty / 1.25 (`place_margin`). This margin is the hysteresis: a set that passes on the pool should still pass
-  on the next pass's own paths;
+- to the stored paths during placement, with stricter limits: eps, skip_eps, skip2_eps and max_empty divided by
+  `place_margin`; c, n_a and n_sh multiplied by it (`_place_limits`; `place_c`, if set, replaces c × margin as is). This
+  margin is the hysteresis: a set that passes on the pool should still pass on the next pass's own paths;
 - to the pass's own paths after each pass, the re-check, with the bare limits;
 - to the verification runs of the freeze, also with the bare limits.
 
 | Check | Quantity | Fails if | Default (loop_z_dp) |
 |---|---|---|---|
-| `skip_up` (per interface k) | weighted fraction of up-crossings of λ_k whose next frame is at or past λ_{k+1} | > `eps`, with ≥ 100 up-crossings | eps = 0.01 |
-| `skip_dn` (per interface k) | the same for down-crossings landing below λ_{k−1} | > `eps`, with ≥ 100 down-crossings | 0.01 |
-| `gap` (per interface k) | (λ_{k+1} − λ_k) / δ_k, δ_k = 95% quantile of \|Δλ\| on crossing steps of λ_k (borrowed from the nearest interface with crossings if λ_k has none) | < `c`, and not waived (waived with ≥ 100 up-crossings) | c = 1 |
+| `skip_up` (per interface k) | weighted fraction of up-crossings of λ_k whose next frame is at or past λ_{k+1} | > `skip_eps` (default `eps`), with ≥ 100 up-crossings | 0.01 (loop_z_dp_u: 0.05) |
+| `skip_dn` (per interface k) | the same for down-crossings landing below λ_{k−1} | > `skip_eps`, with ≥ 100 down-crossings | 0.01 (0.05) |
+| `skip2_up` (per interface k) **[11-27]** | fraction of up-crossings of λ_k whose next frame is at or past λ_{k+2}: two interfaces skipped in one step | > `skip2_eps` (default `eps`), with ≥ 100 up-crossings | 0.01 (0.01) |
+| `skip2_dn` (per interface k) **[11-27]** | the same for down-crossings landing below λ_{k−2} | > `skip2_eps`, with ≥ 100 down-crossings | 0.01 (0.01) |
+| `gap` (per interface k) | (λ_{k+1} − λ_k) / δ_k, δ_k = 95% quantile of \|Δλ\| on crossing steps of λ_k (borrowed from the nearest interface with crossings if λ_k has none) | < `c`, and not waived (waived with ≥ 100 up-crossings) | c = 1 (loop_z_dp_u: 0.6) |
 | `dist_a` (first interface) | 5% quantile of (y − λ_A) at the first frames past λ_1, in RMS steps σ_s | < `n_a` | 3 |
 | `dist_b` (last interior interface) | 5% quantile of (λ_B − y) at the first frames below λ_{n−2}, in σ_s | < `n_a` | 3 |
 | `empty_region` (per ensemble) | weighted fraction of excursions through the window (L, R) that cross M with no frame strictly inside; a single step from ≤ L to ≥ R counts as empty | > `max_empty`, with ≥ 20 excursions | max_empty = eps = 0.01 |
@@ -229,7 +252,7 @@ The gate is the definition of "this interface set can be sampled". It is applied
 | `single_step_turns` (whole set) | fraction of staple turns, replayed on λ, completed within one step of the extremum | > `eps`, with ≥ 20 turns | 0.01 |
 
 The local form (`_local_check`, used in evening, balance and refill) tests only what moving or inserting interface k
-changes: skip and gap of interfaces k−1, k and k+1; the windows whose middle interface is one of those three;
+changes: skip, skip2 and gap of interfaces k−1, k and k+1; the windows whose middle interface is one of those three;
 optionally the distances from A and B. An interface with no crossings at all fails: an interface is only placed
 where the paths verify it.
 
@@ -238,6 +261,20 @@ shooting move from such a path).
 - Without `max_empty` in the config: one such path anywhere fails.
 - With `max_empty` set: fails only if an ensemble's fraction exceeds it.
 
+**[11-27] Why 5% and 0.6 in loop_z_dp_u.** A skipped interface costs the sampler a little efficiency and infretis
+handles it; two skipped are more delicate and keep the 1% limit. The own-path re-checks of loop_z_dp and loop_z_dp_c
+(rows with ≥ 50 crossings, both directions pooled) give the skip rate by gap in units of δ:
+
+| gap / δ | 0–0.6 | 0.6–0.8 | 0.8–1.0 | 1.0–1.2 | 1.2–1.4 | 1.4–1.7 | 1.7–2 | 2–3 | ≥ 3 |
+|---|---|---|---|---|---|---|---|---|---|
+| rows | 11 | 15 | 20 | 18 | 21 | 21 | 16 | 50 | 126 |
+| skip rate | 1.3% | 1.8% | 1.4% | 1.1% | 0.13% | 0.11% | 0.05% | 0.05% | 0.02% |
+
+Below 1.2 δ the skip rate is 1.1–1.8%, above it ≤ 0.13%. With a 5% limit, no skip failure remains in the re-checks of
+loop_z_dp_c (the largest was 3.8%). loop_z_dp still has three above 5% (pass 2: 5.2% and 9.8%; pass 3: 7.2%).
+A loop_z_dp_c pass-1 row at 0.69 δ had 11% on 69 crossings, below the test's 100-crossing threshold. The gap rule
+only matters where crossings are rare.
+
 ### 2.6 Fallback: the plan-and-thin method (`place`, `method = "plan"`)
 
 Used when dp finds no set, or the result fails the gate.
@@ -245,12 +282,12 @@ Used when dp finds no set, or the result fails the gate.
    - D(h) is the per-frame diffusion of h, so each gap takes about the same diffusive time to cross.
    - Pairs more than `max_ratio` (10) apart in crossing-probability ratio are split.
    - In dp mode: `n_interfaces` levels, no growth by path-length budget.
-2. **Thin, forward pass:** walk up from λ_A and drop each planned level that fails skip, gap or distance from A
-   against the last kept one. Then drop the last kept interface while it fails against B.
+2. **Thin, forward pass:** walk up from λ_A and drop each planned level that fails skip (`skip_eps`), gap or distance
+   from A against the last kept one. The rounds of step 3 then also apply the double-skip check. Then drop the last kept interface while it fails against B.
 3. **Thin, rounds:** run the full gate and remove one interface per round from the first failing check:
    - a failing window loses its upper interface;
-   - `skip_up` or `gap`: the next interface goes;
-   - `skip_dn` or `dist_a`: that interface goes;
+   - `skip_up`, `skip2_up` or `gap`: the next interface goes;
+   - `skip_dn`, `skip2_dn` or `dist_a`: that interface goes;
    - `dist_b`: the last interior interface goes;
    - single-step turns: the upper member of the closest pair goes.
 4. **Refill:** a pair whose crossing-probability ratio still exceeds 10 is split at the best of 40 logit-spaced
@@ -263,6 +300,11 @@ Used when dp finds no set, or the result fails the gate.
 | `method` | `"dp"` (Part 2.2–2.4) or `"plan"` (2.6) | dp |
 | `target_p` | crossing probability aimed at per pair | 0.3 |
 | `eps`, `c`, `n_a`, `n_sh` | gate limits (2.5) | 0.01, 1, 3, 2 |
+| `skip_eps`, `skip2_eps` **[11-27]** | gate limits for one and for two skipped interfaces (default `eps`) | not set (= eps) |
+| `place_c` **[11-27]** | placement gap multiple of δ, applied as is (default: c × `place_margin`) | not set |
+| `place_gap_always` **[11-27]** | keep the gap rule in the placement where the skip rate is measured | false |
+| `split_rule` **[11-27]** | evening step: `"gain"` (`split_gain`) or `"uniform"` (lowers the variance of ln region frames) | gain |
+| `even_max_moves` **[11-27]** | evening step: at most this many moves | 12 |
 | `max_empty` | allowed fraction of excursions with an empty shooting region; also switches the re-check of accepted empty paths to a per-ensemble fraction | not set (= eps, strict re-check) |
 | `place_margin` | factor of the stricter placement limits | 1.5 (default 1.25) |
 | `gap_if_unmeasured` | waive the gap rule where the skip rate is measured (≥ 100 crossings) | true |
@@ -280,20 +322,81 @@ Used when dp finds no set, or the result fails the gate.
 | `levels_run` | freeze round 1: the run to calibrate on (sub-directory of the loop directory) | production_refill |
 | `levels_burn_in` | burn-in fraction for the iSTAR analysis of that run | 0.1 |
 
+Settings that differ in `configs/loop_z_dp_u.toml` (inherits loop_z_dp_c, which adds the C hold-out of the student):
+
+| Key | loop_z_dp | loop_z_dp_u |
+|---|---|---|
+| `[run] cycles_per_pass`, `confirm_passes` | 1000, true | 2000, false |
+| `[stop] max_passes`, `interface_tol` | 7, 0.02 | 10, 0.1 |
+| `[teacher] max_iter` | 6000 | 10000 |
+| `[student] epochs`, `holdout_resid` | 24, off | 48, 1.0 |
+| `[interfaces] c` | 1 | 0.6 |
+| `[interfaces] skip_eps`, `skip2_eps` | 0.01, 0.01 | 0.05, 0.01 |
+| `[interfaces] place_gap_always`, `place_c` | not set | false, not set (placement gap 0.9 δ) |
+| `[interfaces] split_rule`, `even_max_moves` | gain (`split_gain` 0.15), 12 | uniform, 12 |
+| `[interfaces] place_margin`, `merge_p_min`, `balance_p_min`, `p_max`, `target_p`, `long_ratio`, `n_sh`, `balance` | 1.5, 0.2, 0.2, 0.9, 0.3, 2, 2, true | same |
+| `[production] verify_rounds`, `verify_cycles` | 2, 2000 | 3, 3000 |
+
+### 2.8 Where path length enters the placement **[11-27]**
+
+Two lengths exist for an ensemble e: the **shooting region** (frames strictly inside the window (λ_{e−2}, λ_e); these
+are the frames a shooting point can be drawn from) and the **whole staple path** (frames from its first to its last
+frame, including the legs outside the window until the turn; this is what a move costs in MD). The placement uses the
+first, not the second.
+
+| Step | Path length used | Where |
+|---|---|---|
+| dp (2.2) | none. The objective is only (ln(p / target_p))². A window is banned if it fails the empty-region or the region-frames test of the gate | `place_dp` |
+| evening (2.3) | the region length per ensemble: unweighted mean over the staple paths cut from the last run's own paths at the trial set's turns. Splits above `long_ratio` × the median; merges below median / `long_ratio`; `"uniform"`: variance of ln region | `even_regions`, `window_frames` |
+| balance (2.4) | the same region length: spread of ln region over the ensembles, plus the p term | `balance_regions` |
+| gate (2.5) | only a lower bound: 5% quantile of frames inside the window ≥ `n_sh`, and the empty-region fraction | `check`, `window_stats` |
+| fallback plan (2.6) | `length_budget` with predicted median path lengths (`natural.predict_lengths`) adds interfaces. Off in the dp fallback (`no_growth`) | `plan_natural` |
+| not used in the loop | the whole staple path length and the predicted acceptance A_len × (1 − NCR) of a shot. Both are computed by `window_profile` and used only by `interfaces.refine_measured`, run separately on finished production runs (`python -m loop.refine_cmd`). Its default objective minimises the predicted variance of ln k per MD step, with L_e = the mean whole staple path length | `refine_measured` |
+
+Consequences:
+- An ensemble whose staple paths are long mostly outside its window (long legs before the turn) is not seen by the
+  evening and balance steps.
+- The per-pass path lengths (`state.json` `lengths`, panel (c) of `pass_<k>/diagnostics.png`) are logged and plotted, not
+  used for a decision.
+- The adaptive pass length (`[run] pass_stop = "paths"`, off in the Z configs) counts accepted paths per ensemble,
+  not frames.
+
 ## Part 3: freeze and production
 
 - **Freeze** (`passes.freeze`, or `python -m loop.freeze_cmd <config> --name <name> --from-freeze` to re-freeze into a
   new directory). λ of the last pass is fixed.
-  - If the last pass's re-check failed, or a re-freeze is forced, it runs up to `verify_rounds` (2) verification rounds.
-    Each round:
+  - If the last pass's re-check failed, or a re-freeze is forced, it runs up to `verify_rounds` (loop_z_dp: 2,
+    loop_z_dp_u: 3) verification rounds. Each round:
     1. re-places the interfaces with Part 2: on the pool in round 1, on the failed run's own paths after that;
-    2. runs `verify_cycles` (2000) cycles with that set;
+    2. runs `verify_cycles` (2000; loop_z_dp_u: 3000) cycles with that set;
     3. re-checks the gate on the run's own paths.
   - The first set that passes is frozen. Its seeds are cut and the production directory is written (not started).
   - If none passes, the freeze is refused (`freeze.json` with `ok = false`).
 - **Production:**
   `run.py loop <config> --production [--production-name <dir>]`: 20 000 cycles StapleTIS, then the inftools iSTAR
   analysis (P_cross, rate, block errors) into `<dir>/rates.json`.
+
+### 3.1 The stop test (`passes.stop_test`, step 10)
+
+Run after every pass from pass 2 on. All five must hold; the log prints `stop test: all criteria met` or
+`continue (reasons)`. When it passes, the loop goes to the freeze, otherwise it continues up to `max_passes` (or
+`max_md_steps`).
+
+| # | Criterion | Limit (`[stop]` key) |
+|---|---|---|
+| 1 | stability: weighted spread of logit m on the slabs of the other model's levels, new on old and old on new, at every resolved level | ≤ `stability`, default 3 × floor = 3 × 0.2² / 3 = 0.04 (floor: the spread of a slab of half-width 0.2 logit when the two models agree) |
+| 2 | prospective SD(Z_q): the previous model on the new pass's paths against the refit | ≤ (1 + `zq_tolerance`) × refit; `zq_tolerance` = 0.2 |
+| 3 | interfaces: same number as in the previous pass, and none moved by more than a fraction of λ_B − λ_A | `interface_tol` = 0.02 (loop_z_dp_u: 0.1) |
+| 4 | the pass's own-path re-check (2.5) passes and no interface is unverified | none |
+| 5 | share of frames outside the training range, over all ensembles | ≤ `ood` = 0.01, and ≤ 1.5 × the previous pass + 1e-4 |
+
+In loop_z_dp and loop_z_dp_c the test never passed (checked on `state.json`, passes 2–7 of both):
+- criterion 3 failed in every pass: the number of interfaces changed in 11 of the 12 transitions, and in the
+  twelfth the largest move was 30% of λ_B − λ_A;
+- criterion 1 failed in every pass: the largest spread was 0.04–0.17 in loop_z_dp (limit 0.04) and 0.17–1.6 in
+  loop_z_dp_c;
+- criterion 4 failed in 4 of 6 passes of loop_z_dp (passes 5 and 6 passed) and in all 6 of loop_z_dp_c;
+- criterion 2 failed in passes 3 and 5 of loop_z_dp and in passes 3, 5 and 7 of loop_z_dp_c; criterion 5 never failed.
 
 ## Part 4: results of loop_z_dp (Brownian Z)
 
@@ -430,3 +533,23 @@ The share of stored frames in the most expensive ensemble drops from 0.28 to 0.1
    - Not yet verified by a run.
 4. **End-pair p** uses the effective state levels. The export's ramps near the states hold h above the committor
    there, so the end pairs' p is overestimated (`state_levels` docstring).
+
+### Added 2026-11-27 (from loop_z_dp_c and the replays of its placements)
+
+5. **The last window of pass 1 cannot be split.** In loop_z_dp_c pass 1 the last window (λ 0.673 → B) had a predicted
+   region of 31 000 frames against ~1 000 elsewhere. The evening step logged `skip 0.6899`: no candidate shortened it
+   by `split_gain`. A replay with `"uniform"` also skipped it (variance 4.78 → 4.45 at best, then refused by the
+   gate). λ₁ cannot resolve the basin; in the old loop the basin interfaces came from pass 2 on, when λ resolved it
+   (replay of pass 2: region 27 000 → 2 300 frames by one split near 0.835).
+6. **The gap rule blocks useful splits where crossings are measured** when `place_gap_always = true`. In a replay of
+   the old pass 7 (gap 0.9 δ), three improving splits were refused, all by `gap`: two next to an interface just
+   inserted (0.004 apart), and 15 candidates between 0.19 and 0.31, because δ at 0.3123 is large on the barrier flank.
+   `loop_z_dp_u` has `place_gap_always = false` for this reason.
+7. **Measured levels failed in pass 1** of loop_z_dp_c: `KeyError: 'start_intf'` while reading pass 0, so the model's
+   levels were used (the log says so). Pass 0 is a RETIS-mode infinit run without the staple columns. Not investigated
+   whether the old loop had the same.
+8. **The C hold-out is inactive in the first passes.** Held fraction of the labels at 1.0 logit, with each pass's own
+   teacher labels (old pool): 0.02% (pass 1), 0.05% (2), 14% (4), 24% (7), because early labels have a small logit
+   spread (SD 1.2 in pass 1, 3.7 in pass 7). The threshold is absolute.
+9. **The placement sees the region, not the whole staple path** (2.8): no term for the MD cost of a move or for the
+   acceptance outside `refine_measured`.

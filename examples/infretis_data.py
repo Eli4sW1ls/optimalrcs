@@ -316,7 +316,8 @@ def load_infretis_data(sim_dir, include_zero_minus=False, weighting=None, cut_at
                        burn_in_fraction=0.4, thin=1, paths_per_ensemble=None, reversed_pieces=False,
                        odd_columns=(), fd_velocity=False, fd_columns=(1,), max_length=None,
                        long_pieces="truncate", h5_file=None, data_file=None, load_dir=None, toml_file=None,
-                       with_info=False, bb_weight_fix="auto", history_frames=1):
+                       with_info=False, bb_weight_fix="auto", history_frames=1, total_frames=None, window="paths",
+                       window_seed=0, window_weights="frame"):
     """Per-piece cvs, order, time, weight and path-number lists from an infretis run (see the module doc).
 
     The options are those of `tis_data.load_tis_data`. Burn-in and thinning act per ensemble on the rows of
@@ -347,8 +348,19 @@ def load_infretis_data(sim_dir, include_zero_minus=False, weighting=None, cut_at
     of the piece's first frames a real past instead of a padded one. They are NOT data: `info[k]['n_history']`
     counts them at the start of piece k (`with_info`), and `tis_data.prepare_data` gives them path weight 0 (no
     transition starts there, no stopped-metric window starts there) and never counts them as A or B. Their time
-    is negative (the piece's first real frame keeps time 0 / its frame index)."""
-    from tis_data import first_frame_past_m, last_frame_before_m, limit_piece_length
+    is negative (the piece's first real frame keeps time 0 / its frame index).
+
+    `total_frames` (frame budget): every ensemble keeps at most total_frames / (number of ensembles) frames, so all
+    ensembles have the same number of frames. `window` 'paths' (default): as many evenly spaced whole paths
+    (of those left by the burn-in, `thin` and `paths_per_ensemble`) as fit. 'random' / 'after': all of them stay,
+    and the pieces that are too long are cut down to a window of consecutive frames, the same length for all of
+    them (shorter pieces stay whole), starting at a random frame of the piece (seed `window_seed`) or right
+    after the cut. (On the 1D Langevin well whole paths fitted better than windows at equal frames; 'after'
+    windows never reach A or B.) A window that starts inside its piece gets up to `history_frames` frames
+    before it as history. `window_weights` 'frame' keeps the stored weight per frame, 'piece' scales a cut piece's
+    weight by length / window (see `tis_data.window_pieces`). Cut pieces have `info[k]['window']` = (start, stop,
+    length of the piece)."""
+    from tis_data import first_frame_past_m, last_frame_before_m, limit_piece_length, window_pieces
     from inftools.istar.reading import OrderSource
 
     if reversed_pieces and not cut_at_m:
@@ -419,10 +431,12 @@ def load_infretis_data(sim_dir, include_zero_minus=False, weighting=None, cut_at
     elif bb_weight_fix == "on" and settings["mode"] == "staple":
         print("  B-to-B weight bug: no B-to-B path of the last ensemble has path_w = 0.5, nothing changed")
 
+    rng = np.random.default_rng(window_seed)
     for e in ens_list:
         lambda_m = middle_interface(settings, e) if cut_at_m else None
         n_pieces = n_frames = n_no_crossing = n_no_core = n_long = n_badlen = n_hist_frames = 0
         tot_w = 0.0
+        i0 = len(cvs)
         for r in selected[e]:
             op = cache.get(r)
             if op is None:
@@ -496,7 +510,23 @@ def load_infretis_data(sim_dir, include_zero_minus=False, weighting=None, cut_at
                 n_frames += len(piece) - nh
                 n_hist_frames += nh
                 tot_w += float(W[r, e])
-        msg = (f"  ensemble {e:03d}: {len(selected[e])} paths, {n_pieces} pieces, {n_frames} frames, "
+        cap = None
+        if total_frames is not None and len(cvs) > i0:
+            sl = slice(i0, len(cvs))
+            (cvs[sl], order[sl], time[sl], weights[sl], n_h, wins, cap, keep) = window_pieces(
+                cvs[sl], order[sl], time[sl], weights[sl], total_frames // len(ens_list), window, rng,
+                n_history=[i["n_history"] for i in info[sl]], history_frames=history_frames,
+                weight_mode=window_weights, path_ids=paths[sl])
+            if keep is not None:
+                info[sl] = [info[sl][k] for k in keep]
+                paths[sl] = [paths[sl][k] for k in keep]
+            for i, nh, win in zip(info[sl], n_h, wins):
+                i["n_history"], i["window"] = int(nh), win
+            n_pieces = len(cvs) - i0
+            n_hist_frames = sum(i["n_history"] for i in info[sl])
+            n_frames = sum(len(o) for o in order[sl]) - n_hist_frames
+            tot_w = float(sum(weights[sl]))
+        msg = (f"  ensemble {e:03d}: {len(set(paths[i0:]))} paths, {n_pieces} pieces, {n_frames} frames, "
                f"total weight {tot_w:.1f}")
         if lambda_m is not None:
             msg += f", cut at M = {lambda_m}"
@@ -510,6 +540,9 @@ def load_infretis_data(sim_dir, include_zero_minus=False, weighting=None, cut_at
             msg += f" ({n_long} pieces longer than {max_length} frames {'discarded' if long_pieces == 'discard' else 'truncated'})"
         if n_badlen:
             msg += f" ({n_badlen} paths whose order.txt length differs from infretis_data.txt)"
+        if cap is not None:
+            msg += (f" (frame budget: {cap} whole paths kept)" if window == "paths"
+                    else f" (frame budget: pieces cut to windows of {cap} frames)")
         print(msg)
     n_hist_all = sum(i["n_history"] for i in info)
     print(f"Loaded {len(cvs)} pieces, {sum(len(p) for p in order) - n_hist_all} frames total"

@@ -1,0 +1,36 @@
+{
+ "kind": "launch",
+ "mode": "launch",
+ "lambda_a": 0.05,
+ "lambda_b": 0.85,
+ "cv_names": [
+  "y",
+  "x"
+ ],
+ "state_cv": 0,
+ "n_rows": 48,
+ "interfaces": [
+  0.05,
+  0.06855493196623742,
+  0.10481584571339175,
+  0.18126423205911524,
+  0.3163794631675199,
+  0.6456639632607306,
+  0.85
+ ],
+ "lambda_model": "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/loop_z_dp/models/lambda_1.npz",
+ "md_steps": 11094,
+ "workdir": "/mnt/0bf0c339-34bb-4500-a5fb-f3c2a863de29/DATA/OP_improvement/optimalrcs/examples/figures_by_potential/_shared/param_lambda/op_loop/launch_test_smoke",
+ "launch": {
+  "ls": 200,
+  "abs_frac": 0.25,
+  "lmax": 200000,
+  "bins": 20
+ },
+ "pass_index": 113,
+ "n_pieces": 38,
+ "n_frames": 11132,
+ "n_paths": 38,
+ "weighting": "none",
+ "reversed_pieces": false
+}
